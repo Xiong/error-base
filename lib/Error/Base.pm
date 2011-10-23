@@ -56,9 +56,13 @@ sub _trace {
     my $i               ;
     my $bottomed        ;
     
-#~     while ( not $bottomed ) {
-#~         
-#~     };
+    while ( not $bottomed ) {
+        $i++;
+        die 'Error::Base internal error: unpaired args', $!
+            if $i > 99;
+        
+        
+    };
     
     
     
