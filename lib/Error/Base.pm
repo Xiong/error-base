@@ -24,7 +24,7 @@ use version 0.94; our $VERSION = qv('0.0.0');
 ## use
 
 # Alternate uses
-use Devel::Comments '#####', ({ -file => 'debug.log' });
+#~ use Devel::Comments '#####', ({ -file => 'debug.log' });
 
 #============================================================================#
 
@@ -35,6 +35,36 @@ our $QRFALSE      = qr/\A0?\z/            ;
 our $QRTRUE       = qr/\A(?!$QRFALSE)/    ;
 
 #----------------------------------------------------------------------------#
+
+#=========# INTERNAL ROUTINE
+#
+#    @lines      = _trace(               # dump full backtrace
+#                    -start      => 2,       # starting stack frame
+#                    -verbose    => 1,       # even more info
+#                );
+#       
+# Purpose   : Full backtrace dump.
+# Returns   : ____
+# Throws    : ____
+# See also  : ____
+# 
+# ____
+# 
+sub _trace {
+    
+    my @lines           ;
+    my $i               ;
+    my $bottomed        ;
+    
+    while ( not $bottomed ) {
+        
+    };
+    
+    
+    
+    
+    return @lines;
+}; ## _trace
 
 
 #=========# OBJECT METHOD
@@ -145,28 +175,26 @@ sub _unfold_errors {
     return @lines;
 }; ## _unfold_errors
 
-#~     #=========# EXTERNAL FUNCTION
-#~     #
-#~     #   my %args    = paired(@_);     # check for unpaired arguments
-#~     #       
-#~     # Purpose   : ____
-#~     # Parms     : ____
-#~     # Reads     : ____
-#~     # Returns   : ____
-#~     # Writes    : ____
-#~     # Throws    : ____
-#~     # See also  : ____
-#~     # 
-#~     # ____
-#~     #   
-#~     sub paired {
-#~         if ( scalar @_ % 2 ) {  # an odd number modulo 2 is one: true
-#~         my $paired_error    = $err->{_unpaired};
-#~         ##### $paired_error
-#~             crash( $err->{_unpaired} );
-#~         };
-#~         return @_;
-#~     }; ## paired
+#=========# INTERNAL FUNCTION
+#
+#   my %args    = _paired(@_);     # check for unpaired arguments
+#       
+# Purpose   : ____
+# Parms     : ____
+# Reads     : ____
+# Returns   : ____
+# Writes    : ____
+# Throws    : ____
+# See also  : ____
+# 
+# ____
+#   
+sub _paired {
+    if ( scalar @_ % 2 ) {  # an odd number modulo 2 is one: true
+        die 'Error::Base internal error: unpaired args', $!;
+    };
+    return @_;
+}; ## _paired
 
 #=========# CLASS METHOD
 #
