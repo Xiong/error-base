@@ -252,11 +252,27 @@ This document describes Error::Base version 0.0.0
 
 =head1 SYNOPSIS
 
-    # in My::Module
     use Error::Base;
-    my $err_foo         = Error::Base->new();
+    Error::Base->crash('Sanity check failed');  # die() with backtrace
     
-    __END__
+    my $err     = Error::Base->new('Foo');      # construct object first
+        yourcodehere(...);          # ... do other stuff
+    $err->crash;
+    
+    my $err     = Error::Base->new(
+                    'Foo error',                # args start with text
+                    -quiet    => 1,             # no backtrace
+                    grink     => 'grunt',       # store somethings
+                    puppy     => 'dog',         # your keys, no leading dash 
+                );
+    $err->crash;
+    
+    $err->crank;            # get cranky: warn() but don't die()
+    my $err = Error::Base->crank('Me!');   # also a constructor
+    
+    eval{ Error::Base->crash('car', -foo => bar) }; 
+    my $err     = !@ if !@;     # catch and examine the object
+    
 
 =head1 DESCRIPTION
 
@@ -344,6 +360,11 @@ None reported.
 Please report any bugs or feature requests to
 C<bug-path-finder@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
+
+=head1 THANKS
+
+Grateful acknowledgement deserved by AMBRUS for coherent API suggestions. 
+Any failure to grasp them is mine. 
 
 =head1 AUTHOR
 
