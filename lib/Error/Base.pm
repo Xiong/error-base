@@ -56,9 +56,9 @@ sub _trace {
     my $i               ;
     my $bottomed        ;
     
-    while ( not $bottomed ) {
-        
-    };
+#~     while ( not $bottomed ) {
+#~         
+#~     };
     
     
     
