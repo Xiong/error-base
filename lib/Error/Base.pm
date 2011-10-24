@@ -262,10 +262,40 @@ sub _fuss {
         $self->{-text}  = $self->{-text} . $self->{ $self->{-key} };
     };
     
-    push @{ $self->{-lines} }, $self->{-text};
+    # Optionally prepend some stuff.
+    my $prepend     = q{};                      # prepended to first line
+    my $indent      = q{};                      # prepended to all others
     
-    my @trace       = _trace( -top => $self->{-top} );
-    push @{ $self->{-lines} }, @trace;
+    if    ( defined $self->{-prepend} ) {
+        $prepend        = $self->{-prepend};
+    };
+    
+    if    ( defined $self->{-indent} ) {
+        $indent         = $self->{-indent};
+    };
+    
+    if    ( defined $self->{-prepend_all} ) {
+        $prepend        = $self->{-prepend_all};
+        $indent         = $prepend;
+    }
+    elsif ( $prepend and !$indent ) {           # construct $indent
+        $indent         = ( substr $prepend, 0, 1           )
+                        . ( q{ } x ((length $prepend) - 1)  )
+                        ;
+    }; 
+    
+    # First line is basic error text.
+    my $text        = $prepend . $self->{-text};
+    my @temp        = split /\n/, $text;         # in case it's multi-line
+    my $infix       = qq{\n} . $indent;
+    $text           = join $infix, @temp;    
+    push @{ $self->{-lines} }, $text;
+    
+    # Stack backtrace by default.
+    if ( not $self->{-quiet} ) {
+        my @trace       = _trace( -top => $self->{-top} );
+        push @{ $self->{-lines} }, map { $indent . $_ } @trace;
+    };
     
     ##### $self
     return $self;
@@ -295,7 +325,7 @@ sub cuss{
 
 
 # TODO: REMOVE - DEBUG ONLY
-sub test_trace { main::B() };
+sub _test_trace { main::B() };
 
 
 =for scrap

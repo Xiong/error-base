@@ -1,11 +1,12 @@
 
 ### $self: bless( {
 ###                 '-lines' => [
-###                               'BAR',
-###                               'in main::stack  at line 37    [play/crash.pl]',
-###                               'in main::pushit at line 41    [play/crash.pl]',
-###                               '_______________ at line 61    [play/crash.pl]'
+###                               '@ crash.pl: BAR',
+###                               '@           in main::stack  at line 38    [play/crash.pl]',
+###                               '@           in main::pushit at line 45    [play/crash.pl]',
+###                               '@           _______________ at line 65    [play/crash.pl]'
 ###                             ],
+###                 '-prepend' => '@ crash.pl: ',
 ###                 '-text' => 'BAR',
 ###                 '-top' => 2
 ###               }, 'Error::Base' )

@@ -37,7 +37,7 @@ sub B {
 };
 
 sub C {
-    Error::Base::test_trace; 
+    Error::Base::_test_trace; 
 };
 
 sub D {
