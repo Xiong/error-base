@@ -33,8 +33,12 @@ say 'Running...';
 
 
 sub stack {
-    Error::Base->crash('BAR');
+#~     Error::Base->crash('BAR');
 #~     Error::Base->crank('BAR');
+    Error::Base->crash(
+            'BAR',
+            -prepend    => '@ crash.pl: ',
+    );
 };
 
 sub pushit {
