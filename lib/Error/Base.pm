@@ -66,7 +66,7 @@ sub _stringify {
 #=========# INTERNAL ROUTINE
 #
 #    @lines      = _trace(               # dump full backtrace
-#                    -start      => 2,       # starting stack frame
+#                    -top      => 2,     # starting stack frame
 #                );
 #       
 # Purpose   : Full backtrace dump.
@@ -79,10 +79,10 @@ sub _stringify {
 # 
 sub _trace {
     my %args        = _paired(@_);
-    my $i           = $args{-start}     || 0;
+    my $i           = $args{-top}       || 1;
     
     my $bottomed    ;
-    my @maxlen      = ( 0, 0, 0 );  # avoid uninitialized warning
+    my @maxlen      = ( 1, 1, 1 );  # starting length of each field
     
     my @f           = (             # order in which keys will be dumped
         '-sub',
@@ -90,7 +90,7 @@ sub _trace {
         '-file',
     );
     my $pad         = q{ };         # padding for better formatting
-    my $in          ;               # usually 'in'
+    my $in          ;               # usually 'in '
     
     my @frames      ;               # unformatted AoA
     my @lines       ;               # formatted ary of strings
@@ -168,14 +168,14 @@ sub _trace {
         # Fix up bottom.
         if ( $frame->{-bottom} ) {
             $frame->{-sub} =~ s/ /_/g;      # all underbars
-            $in         = q{  };            # *TWO* spaces
+            $in         = q{___};           # *THREE* underbars
         }
         else {
-            $in         = q{in};
+            $in         = q{in };           # a three-char string
         };
         
         # Format printable line.
-        my $line    = qq*$in $frame->{-sub} at line $frame->{-line}*
+        my $line    = qq*$in$frame->{-sub} at line $frame->{-line}*
                     . qq*    [$frame->{-file}]*
                     ;
         
@@ -191,7 +191,6 @@ sub _trace {
         
         push @lines, $line;
     }; ## for each frame
-    
     
     return @lines;
 }; ## _trace
@@ -231,14 +230,25 @@ sub _merge {
 # Parms     : $text   : string    : text of error message
 # Returns   : never
 # Throws    : always die()-s
-# See also  : paired(), crank()
+# See also  : _fuss(), crank(), cuss()
 # 
 # The first arg is tested to see if it's a class or object reference.
 # Then the next test is to see if an odd number of args remain.
 #   If so, then the next arg is shifted off and considered -text.
 # All remaining args are considered key/value pairs and passed to new().
 #   
-sub crash {
+sub crash{
+    my $self    = _fuss(@_);
+    
+    die $self;
+}; ## crash
+
+#=========# INTERNAL FUNCTION
+#
+# This does all the work for crash(), crank(), and cuss().
+# See crash() for more info.
+#
+sub _fuss {
     my $self        = shift;
     if ( Scalar::Util::blessed $self ) {        # called on existing object
         $self->_merge(@_);
@@ -254,15 +264,35 @@ sub crash {
     
     push @{ $self->{-lines} }, $self->{-text};
     
-    my @trace       = _trace( -start => 0 );
+    my @trace       = _trace( -top => $self->{-top} );
     push @{ $self->{-lines} }, @trace;
     
     ##### $self
+    return $self;
+}; ## _fuss
+
+#=========# CLASS OR OBJECT METHOD
+#
+# Just like crash() except it warn()-s and does not die().
+# See crash() for more info.
+sub crank{
+    my $self    = _fuss(@_);
     
-#~     print $self;
+    warn $self;
+}; ## crank
+
+#=========# CLASS OR OBJECT METHOD
+#
+# Just like crash() except it just returns $self (after expansion).
+# See crash() for more info.
+sub cuss{
+    my $self    = _fuss(@_);
     
-    die $self;
-}; ## crash
+    return $self;
+}; ## crank
+
+
+
 
 # TODO: REMOVE - DEBUG ONLY
 sub test_trace { main::B() };
@@ -422,9 +452,10 @@ sub init {
     
     %{$self}        = @_;
     
+    # Set some default values.
     no warnings 'uninitialized';
-    
     $self->{-text}  = ( $self->{-text} . $xtext ) || 'Undefined error';
+    $self->{-top}   = $self->{-top} || 2;
     
     return $self;
 }; ## init
