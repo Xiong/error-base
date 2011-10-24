@@ -26,32 +26,26 @@ use Cwd;
 
 use lib 'lib';
 use Error::Base;
-sub stack {
+
+sub A {
     my @lines = Error::Base::_trace();
     say for @lines;
 };
 
-sub pushit {
-    stack; 
+sub B {
+    A; 
 };
 
-
-package tellme;
-
-sub tellit {
-    eval{ main::pushit() };
+sub C {
+    Error::Base::test_trace; 
 };
 
-package gramma;
-
-sub watchout {
-    eval ("tellme::tellit");
+sub D {
+    C; 
 };
 
+D;
 
-package main;
-
-gramma::watchout;
 
 say 'Haha';
 

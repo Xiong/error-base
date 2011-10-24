@@ -9,6 +9,11 @@ use warnings;
 use version 0.94; our $VERSION = qv('0.0.0');
 
 # Core modules
+use overload                    # Overload Perl operations
+    '""'    => \&_stringify,
+    ;
+
+
 #~ use File::Spec;                 # Portably perform operations on file names
 #~ use Scalar::Util;               # General-utility scalar subroutines
 #~ use ExtUtils::Installed;        # Inventory management of installed modules
@@ -24,7 +29,7 @@ use version 0.94; our $VERSION = qv('0.0.0');
 ## use
 
 # Alternate uses
-#~ use Devel::Comments '#####', ({ -file => 'debug.log' });
+use Devel::Comments '#####', ({ -file => 'debug.log' });
 
 #============================================================================#
 
@@ -35,6 +40,28 @@ our $QRFALSE      = qr/\A0?\z/            ;
 our $QRTRUE       = qr/\A(?!$QRFALSE)/    ;
 
 #----------------------------------------------------------------------------#
+
+#=========# OPERATOR OVERLOADING
+#
+#   _stringify();     # short
+#       
+# Purpose   : Overloads stringification.
+# Parms     : ____
+# Reads     : ____
+# Returns   : ____
+# Writes    : ____
+# Throws    : ____
+# See also  : ____
+# 
+# ____
+# 
+sub _stringify {
+#   my ($self, $other, $swap) = @_;
+    my ($self, undef,  undef) = @_;
+    
+#~     no warnings 'uninitialized';
+    return join qq{\n}, @{ $self->{-lines} }, q{};
+}; ## _stringify
 
 #=========# INTERNAL ROUTINE
 #
@@ -63,56 +90,96 @@ sub _trace {
         '-file',
     );
     my $pad         = q{ };         # padding for better formatting
+    my $in          ;               # usually 'in'
     
     my @frames      ;               # unformatted AoA
     my @lines       ;               # formatted ary of strings
     
     # Get each stack frame.
     while ( not $bottomed ) {
-        $i++;
-        die 'Error::Base internal error: excessive backtrace', $!
-            if $i > 99;
-        
         my $frame           ;
+        
+        # Get info for current frame.
         ( 
             $frame->{-package}, 
             $frame->{-file}, 
             $frame->{-line}, 
-            $frame->{-sub}, 
+            undef, 
             undef, 
             undef, 
             $frame->{-eval} 
-        )                   = caller $i;
+        )                   = caller( $i );
         
+        # caller returns this from the "wrong" viewpoint
+        ( 
+            undef, 
+            undef, 
+            undef, 
+            $frame->{-sub}, 
+            undef, 
+            undef, 
+            undef, 
+        )                   = caller( $i + 1 );
+        
+        # Normal exit from while loop.
         if ( not $frame->{-package} ) {
             $bottomed++;
             last;
         };
         
+        # Clean up bottom frame.
+        if ( not $frame->{-sub} ) {
+            $frame->{-sub}      = q{};
+            $frame->{-bottom}   = 1;
+        };
+        
+        # Get maximum length of each field.
         for my $fc ( 0..$#f ) {
             $maxlen[$fc]    = $maxlen[$fc] > length $frame->{$f[$fc]}
                             ? $maxlen[$fc]
                             : length $frame->{$f[$fc]}
                             ;
         };
-                
+        
+        # Clean up any eval text.
         if ($frame->{-eval}) {
             # fake newlines for hard newlines
             $frame->{-eval}     =~ s/\n/\\n/g;
         };
         push @frames, $frame;
+        
+        # Safety exit from while loop.
+        $i++;
+        die 'Error::Base internal error: excessive backtrace', $!
+            if $i > 99;
+#~ last if $i > 9;                                                 # DEBUG ONLY
+        
     }; ## while not bottomed
     
     # Format each stack frame. 
     for my $frame (@frames) {
+        
+        # Pad each field to maximum length (found in while)
         for my $fc ( 0..$#f ) {
             my $diff            = $maxlen[$fc] - length $frame->{$f[$fc]};
             $frame->{$f[$fc]}   = $frame->{$f[$fc]} . ($pad x $diff);
         };
         
-        my $line            = qq*in $frame->{-sub} at line $frame->{-line}*
-                            . qq*    [$frame->{-file}]*
-                            ;
+        # Fix up bottom.
+        if ( $frame->{-bottom} ) {
+            $frame->{-sub} =~ s/ /_/g;      # all underbars
+            $in         = q{  };            # *TWO* spaces
+        }
+        else {
+            $in         = q{in};
+        };
+        
+        # Format printable line.
+        my $line    = qq*$in $frame->{-sub} at line $frame->{-line}*
+                    . qq*    [$frame->{-file}]*
+                    ;
+        
+        # Append any eval text.
         if ($frame->{-eval}) {
             # hard newlines so number of frames doesn't change
             $line           = $line
@@ -129,6 +196,26 @@ sub _trace {
     return @lines;
 }; ## _trace
 
+#=========# INTERNAL METHOD
+#
+#   $self->_merge(@_);     # short
+#       
+# Purpose   : Merge new args with current contents.
+# Parms     : ____
+# Reads     : ____
+# Returns   : ____
+# Writes    : ____
+# Throws    : ____
+# See also  : ____
+# 
+# ____
+# 
+sub _merge {
+    my $self        = shift;
+    %{$self}        = ( %{$self}, @_ );
+    
+    return $self;
+}; ## _merge
 
 #=========# CLASS OR OBJECT METHOD
 #
@@ -136,6 +223,7 @@ sub _trace {
 #    $err->crash;                    # object method
 #    $err->crash( $text );           # object method; error text optional
 #    $err->crash( -text => $text );  # named argument okay
+#    $err->crash( -key  => '42'  );  # expand into -text
 #    $err->crash( -foo  => 'bar' );  # set Error::Base options now
 #    $err->crash( mybit => 'baz' );  # set your private stuff now
 #
@@ -146,20 +234,39 @@ sub _trace {
 # See also  : paired(), crank()
 # 
 # The first arg is tested to see if it's a class or object reference.
-# Then the next test is to see if the second (now first) arg is a scalar.
+# Then the next test is to see if an odd number of args remain.
+#   If so, then the next arg is shifted off and considered -text.
 # All remaining args are considered key/value pairs and passed to new().
 #   
 sub crash {
-    my $self            = shift;
+    my $self        = shift;
+    if ( Scalar::Util::blessed $self ) {        # called on existing object
+        $self->_merge(@_);
+    } 
+    else {                                      # called as class method
+        $self       = $self->new(@_);
+    };
     
+    # Expand one of some stored texts.
+    if ( defined $self->{-key} ) {
+        $self->{-text}  = $self->{-text} . $self->{ $self->{-key} };
+    };
     
+    push @{ $self->{-lines} }, $self->{-text};
     
+    my @trace       = _trace( -start => 0 );
+    push @{ $self->{-lines} }, @trace;
     
+    ##### $self
     
+#~     print $self;
     
-    
-    
+    die $self;
 }; ## crash
+
+# TODO: REMOVE - DEBUG ONLY
+sub test_trace { main::B() };
+
 
 =for scrap
     
@@ -195,7 +302,6 @@ sub crash {
     croak $text;
     return 0;                   # should never get here, though
 
-=cut
 
 #=========# INTERNAL ROUTINE
 #
@@ -249,6 +355,9 @@ sub _unfold_errors {
     return @lines;
 }; ## _unfold_errors
 
+=cut
+
+
 #=========# INTERNAL FUNCTION
 #
 #   my %args    = _paired(@_);     # check for unpaired arguments
@@ -296,15 +405,26 @@ sub new {
 }; ## new
 
 #=========# OBJECT METHOD
-#   $pf->init( '-key' => $value, '-foo' => $bar );
 #
-# Error::Base::init() gets all paths for later delivery. 
+#   $err->init(        '-key' => $value, '-foo' => $bar );
+#   $err->init( $text, '-key' => $value, '-foo' => $bar );
+#
 #
 sub init {
-    my $self    = shift;
-    my @args    = paired(@_);
+    my $self        = shift;
+    my $xtext       ;
+    if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
+        $xtext          = shift;    # and now it's even
+    }
+    else {
+        $xtext          = q{};      # avoid undef warning
+    };
     
-    $self->_get_all_paths(@args);
+    %{$self}        = @_;
+    
+    no warnings 'uninitialized';
+    
+    $self->{-text}  = ( $self->{-text} . $xtext ) || 'Undefined error';
     
     return $self;
 }; ## init
