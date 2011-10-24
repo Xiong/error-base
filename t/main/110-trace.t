@@ -12,7 +12,7 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 my @td  = (
     {
         -case   => 'null',
-        -want   => words(qw/ main line /),
+        -want   => words(qw/ line trace/),
     },
     
 #~     {

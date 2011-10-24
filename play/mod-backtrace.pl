@@ -24,21 +24,28 @@ use Cwd;
 use Devel::Comments '###', '####';
 
 #
-use Perl6::Form;
+#~ use Perl6::Form;
+#~ 
+#~         say q*package   file                    line        sub             evtext          *;
+#~         say q*-------   ----                    ----        ---             ------          *;
+#~ 
+#~ sub stack {
+#~     for my $i (0..9) {
+#~         my @c   = caller $i;
+#~         @c      = map { $_ or '___' } @c[0..3, 6];
+#~         print form 
+#~             q*{<<<<<}   {<<<<<<<<<<<<<<<<<<<<<} {<<<<<<<<<} {<<<<<<<<<<<<<} {<<<<<<<<<<<<<}      *
+#~             , @c
+#~             ;
+#~         
+#~     };
+#~ };
 
-        say q*package   file                    line        sub             evtext          *;
-        say q*-------   ----                    ----        ---             ------          *;
-
+use lib 'lib';
+use Error::Base;
 sub stack {
-    for my $i (0..9) {
-        my @c   = caller $i;
-        @c      = map { $_ or '___' } @c[0..3, 6];
-        print form 
-            q*{<<<<<}   {<<<<<<<<<<<<<<<<<<<<<} {<<<<<<<<<} {<<<<<<<<<<<<<} {<<<<<<<<<<<<<}      *
-            , @c
-            ;
-        
-    };
+    my @lines = Error::Base::_trace();
+    say for @lines;
 };
 
 sub pushit {
@@ -54,7 +61,7 @@ sub tellit {
 
 package gramma;
 
-eval "tellme::tellit";
+eval ("tellme::tellit");
 
 
 die 'Haha', $!;

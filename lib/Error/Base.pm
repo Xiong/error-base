@@ -40,10 +40,10 @@ our $QRTRUE       = qr/\A(?!$QRFALSE)/    ;
 #
 #    @lines      = _trace(               # dump full backtrace
 #                    -start      => 2,       # starting stack frame
-#                    -verbose    => 2,       # even more info
 #                );
 #       
 # Purpose   : Full backtrace dump.
+# Parms     : ____
 # Returns   : ____
 # Throws    : ____
 # See also  : ____
@@ -51,36 +51,79 @@ our $QRTRUE       = qr/\A(?!$QRFALSE)/    ;
 # ____
 # 
 sub _trace {
-    my %args            = _paired(@_);
-    my $i               = $args{-start}     || 0;
-    my $verbose         = $args{-verbose}   || 1;
-    return if not $verbose;
+    my %args        = _paired(@_);
+    my $i           = $args{-start}     || 0;
     
-    my @lines           ;
-    my $bottomed        ;
-    my $frame           ;
+    my $bottomed    ;
+    my @maxlen      = ( 0, 0, 0 );  # avoid uninitialized warning
     
+    my @f           = (             # order in which keys will be dumped
+        '-sub',
+        '-line',
+        '-file',
+    );
+    my $pad         = q{ };         # padding for better formatting
+    
+    my @frames      ;               # unformatted AoA
+    my @lines       ;               # formatted ary of strings
+    
+    # Get each stack frame.
     while ( not $bottomed ) {
         $i++;
         die 'Error::Base internal error: excessive backtrace', $!
             if $i > 99;
         
-        my ( $package, $filename, $line, $sub, undef, undef, $evaltext )
-            = caller $i;
+        my $frame           ;
+        ( 
+            $frame->{-package}, 
+            $frame->{-file}, 
+            $frame->{-line}, 
+            $frame->{-sub}, 
+            undef, 
+            undef, 
+            $frame->{-eval} 
+        )                   = caller $i;
         
-        if ( not $package ) {
+        if ( not $frame->{-package} ) {
             $bottomed++;
-            next;
+            last;
         };
         
-        if ( $verbose eq '1' ) {
-            $frame = 'line ' . $line;
+        for my $fc ( 0..$#f ) {
+            $maxlen[$fc]    = $maxlen[$fc] > length $frame->{$f[$fc]}
+                            ? $maxlen[$fc]
+                            : length $frame->{$f[$fc]}
+                            ;
+        };
+                
+        if ($frame->{-eval}) {
+            # fake newlines for hard newlines
+            $frame->{-eval}     =~ s/\n/\\n/g;
+        };
+        push @frames, $frame;
+    }; ## while not bottomed
+    
+    # Format each stack frame. 
+    for my $frame (@frames) {
+        for my $fc ( 0..$#f ) {
+            my $diff            = $maxlen[$fc] - length $frame->{$f[$fc]};
+            $frame->{$f[$fc]}   = $frame->{$f[$fc]} . ($pad x $diff);
         };
         
-        push @lines, $frame;
-    };
-    
-    
+        my $line            = qq*in $frame->{-sub} at line $frame->{-line}*
+                            . qq*    [$frame->{-file}]*
+                            ;
+        if ($frame->{-eval}) {
+            # hard newlines so number of frames doesn't change
+            $line           = $line
+                            . qq{\n}
+                            . qq*    string eval: "$frame->{-eval}"*
+                            . qq{\n}
+                            ;
+        };
+        
+        push @lines, $line;
+    }; ## for each frame
     
     
     return @lines;
