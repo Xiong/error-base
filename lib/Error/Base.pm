@@ -130,27 +130,39 @@ sub _trace {
 }; ## _trace
 
 
-#=========# OBJECT METHOD
+#=========# CLASS OR OBJECT METHOD
 #
-#    crash( @lines );                # fatal out with @lines message
-#    $err->crash( @lines );          # OO interface
-#    $err->crash( $errkey );         # fatal out with value of $errkey
-#    $err->crash( $errkey, @lines ); # fatal out with additional @lines
+#    Error::Base->crash( $text );    # class method; error text required
+#    $err->crash;                    # object method
+#    $err->crash( $text );           # object method; error text optional
+#    $err->crash( -text => $text );  # named argument okay
+#    $err->crash( -foo  => 'bar' );  # set Error::Base options now
+#    $err->crash( mybit => 'baz' );  # set your private stuff now
 #
 # Purpose   : Fatal out of internal errors
-# Parms     : $errkey   : string    : must begin with '_' (underbar)
-#             @lines    : strings   : free text
-# Reads     : $err->{$errkey}
+# Parms     : $text   : string    : text of error message
 # Returns   : never
 # Throws    : always die()-s
 # See also  : paired(), crank()
 # 
-# The first arg is tested to see if it's a reference and if so, shifted off.
-# Then the next test is to see if the second (now first) arg is an errkey.
-# If not, then all args are considered @lines of text.
+# The first arg is tested to see if it's a class or object reference.
+# Then the next test is to see if the second (now first) arg is a scalar.
+# All remaining args are considered key/value pairs and passed to new().
 #   
 sub crash {
-    # Don't shift off the 0th parm; we don't know what it is.
+    my $self            = shift;
+    
+    
+    
+    
+    
+    
+    
+    
+}; ## crash
+
+=for scrap
+    
     my @lines           ;
     my $text            ;
     my $unimplemented   = 'Unimplemented error.';
@@ -182,9 +194,8 @@ sub crash {
     # now croak()
     croak $text;
     return 0;                   # should never get here, though
-}; ## crash
 
-sub foobar{'foobar', 'bazbaz'};
+=cut
 
 #=========# INTERNAL ROUTINE
 #
