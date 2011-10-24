@@ -62,6 +62,7 @@ for (@td) {
     $diag           = $case . 'execute';
     @rv             = eval{ Error::Base::_trace(@args) };
     pass( $diag );          # test didn't blow up
+    note($@);               # did code under text blow up?
     
     $tc++;
     if    ($die) {

@@ -40,7 +40,7 @@ our $QRTRUE       = qr/\A(?!$QRFALSE)/    ;
 #
 #    @lines      = _trace(               # dump full backtrace
 #                    -start      => 2,       # starting stack frame
-#                    -verbose    => 1,       # even more info
+#                    -verbose    => 2,       # even more info
 #                );
 #       
 # Purpose   : Full backtrace dump.
@@ -51,17 +51,33 @@ our $QRTRUE       = qr/\A(?!$QRFALSE)/    ;
 # ____
 # 
 sub _trace {
+    my %args            = _paired(@_);
+    my $i               = $args{-start}     || 0;
+    my $verbose         = $args{-verbose}   || 1;
+    return if not $verbose;
     
     my @lines           ;
-    my $i               ;
     my $bottomed        ;
+    my $frame           ;
     
     while ( not $bottomed ) {
         $i++;
-        die 'Error::Base internal error: unpaired args', $!
+        die 'Error::Base internal error: excessive backtrace', $!
             if $i > 99;
         
+        my ( $package, $filename, $line, $sub, undef, undef, $evaltext )
+            = caller $i;
         
+        if ( not $package ) {
+            $bottomed++;
+            next;
+        };
+        
+        if ( $verbose eq '1' ) {
+            $frame = 'line ' . $line;
+        };
+        
+        push @lines, $frame;
     };
     
     
