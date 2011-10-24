@@ -525,8 +525,8 @@ This document describes Error::Base version 0.0.0
     $err->crank;            # get cranky: warn() but don't die()
     my $err = Error::Base->crank('Me!');   # also a constructor
     
-    eval{ Error::Base->crash('car', -foo => bar) }; 
-    my $err     = !@ if !@;     # catch and examine the object
+    eval{ Error::Base->crash( 'car', -foo => 'bar' ) }; 
+    my $err     = $@ if $@;     # catch and examine the object
     
 
 =head1 DESCRIPTION
