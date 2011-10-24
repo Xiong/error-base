@@ -1,5 +1,5 @@
 #!/run/bin/perl
-#       backtrace.pl
+#       crash.pl
 #       = Copyright 2011 Xiong Changnian <xiong@cpan.org> =
 #       = Free Software = Artistic License 2.0 = NO WARRANTY =
 
@@ -26,9 +26,14 @@ use Cwd;
 
 use lib 'lib';
 use Error::Base;
+
+say 'Running...';
+
+#~ Error::Base->crash('FOO');
+
+
 sub stack {
-    my @lines = Error::Base::_trace();
-    say for @lines;
+    Error::Base->crash('BAR');
 };
 
 sub pushit {
@@ -51,9 +56,10 @@ sub watchout {
 
 package main;
 
-gramma::watchout;
+#~ gramma::watchout;
+pushit;
 
-say 'Haha';
+say '...Done.';
 
 __DATA__
 
