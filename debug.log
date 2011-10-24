@@ -2,10 +2,10 @@
 ### $self: bless( {
 ###                 '-lines' => [
 ###                               'BAR',
-###                               'in Error::Base::crash at line 257    [lib/Error/Base.pm]',
-###                               'in main::stack        at line 36     [play/crash.pl    ]',
-###                               'in main::pushit       at line 40     [play/crash.pl    ]',
-###                               '   __________________ at line 60     [play/crash.pl    ]'
+###                               'in main::stack  at line 37    [play/crash.pl]',
+###                               'in main::pushit at line 41    [play/crash.pl]',
+###                               '_______________ at line 61    [play/crash.pl]'
 ###                             ],
-###                 '-text' => 'BAR'
+###                 '-text' => 'BAR',
+###                 '-top' => 2
 ###               }, 'Error::Base' )

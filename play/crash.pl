@@ -34,6 +34,7 @@ say 'Running...';
 
 sub stack {
     Error::Base->crash('BAR');
+#~     Error::Base->crank('BAR');
 };
 
 sub pushit {
