@@ -29,7 +29,7 @@ use overload                    # Overload Perl operations
 ## use
 
 # Alternate uses
-use Devel::Comments '#####', ({ -file => 'debug.log' });
+#~ use Devel::Comments '#####', ({ -file => 'debug.log' });
 
 #============================================================================#
 

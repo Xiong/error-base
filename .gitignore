@@ -14,3 +14,6 @@ sym
 
 # Ignore Devel::Cover files
 cover_db/
+
+# Don't track internal symlink -- will blow up
+t
