@@ -16,12 +16,12 @@ my $Verbose     = 1;
 
 my @td  = (
     {
-        -case   => 'null',
+        -case   => 'null',              # stringified normal return
         -want   => words(qw/ undefined error eval line cuss __ line cuss /),
     },
     
     {
-        -case   => 'null-deep',
+        -case   => 'null-deep',         
         -fuzz   => words(qw/ 
                     bless 
                     frames 
@@ -64,12 +64,37 @@ my @td  = (
     },
     
     {
-        -case   => 'text-deep',         # emit error text, both
+        -case   => 'text-both-deep',     # emit error text, both ways
         -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
                         lines foobar error bazfaz in
                     error base
+                /),
+    },
+    
+    {
+        -case   => 'text-both',         # emit error text, stringified normal
+        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -want   => words(qw/ 
+                    foobar error bazfaz
+                    eval line cuss __ line cuss
+                /),
+    },
+    
+    {
+        -case   => 'top-0-deep',             # mess with -top
+        -args   => [ 
+                    'Bazfaz: ',
+                    -top    => 0, 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                ],
+        -fuzz   => words(qw/ 
+                    lines
+                        
+                    top 0
+                    foo bar
                 /),
     },
     
@@ -121,7 +146,7 @@ for (@td) {
         $diag           = $case . 'return-deeply';
         $got            = \@rv;
         $want           = $deep;
-        is_deeeply( $got, $want, $diag );
+        is_deeply( $got, $want, $diag );
     }
     elsif ($fuzz) {
         $diag           = $case . 'return-fuzzily';
