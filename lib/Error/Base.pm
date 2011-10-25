@@ -59,22 +59,22 @@ sub _stringify {
 #   my ($self, $other, $swap) = @_;
     my ($self, undef,  undef) = @_;
     
-#~     no warnings 'uninitialized';
+    no warnings 'uninitialized';
     return join qq{\n}, @{ $self->{-lines} }, q{};
 }; ## _stringify
 
 #=========# INTERNAL ROUTINE
 #
 #    @lines      = $self->_trace(               # dump full backtrace
-#                    -top      => 2,     # starting stack frame
+#                    -top      => 2,            # starting stack frame
 #                );
 #       
 # Purpose   : Full backtrace dump.
-# Parms     : ____
+# Parms     : -top  : integer   : usually set at init-time
 # Returns   : ____
 # Writes    : $self->{-frames}  : unformatted backtrace
-# Throws    : ____
-# See also  : ____
+# Throws    : 'excessive backtrace'
+# See also  : _fuss(), _paired()
 # 
 # ____
 # 
@@ -85,7 +85,6 @@ sub _trace {
     
     my $bottomed    ;
     my @maxlen      = ( 1, 1, 1 );  # starting length of each field
-    
     my @f           = (             # order in which keys will be dumped
         '-sub',
         '-line',
@@ -94,8 +93,8 @@ sub _trace {
     my $pad         = q{ };         # padding for better formatting
     my $in          ;               # usually 'in '
     
-    my @frames      ;               # unformatted AoA
-    my @lines       ;               # formatted ary of strings
+    my @frames      ;               # unformatted AoH
+    my @lines       ;               # formatted array of strings
     
     # Get each stack frame.
     while ( not $bottomed ) {
