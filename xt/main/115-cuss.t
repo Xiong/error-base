@@ -159,7 +159,7 @@ for (@td) {
         Error::Base->cuss(@args); 
     };
     pass( $diag );          # test didn't blow up
-    note($@);               # did code under text blow up?
+    note($@);               # did code under test blow up?
     
     $tc++;
     if    ($die) {
