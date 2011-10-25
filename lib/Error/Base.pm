@@ -15,7 +15,7 @@ use overload                    # Overload Perl operations
 
 
 #~ use File::Spec;                 # Portably perform operations on file names
-#~ use Scalar::Util;               # General-utility scalar subroutines
+use Scalar::Util;               # General-utility scalar subroutines
 #~ use ExtUtils::Installed;        # Inventory management of installed modules
 
 # CPAN modules
