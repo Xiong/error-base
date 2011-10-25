@@ -475,6 +475,8 @@ sub new {
 #
 #
 sub init {
+    ##### init:
+    ##### @_
     my $self        = shift;
     my $xtext       ;
     if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
@@ -485,11 +487,13 @@ sub init {
     };
     
     %{$self}        = @_;
+    ##### before defaults:
+    ##### $self
     
     # Set some default values.
     no warnings 'uninitialized';
     $self->{-text}  = ( $self->{-text} . $xtext ) || 'Undefined error';
-    $self->{-top}   = $self->{-top} || 2;
+    $self->{-top}   = defined $self->{-top} ? $self->{-top} : 2;
     
     return $self;
 }; ## init

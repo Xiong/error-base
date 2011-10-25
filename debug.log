@@ -1,0 +1,337 @@
+
+### init:
+### @_: [
+###       bless( {}, 'Error::Base' )
+###     ]
+
+### before defaults:
+### $self: bless( {}, 'Error::Base' )
+
+### $self: bless( {
+###                 '-frames' => [
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '131',
+###                                  '-package' => 'main',
+###                                  '-sub' => '(eval)'
+###                                },
+###                                {
+###                                  '-bottom' => 1,
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '130',
+###                                  '-package' => 'main',
+###                                  '-sub' => '______'
+###                                }
+###                              ],
+###                 '-lines' => [
+###                               'Undefined error',
+###                               'in (eval) at line 131    [xt/main/115-cuss.t]',
+###                               '_________ at line 130    [xt/main/115-cuss.t]'
+###                             ],
+###                 '-text' => 'Undefined error',
+###                 '-top' => 2
+###               }, 'Error::Base' )
+
+### init:
+### @_: [
+###       bless( {}, 'Error::Base' )
+###     ]
+
+### before defaults:
+### $self: bless( {}, 'Error::Base' )
+
+### $self: bless( {
+###                 '-frames' => [
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '131',
+###                                  '-package' => 'main',
+###                                  '-sub' => '(eval)'
+###                                },
+###                                {
+###                                  '-bottom' => 1,
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '130',
+###                                  '-package' => 'main',
+###                                  '-sub' => '______'
+###                                }
+###                              ],
+###                 '-lines' => [
+###                               'Undefined error',
+###                               'in (eval) at line 131    [xt/main/115-cuss.t]',
+###                               '_________ at line 130    [xt/main/115-cuss.t]'
+###                             ],
+###                 '-text' => 'Undefined error',
+###                 '-top' => 2
+###               }, 'Error::Base' )
+
+### init:
+### @_: [
+###       bless( {}, 'Error::Base' ),
+###       'foo',
+###       'bar'
+###     ]
+
+### before defaults:
+### $self: bless( {
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-frames' => [
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '131',
+###                                  '-package' => 'main',
+###                                  '-sub' => '(eval)'
+###                                },
+###                                {
+###                                  '-bottom' => 1,
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '130',
+###                                  '-package' => 'main',
+###                                  '-sub' => '______'
+###                                }
+###                              ],
+###                 '-lines' => [
+###                               'Undefined error',
+###                               'in (eval) at line 131    [xt/main/115-cuss.t]',
+###                               '_________ at line 130    [xt/main/115-cuss.t]'
+###                             ],
+###                 '-text' => 'Undefined error',
+###                 '-top' => 2,
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### init:
+### @_: [
+###       bless( {}, 'Error::Base' ),
+###       'Foobar error',
+###       'foo',
+###       'bar'
+###     ]
+
+### before defaults:
+### $self: bless( {
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-frames' => [
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '131',
+###                                  '-package' => 'main',
+###                                  '-sub' => '(eval)'
+###                                },
+###                                {
+###                                  '-bottom' => 1,
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '130',
+###                                  '-package' => 'main',
+###                                  '-sub' => '______'
+###                                }
+###                              ],
+###                 '-lines' => [
+###                               'Foobar error',
+###                               'in (eval) at line 131    [xt/main/115-cuss.t]',
+###                               '_________ at line 130    [xt/main/115-cuss.t]'
+###                             ],
+###                 '-text' => 'Foobar error',
+###                 '-top' => 2,
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### init:
+### @_: [
+###       bless( {}, 'Error::Base' ),
+###       '-text',
+###       'Foobar error ',
+###       'foo',
+###       'bar'
+###     ]
+
+### before defaults:
+### $self: bless( {
+###                 '-text' => 'Foobar error ',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-frames' => [
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '131',
+###                                  '-package' => 'main',
+###                                  '-sub' => '(eval)'
+###                                },
+###                                {
+###                                  '-bottom' => 1,
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '130',
+###                                  '-package' => 'main',
+###                                  '-sub' => '______'
+###                                }
+###                              ],
+###                 '-lines' => [
+###                               'Foobar error ',
+###                               'in (eval) at line 131    [xt/main/115-cuss.t]',
+###                               '_________ at line 130    [xt/main/115-cuss.t]'
+###                             ],
+###                 '-text' => 'Foobar error ',
+###                 '-top' => 2,
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### init:
+### @_: [
+###       bless( {}, 'Error::Base' ),
+###       'Bazfaz: ',
+###       '-text',
+###       'Foobar error ',
+###       'foo',
+###       'bar'
+###     ]
+
+### before defaults:
+### $self: bless( {
+###                 '-text' => 'Foobar error ',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-frames' => [
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '131',
+###                                  '-package' => 'main',
+###                                  '-sub' => '(eval)'
+###                                },
+###                                {
+###                                  '-bottom' => 1,
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '130',
+###                                  '-package' => 'main',
+###                                  '-sub' => '______'
+###                                }
+###                              ],
+###                 '-lines' => [
+###                               'Foobar error Bazfaz: ',
+###                               'in (eval) at line 131    [xt/main/115-cuss.t]',
+###                               '_________ at line 130    [xt/main/115-cuss.t]'
+###                             ],
+###                 '-text' => 'Foobar error Bazfaz: ',
+###                 '-top' => 2,
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### init:
+### @_: [
+###       bless( {}, 'Error::Base' ),
+###       'Bazfaz: ',
+###       '-text',
+###       'Foobar error ',
+###       'foo',
+###       'bar'
+###     ]
+
+### before defaults:
+### $self: bless( {
+###                 '-text' => 'Foobar error ',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-frames' => [
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '131',
+###                                  '-package' => 'main',
+###                                  '-sub' => '(eval)'
+###                                },
+###                                {
+###                                  '-bottom' => 1,
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t',
+###                                  '-line' => '130',
+###                                  '-package' => 'main',
+###                                  '-sub' => '______'
+###                                }
+###                              ],
+###                 '-lines' => [
+###                               'Foobar error Bazfaz: ',
+###                               'in (eval) at line 131    [xt/main/115-cuss.t]',
+###                               '_________ at line 130    [xt/main/115-cuss.t]'
+###                             ],
+###                 '-text' => 'Foobar error Bazfaz: ',
+###                 '-top' => 2,
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### init:
+### @_: [
+###       bless( {}, 'Error::Base' ),
+###       'Bazfaz: ',
+###       '-top',
+###       0,
+###       '-text',
+###       'Foobar error ',
+###       'foo',
+###       'bar'
+###     ]
+
+### before defaults:
+### $self: bless( {
+###                 '-text' => 'Foobar error ',
+###                 '-top' => 0,
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-frames' => [
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => '/home/xiong/projects/error-base/lib/Error/Base.pm',
+###                                  '-line' => '323',
+###                                  '-package' => 'Error::Base',
+###                                  '-sub' => 'Error::Base::cuss'
+###                                },
+###                                {
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t                               ',
+###                                  '-line' => '131',
+###                                  '-package' => 'main',
+###                                  '-sub' => '(eval)           '
+###                                },
+###                                {
+###                                  '-bottom' => 1,
+###                                  '-eval' => undef,
+###                                  '-file' => 'xt/main/115-cuss.t                               ',
+###                                  '-line' => '130',
+###                                  '-package' => 'main',
+###                                  '-sub' => '_________________'
+###                                }
+###                              ],
+###                 '-lines' => [
+###                               'Foobar error Bazfaz: ',
+###                               'in Error::Base::cuss at line 323    [/home/xiong/projects/error-base/lib/Error/Base.pm]',
+###                               'in (eval)            at line 131    [xt/main/115-cuss.t                               ]',
+###                               '____________________ at line 130    [xt/main/115-cuss.t                               ]'
+###                             ],
+###                 '-text' => 'Foobar error Bazfaz: ',
+###                 '-top' => 0,
+###                 foo => 'bar'
+###               }, 'Error::Base' )

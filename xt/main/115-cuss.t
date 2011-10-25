@@ -10,8 +10,8 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 #----------------------------------------------------------------------------#
 
 # Extra-verbose dump optional for test script debug.
-#~ my $Verbose     = 0;
-my $Verbose     = 1;
+my $Verbose     = 0;
+#~ my $Verbose     = 1;
 
 
 my @td  = (
@@ -64,7 +64,7 @@ my @td  = (
     },
     
     {
-        -case   => 'text-both-deep',     # emit error text, both ways
+        -case   => 'text-both-deep',    # emit error text, both ways
         -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
@@ -83,7 +83,7 @@ my @td  = (
     },
     
     {
-        -case   => 'top-0-deep',             # mess with -top
+        -case   => 'top-0-deep',        # mess with -top
         -args   => [ 
                     'Bazfaz: ',
                     -top    => 0, 
@@ -92,9 +92,40 @@ my @td  = (
                 ],
         -fuzz   => words(qw/ 
                     lines
-                        
+                        foobar error bazfaz
+                        error base cuss lib error base
+                        eval cuss
+                        ____ cuss                        
                     top 0
                     foo bar
+                /),
+    },
+    
+    {
+        -case   => 'quiet',             # emit error text, no backtrace
+        -args   => [ 
+                    'Bazfaz: ',
+                    -quiet  => 1, 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                ],
+        -want   => words(qw/
+                    foobar error bazfaz
+                /),
+    },
+    
+    {
+        -case   => 'quiet-deep',        # verify no backtrace
+        -args   => [ 
+                    'Bazfaz: ',
+                    -quiet  => 1, 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                ],
+        -fuzz   => words(qw/ 
+                    lines
+                        foobar error bazfaz
+                    quiet
                 /),
     },
     
