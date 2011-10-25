@@ -65,19 +65,21 @@ sub _stringify {
 
 #=========# INTERNAL ROUTINE
 #
-#    @lines      = _trace(               # dump full backtrace
+#    @lines      = $self->_trace(               # dump full backtrace
 #                    -top      => 2,     # starting stack frame
 #                );
 #       
 # Purpose   : Full backtrace dump.
 # Parms     : ____
 # Returns   : ____
+# Writes    : $self->{-frames}  : unformatted backtrace
 # Throws    : ____
 # See also  : ____
 # 
 # ____
 # 
 sub _trace {
+    my $self        = shift;
     my %args        = _paired(@_);
     my $i           = $args{-top}       || 1;
     
@@ -155,6 +157,9 @@ sub _trace {
 #~ last if $i > 9;                                                 # DEBUG ONLY
         
     }; ## while not bottomed
+    
+    # Stash unformatted stack frames.
+    $self->{-frames}    = \@frames;
     
     # Format each stack frame. 
     for my $frame (@frames) {
@@ -288,12 +293,12 @@ sub _fuss {
     my $text        = $prepend . $self->{-text};
     my @temp        = split /\n/, $text;         # in case it's multi-line
     my $infix       = qq{\n} . $indent;
-    $text           = join $infix, @temp;    
+       $text        = join $infix, @temp;    
     push @{ $self->{-lines} }, $text;
     
     # Stack backtrace by default.
     if ( not $self->{-quiet} ) {
-        my @trace       = _trace( -top => $self->{-top} );
+        my @trace       = $self->_trace( -top => $self->{-top} );
         push @{ $self->{-lines} }, map { $indent . $_ } @trace;
     };
     
