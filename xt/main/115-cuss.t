@@ -10,8 +10,8 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 #----------------------------------------------------------------------------#
 
 # Extra-verbose dump optional for test script debug.
-my $Verbose     = 0;
-#~ my $Verbose     = 1;
+#~ my $Verbose     = 0;
+my $Verbose     = 1;
 
 
 my @td  = (
@@ -33,21 +33,46 @@ my @td  = (
                 /),
     },
     
-#~     {
-#~         -case   => 'two',
-#~         -args   => [ 0, 1 ],
-#~     },
-#~     
-#~     {
-#~         -case   => 'three',
-#~         -args   => [ qw/ a b c / ],
-#~         -die    => words(qw/ internal error unpaired /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'four',
-#~         -args   => [ qw/ a b c d / ],
-#~     },
+    {
+        -case   => 'foo-deep',          # preserve private attribute
+        -args   => [ foo => 'bar' ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        foo bar
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'text-deep',         # emit error text
+        -args   => [ 'Foobar error', foo => 'bar' ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        lines foobar error
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'text-deep',         # emit error text, named arg
+        -args   => [ -text => 'Foobar error ', foo => 'bar' ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        lines foobar error
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'text-deep',         # emit error text, both
+        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        lines foobar error bazfaz in
+                    error base
+                /),
+    },
+    
     
 );
 
