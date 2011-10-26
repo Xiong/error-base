@@ -9,11 +9,6 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 #----------------------------------------------------------------------------#
 
-# Extra-verbose dump optional for test script debug.
-my $Verbose     = 0;
-#~ my $Verbose     = 1;
-
-
 my @td  = (
     {
         -case   => 'null',              # stringified normal return
@@ -21,7 +16,7 @@ my @td  = (
     },
     
     {
-        -case   => 'null-deep',         
+        -case   => 'null-fuzz',         
         -fuzz   => words(qw/ 
                     bless 
                     frames 
@@ -34,7 +29,7 @@ my @td  = (
     },
     
     {
-        -case   => 'foo-deep',          # preserve private attribute
+        -case   => 'foo-fuzz',          # preserve private attribute
         -args   => [ foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
@@ -44,7 +39,7 @@ my @td  = (
     },
     
     {
-        -case   => 'text-deep',         # emit error text
+        -case   => 'text-fuzz',         # emit error text
         -args   => [ 'Foobar error', foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
@@ -54,7 +49,7 @@ my @td  = (
     },
     
     {
-        -case   => 'text-deep',         # emit error text, named arg
+        -case   => 'text-fuzz',         # emit error text, named arg
         -args   => [ -text => 'Foobar error ', foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
@@ -64,7 +59,7 @@ my @td  = (
     },
     
     {
-        -case   => 'text-both-deep',    # emit error text, both ways
+        -case   => 'text-both-fuzz',    # emit error text, both ways
         -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
@@ -83,7 +78,7 @@ my @td  = (
     },
     
     {
-        -case   => 'top-0-deep',        # mess with -top
+        -case   => 'top-0-fuzz',        # mess with -top
         -args   => [ 
                     'Bazfaz: ',
                     -top    => 0, 
@@ -115,7 +110,7 @@ my @td  = (
     },
     
     {
-        -case   => 'quiet-deep',        # verify no backtrace
+        -case   => 'quiet-fuzz',        # verify no backtrace
         -args   => [ 
                     'Bazfaz: ',
                     -quiet  => 1, 
@@ -143,44 +138,52 @@ my $want        ;
 
 #----------------------------------------------------------------------------#
 
+# Extra-verbose dump optional for test script debug.
+my $Verbose     = 0;
+#~    $Verbose++;
+
 for (@td) {
-    
-    my %t           = %{ $_ };
-    my $case        = $base . $t{-case} . q{|};
-    my @args        = eval{ @{ $t{-args} } };
-    my $die         = $t{-die};
-    my $want        = $t{-want};
-    my $deep        = $t{-deep};
-    my $fuzz        = $t{-fuzz};
-    
     $tc++;
-    $diag           = $case . 'execute';
+    my $case        = $base . $_->{-case};
+    
+    note( "---- $case" );
+    subtest $case => sub { exck($_) };
+}; ## for
+    
+sub exck {
+    my $t           = shift;
+    my @args        = eval{ @{ $t->{-args} } };
+    my $die         = $t->{-die};
+    my $want        = $t->{-want};
+    my $deep        = $t->{-deep};
+    my $fuzz        = $t->{-fuzz};
+    
+    $diag           = 'execute';
     @rv             = eval{ 
         Error::Base->cuss(@args); 
     };
     pass( $diag );          # test didn't blow up
-    note($@);               # did code under test blow up?
+    note($@) if $@;         # did code under test blow up?
     
-    $tc++;
     if    ($die) {
-        $diag           = $case . 'should throw';
+        $diag           = 'should throw';
         $got            = $@;
         $want           = $die;
         like( $got, $want, $diag );
     }
     elsif ($want) {
-        $diag           = $case . 'return-words';
+        $diag           = 'return-words';
         $got            = lc join qq{\n}, @rv;
         like( $got, $want, $diag );
     } 
     elsif ($deep) {
-        $diag           = $case . 'return-deeply';
+        $diag           = 'return-deeply';
         $got            = \@rv;
         $want           = $deep;
         is_deeply( $got, $want, $diag );
     }
     elsif ($fuzz) {
-        $diag           = $case . 'return-fuzzily';
+        $diag           = 'return-fuzzily';
         $got            = join qq{\n}, explain \@rv;
         $want           = $fuzz;
         like( $got, $want, $diag );
@@ -188,15 +191,14 @@ for (@td) {
     else {
         fail('Test script failure: unimplemented gimmick.');
     };
-    
+
     # Extra-verbose dump optional for test script debug.
-    if ($Verbose) {
-        note( 'got: ', $got                 );
-        note( ''                            );
+    if ( $Verbose >= 1 ) {
         note( 'explain: ', explain \@rv     );
         note( ''                            );
     };
-};
+    
+}; ## subtest
 
 #----------------------------------------------------------------------------#
 

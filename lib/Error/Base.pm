@@ -29,7 +29,7 @@ use Scalar::Util;               # General-utility scalar subroutines
 ## use
 
 # Alternate uses
-use Devel::Comments '#####', ({ -file => 'debug.log' });
+#~ use Devel::Comments '#####', ({ -file => 'debug.log' });
 
 #============================================================================#
 
@@ -81,7 +81,7 @@ sub _stringify {
 sub _trace {
     my $self        = shift;
     my %args        = _paired(@_);
-    my $i           = $args{-top}       || 1;
+    my $i           = defined $args{-top} ? $args{-top} : 1;
     
     my $bottomed    ;
     my @maxlen      = ( 1, 1, 1 );  # starting length of each field
@@ -438,7 +438,7 @@ sub _unfold_errors {
 #   
 sub _paired {
     if ( scalar @_ % 2 ) {  # an odd number modulo 2 is one: true
-        die 'Error::Base internal error: unpaired args', $!;
+        die 'Error::Base internal error: unpaired args: ', $!;
     };
     return @_;
 }; ## _paired
