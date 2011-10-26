@@ -60,7 +60,7 @@ my @td  = (
     },
     
     {
-        -case   => 'text-fuzz',         # emit error text, named arg
+        -case   => 'text-named-fuzz',         # emit error text, named arg
         -args   => [ -text => 'Foobar error ', foo => 'bar' ],
         -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 

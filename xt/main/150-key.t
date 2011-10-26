@@ -43,49 +43,49 @@ my @td  = (
                 /),
     },
     
-#~     {
-#~         -case   => 'text-fuzz',         # emit error text, named arg
-#~         -args   => [ 
-#~                     -text   => 'Foobar error ', 
-#~                     foo     => 'bar', 
-#~                     -key    => '_error1', 
-#~                 ],
-#~         -fuzz   => words(qw/ 
-#~                     bless 
-#~                         lines foobar error
-#~                     error base
-#~                 /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'text-both-fuzz',    # emit error text, both ways
-#~         -args   => [ 
-#~                     'Bazfaz: ', 
-#~                     -text   => 'Foobar error ', 
-#~                     foo     => 'bar', 
-#~                     -key    => '_error1', 
-#~                 ],
-#~         -fuzz   => words(qw/ 
-#~                     bless 
-#~                         lines foobar error bazfaz in
-#~                     error base
-#~                 /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'text-both',         # emit error text, stringified normal
-#~         -args   => [ 
-#~                     'Bazfaz: ', 
-#~                     -text   => 'Foobar error ', 
-#~                     foo     => 'bar', 
-#~                     -key    => '_error1', 
-#~                 ],
-#~         -want   => words(qw/ 
-#~                     foobar error bazfaz
-#~                     eval line key 
-#~                     ____ line key
-#~                 /),
-#~     },
+    {
+        -case   => 'text-fuzz',         # emit error text, named arg
+        -args   => [ 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                    -key    => '_error1', 
+                ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        lines foobar error
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'text-both-fuzz',    # emit error text, both ways
+        -args   => [ 
+                    'Bazfaz: ', 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                    -key    => '_error1', 
+                ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        lines foobar error bazfaz in
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'text-both',         # emit error text, stringified normal
+        -args   => [ 
+                    'Bazfaz: ', 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                    -key    => '_error1', 
+                ],
+        -want   => words(qw/ 
+                    foobar error bazfaz
+                    eval line key 
+                    ____ line key
+                /),
+    },
     
 );
 

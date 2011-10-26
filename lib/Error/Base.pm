@@ -215,7 +215,34 @@ sub _trace {
 # 
 sub _merge {
     my $self        = shift;
+    my $xtext       ;
+    if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
+        $xtext          = shift;    # and now it's even
+    };
+    
+    # Append text, don't overwrite.
+    # Save old text...
+    my $old_text        = $self->{-text};
+#~ ##### $old_text    
+    # Merge all values. Newer values always overwrite. 
     %{$self}        = ( %{$self}, @_ );
+    
+    # ... integrate any new text...
+    if    ( defined $self->{-text} and defined $xtext ) {
+        $self->{-text}  = $self->{-text} . $xtext;
+    } 
+    elsif ( defined $self->{-text} ) {
+        # do nothing; we're good
+    } 
+    elsif ( defined $xtext ) {
+        $self->{-text}  = $xtext;
+    } 
+    else {
+        $self->{-text}  = q{};
+    };
+    
+    # ... and restore old text in front of new text.
+    $self->{-text}  = $old_text . $self->{-text};
     
     return $self;
 }; ## _merge
@@ -501,6 +528,9 @@ sub init {
 
     if    ( defined $self->{-text} and defined $xtext ) {
         $self->{-text}  = $self->{-text} . $xtext;
+    } 
+    elsif ( defined $self->{-text} ) {
+        # do nothing; we're good
     } 
     elsif ( defined $xtext ) {
         $self->{-text}  = $xtext;
