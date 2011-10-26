@@ -154,7 +154,7 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: prepend: ';
+my $base        = 'Error-Base: -prepend: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;

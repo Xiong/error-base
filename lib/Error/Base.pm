@@ -29,7 +29,7 @@ use Scalar::Util;               # General-utility scalar subroutines
 ## use
 
 # Alternate uses
-#~ use Devel::Comments '#####', ({ -file => 'debug.log' });
+use Devel::Comments '#####', ({ -file => 'debug.log' });
 
 #============================================================================#
 
@@ -262,9 +262,18 @@ sub _fuss {
     };
     
     # Expand one of some stored texts.
+#~ my $d_key   = $self->{-key};
+#~ my $d_app   = $self->{$d_key};
+#~ my $d_text  = $self->{-text};
+#~ ##### $d_key
+#~ ##### $d_app
+#~ ##### $d_text
     if ( defined $self->{-key} ) {
         $self->{-text}  = $self->{-text} . $self->{ $self->{-key} };
     };
+    
+    # If still no text in there, finally default.
+    $self->{-text}  = $self->{-text} || 'Undefined error';
     
     # Optionally prepend some stuff.
     my $prepend     = q{};                      # prepended to first line
@@ -301,7 +310,7 @@ sub _fuss {
         push @{ $self->{-lines} }, map { $indent . $_ } @trace;
     };
     
-    ##### $self
+#~     ##### $self
     return $self;
 }; ## _fuss
 
@@ -475,25 +484,32 @@ sub new {
 #
 #
 sub init {
-    ##### init:
-    ##### @_
+#~     ##### init:
+#~     ##### @_
     my $self        = shift;
     my $xtext       ;
     if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
         $xtext          = shift;    # and now it's even
-    }
-    else {
-        $xtext          = q{};      # avoid undef warning
     };
     
     %{$self}        = @_;
-    ##### before defaults:
-    ##### $self
+#~     ##### before defaults:
+#~     ##### $self
     
     # Set some default values.
-    no warnings 'uninitialized';
-    $self->{-text}  = ( $self->{-text} . $xtext ) || 'Undefined error';
-    $self->{-top}   = defined $self->{-top} ? $self->{-top} : 2;
+#~     $self->{-text}  = ( $self->{-text} . $xtext ) || 'Undefined error';
+
+    if    ( defined $self->{-text} and defined $xtext ) {
+        $self->{-text}  = $self->{-text} . $xtext;
+    } 
+    elsif ( defined $xtext ) {
+        $self->{-text}  = $xtext;
+    } 
+    else {
+        $self->{-text}  = q{};
+    };
+    
+    $self->{-top}   = defined $self->{-top}  ? $self->{-top}  : 2;
     
     return $self;
 }; ## init
