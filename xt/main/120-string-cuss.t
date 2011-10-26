@@ -10,9 +10,9 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 #----------------------------------------------------------------------------#
 
 # Extra-verbose dump optional for test script debug.
-#~ my $Verbose     = 0;
+my $Verbose     = 0;
 #~ my $Verbose     = 1;
-my $Verbose     = 2;
+#~ my $Verbose     = 2;
 
 
 my @td  = (
@@ -52,92 +52,96 @@ my @td  = (
                 /),
     },
     
-#~     {
-#~         -case   => 'text-deep',         # emit error text
-#~         -args   => [ 'Foobar error', foo => 'bar' ],
-#~         -fuzz   => words(qw/ 
-#~                     bless 
-#~                         lines foobar error
-#~                     error base
-#~                 /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'text-deep',         # emit error text, named arg
-#~         -args   => [ -text => 'Foobar error ', foo => 'bar' ],
-#~         -fuzz   => words(qw/ 
-#~                     bless 
-#~                         lines foobar error
-#~                     error base
-#~                 /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'text-both-deep',    # emit error text, both ways
-#~         -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
-#~         -fuzz   => words(qw/ 
-#~                     bless 
-#~                         lines foobar error bazfaz in
-#~                     error base
-#~                 /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'text-both',         # emit error text, stringified normal
-#~         -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
-#~         -want   => words(qw/ 
-#~                     foobar error bazfaz
-#~                     eval line cuss __ line cuss
-#~                 /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'top-0-deep',        # mess with -top
-#~         -args   => [ 
-#~                     'Bazfaz: ',
-#~                     -top    => 0, 
-#~                     -text   => 'Foobar error ', 
-#~                     foo     => 'bar', 
-#~                 ],
-#~         -fuzz   => words(qw/ 
-#~                     lines
-#~                         foobar error bazfaz
-#~                         error base cuss lib error base
-#~                         eval cuss
-#~                         ____ cuss                        
-#~                     top 0
-#~                     foo bar
-#~                 /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'quiet',             # emit error text, no backtrace
-#~         -args   => [ 
-#~                     'Bazfaz: ',
-#~                     -quiet  => 1, 
-#~                     -text   => 'Foobar error ', 
-#~                     foo     => 'bar', 
-#~                 ],
-#~         -want   => words(qw/
-#~                     foobar error bazfaz
-#~                 /),
-#~     },
-#~     
-#~     {
-#~         -case   => 'quiet-deep',        # verify no backtrace
-#~         -args   => [ 
-#~                     'Bazfaz: ',
-#~                     -quiet  => 1, 
-#~                     -text   => 'Foobar error ', 
-#~                     foo     => 'bar', 
-#~                 ],
-#~         -fuzz   => words(qw/ 
-#~                     lines
-#~                         foobar error bazfaz
-#~                     quiet
-#~                 /),
-#~     },
-#~     
+    {
+        -case   => 'text-deep',         # emit error text
+        -args   => [ 'Foobar error', foo => 'bar' ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        lines foobar error
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'text-deep',         # emit error text, named arg
+        -args   => [ -text => 'Foobar error ', foo => 'bar' ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        lines foobar error
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'text-both-deep',    # emit error text, both ways
+        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -fuzz   => words(qw/ 
+                    bless 
+                        lines foobar error bazfaz in
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'text-both',         # emit error text, stringified normal
+        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -want   => words(qw/ 
+                    foobar error bazfaz
+                    eval line eval
+                    __ line cuss
+                        string eval throw
+                /),
+    },
+    
+    {
+        -case   => 'top-0-deep',        # mess with -top
+        -args   => [ 
+                    'Bazfaz: ',
+                    -top    => 0, 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                ],
+        -fuzz   => words(qw/ 
+                    lines
+                        foobar error bazfaz
+                        error base cuss lib error base
+                        throw line cuss
+                        eval line eval
+                        __ line cuss
+                            string eval throw
+                    top 0
+                    foo bar
+                /),
+    },
+    
+    {
+        -case   => 'quiet',             # emit error text, no backtrace
+        -args   => [ 
+                    'Bazfaz: ',
+                    -quiet  => 1, 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                ],
+        -want   => words(qw/
+                    foobar error bazfaz
+                /),
+    },
+    
+    {
+        -case   => 'quiet-deep',        # verify no backtrace
+        -args   => [ 
+                    'Bazfaz: ',
+                    -quiet  => 1, 
+                    -text   => 'Foobar error ', 
+                    foo     => 'bar', 
+                ],
+        -fuzz   => words(qw/ 
+                    lines
+                        foobar error bazfaz
+                    quiet
+                /),
+    },
+    
     
 );
 
@@ -152,7 +156,9 @@ my $want        ;
 
 #----------------------------------------------------------------------------#
 sub throw {
-    return Error::Base->cuss(@_);
+    my @args    = @_;
+#~     note( explain \@args );          # TEST DEBUG ONLY
+    return Error::Base->cuss(@args);
 };
 
 for (@td) {
@@ -167,10 +173,9 @@ for (@td) {
     
     $tc++;
     $diag           = $case . 'execute';
-#~     @rv             = eval{ 
-#~         eval "throw(@args);"; 
-#~     };
-    @rv             = eval "    throw(@args);    ";
+    @rv             = eval '    throw(@args);    ';     # string eval
+#~     @rv             = eval "    throw(@args);    ";     # string eval
+#~     @rv             = eval {    throw(@args);    };     # block eval
     pass( $diag );          # test didn't blow up
     note($@) if $@;         # did code under test blow up?
     

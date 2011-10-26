@@ -29,7 +29,7 @@ use Scalar::Util;               # General-utility scalar subroutines
 ## use
 
 # Alternate uses
-#~ use Devel::Comments '#####', ({ -file => 'debug.log' });
+use Devel::Comments '#####', ({ -file => 'debug.log' });
 
 #============================================================================#
 
