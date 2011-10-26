@@ -155,7 +155,7 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: new(): ';
+my $base        = 'Error-Base: new-merge: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;

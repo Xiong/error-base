@@ -12,10 +12,10 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 my @td  = (
     {
         -case   => 'null',              # stringified normal return
-        -die    => words(qw/ 
+        -warn   => words(qw/ 
                     undefined error 
-                    eval line crash 
-                    ____ line crash 
+                    eval line crank 
+                    ____ line crank 
                 /),
     },
     
@@ -24,7 +24,7 @@ my @td  = (
         -fuzz   => words(qw/ 
                     bless 
                     frames 
-                        eval undef file crash line package main sub eval
+                        eval undef file crank line package main sub eval
                         bottom sub ___ 
                     lines
                         undefined error
@@ -40,7 +40,7 @@ my @td  = (
                     -text   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
-        -die    => words(qw/
+        -warn   => words(qw/
                     foobar error bazfaz
                 /),
     },
@@ -66,12 +66,15 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: crash(): ';
+my $base        = 'Error-Base: crank(): ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
 my $want        ;
+my $warning     ;
 
+$SIG{__WARN__}      = sub { $warning = $_[0] };
+    
 #----------------------------------------------------------------------------#
 
 # Extra-verbose dump optional for test script debug.
@@ -90,16 +93,18 @@ sub exck {
     my $t           = shift;
     my @args        = eval{ @{ $t->{-args} } };
     my $die         = $t->{-die};
+    my $warn        = $t->{-warn};
     my $want        = $t->{-want};
     my $deep        = $t->{-deep};
     my $fuzz        = $t->{-fuzz};
     
     $diag           = 'execute';
+    $warning        = undef;
     @rv             = eval{ 
-        Error::Base->crash(@args); 
+        Error::Base->crank(@args); 
     };
     pass( $diag );          # test didn't blow up
-#~     note($@) if $@;         # did code under test blow up?
+    note($@) if $@;         # did code under test blow up?
     
     if    ($die) {
         $diag           = 'should-throw-string';
@@ -107,9 +112,15 @@ sub exck {
         $want           = $die;
         like( $got, $want, $diag );
     }
+    elsif ($warn) {
+        $diag           = 'should-warn-string';
+        $got            = lc $warning;
+        $want           = $warn;
+        like( $got, $want, $diag );
+    }
     elsif ($fuzz) {
-        $diag           = 'should-throw-fuzzily';
-        $got            = join qq{\n}, explain \$@;
+        $diag           = 'should-warn-fuzzily';
+        $got            = join qq{\n}, explain \$warning;
         $want           = $fuzz;
         like( $got, $want, $diag );
     }
@@ -119,7 +130,7 @@ sub exck {
 
     # Extra-verbose dump optional for test script debug.
     if ( $Verbose >= 1 ) {
-        note( 'explain: ', explain \$@      );
+        note( 'explain: ', explain \$warning      );
         note( ''                            );
     };
     
