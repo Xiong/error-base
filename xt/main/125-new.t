@@ -14,8 +14,8 @@ my @td  = (
         -case   => 'null',              # stringified normal return
         -want   => words(qw/ 
                     undefined error 
-                    eval line cuss 
-                    ____ line cuss 
+                    eval line new 
+                    ____ line new 
                 /),
     },
     
@@ -24,7 +24,7 @@ my @td  = (
         -fuzz   => words(qw/ 
                     bless 
                     frames 
-                        eval undef file cuss line package main sub eval
+                        eval undef file new line package main sub eval
                         bottom sub ___ 
                     lines
                         undefined error
@@ -77,8 +77,8 @@ my @td  = (
         -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
         -want   => words(qw/ 
                     foobar error bazfaz
-                    eval line cuss 
-                    ____ line cuss
+                    eval line new 
+                    ____ line new
                 /),
     },
     
@@ -93,9 +93,10 @@ my @td  = (
         -fuzz   => words(qw/ 
                     lines
                         foobar error bazfaz
+                        error base fuss lib error base
                         error base cuss lib error base
-                        eval cuss
-                        ____ cuss                        
+                    eval line new 
+                    exck line new
                     top 0
                     foo bar
                 /),
@@ -135,7 +136,7 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: cuss(): ';
+my $base        = 'Error-Base: new(): ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
@@ -165,7 +166,8 @@ sub exck {
     
     $diag           = 'execute';
     @rv             = eval{ 
-        Error::Base->cuss(@args); 
+        my $self        = Error::Base->new(@args);
+        $self->cuss;
     };
     pass( $diag );          # test didn't blow up
     note($@) if $@;         # did code under test blow up?
