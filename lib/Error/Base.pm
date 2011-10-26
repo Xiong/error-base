@@ -15,7 +15,7 @@ use overload                    # Overload Perl operations
 
 
 #~ use File::Spec;                 # Portably perform operations on file names
-#~ use Scalar::Util;               # General-utility scalar subroutines
+use Scalar::Util;               # General-utility scalar subroutines
 #~ use ExtUtils::Installed;        # Inventory management of installed modules
 
 # CPAN modules
@@ -81,7 +81,7 @@ sub _stringify {
 sub _trace {
     my $self        = shift;
     my %args        = _paired(@_);
-    my $i           = $args{-top}       || 1;
+    my $i           = defined $args{-top} ? $args{-top} : 1;
     
     my $bottomed    ;
     my @maxlen      = ( 1, 1, 1 );  # starting length of each field
@@ -438,7 +438,7 @@ sub _unfold_errors {
 #   
 sub _paired {
     if ( scalar @_ % 2 ) {  # an odd number modulo 2 is one: true
-        die 'Error::Base internal error: unpaired args', $!;
+        die 'Error::Base internal error: unpaired args: ', $!;
     };
     return @_;
 }; ## _paired
@@ -475,6 +475,8 @@ sub new {
 #
 #
 sub init {
+    ##### init:
+    ##### @_
     my $self        = shift;
     my $xtext       ;
     if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
@@ -485,11 +487,13 @@ sub init {
     };
     
     %{$self}        = @_;
+    ##### before defaults:
+    ##### $self
     
     # Set some default values.
     no warnings 'uninitialized';
     $self->{-text}  = ( $self->{-text} . $xtext ) || 'Undefined error';
-    $self->{-top}   = $self->{-top} || 2;
+    $self->{-top}   = defined $self->{-top} ? $self->{-top} : 2;
     
     return $self;
 }; ## init
