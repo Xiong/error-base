@@ -141,7 +141,7 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: cuss(): ';
+my $base        = 'Error-Base: string-cuss: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;

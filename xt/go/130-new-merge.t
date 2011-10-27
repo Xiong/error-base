@@ -1,0 +1,1 @@
+/home/xiong/projects/error-base/xt/main/130-new-merge.t

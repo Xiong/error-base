@@ -11,33 +11,38 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 my @td  = (
     {
-        -case   => 'null',              # stringified normal return
+        -case   => 'merge-only',         # stringified normal return
+        -merge  => [ zig => 'zag' ],
         -want   => words(qw/ 
                     undefined error 
-                    eval line cuss 
-                    ____ line cuss 
+                    eval line new 
+                    ____ line new 
                 /),
     },
     
     {
-        -case   => 'null-fuzz',         
+        -case   => 'merge-only-fuzz',         
+        -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
                     bless 
                     frames 
-                        eval undef file cuss line package main sub eval
+                        eval undef file new line package main sub eval
                         bottom sub ___ 
                     lines
                         undefined error
+                    zig zag
                     error base
                 /),
     },
     
     {
-        -case   => 'foo-fuzz',          # preserve private attribute
+        -case   => 'zig-zag-fuzz',      # merge at crash
         -args   => [ foo => 'bar' ],
+        -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
                     bless 
                         foo bar
+                    zig zag
                     error base
                 /),
     },
@@ -45,19 +50,23 @@ my @td  = (
     {
         -case   => 'text-fuzz',         # emit error text
         -args   => [ 'Foobar error', foo => 'bar' ],
+        -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
                     bless 
                         lines foobar error
+                    zig zag
                     error base
                 /),
     },
     
     {
-        -case   => 'text-fuzz',         # emit error text, named arg
+        -case   => 'text-named-fuzz',         # emit error text, named arg
         -args   => [ -text => 'Foobar error ', foo => 'bar' ],
+        -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
                     bless 
                         lines foobar error
+                    zig zag
                     error base
                 /),
     },
@@ -65,9 +74,11 @@ my @td  = (
     {
         -case   => 'text-both-fuzz',    # emit error text, both ways
         -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
                     bless 
                         lines foobar error bazfaz in
+                    zig zag
                     error base
                 /),
     },
@@ -75,10 +86,11 @@ my @td  = (
     {
         -case   => 'text-both',         # emit error text, stringified normal
         -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -merge  => [ zig => 'zag' ],
         -want   => words(qw/ 
                     foobar error bazfaz
-                    eval line cuss 
-                    ____ line cuss
+                    eval line new 
+                    ____ line new
                 /),
     },
     
@@ -86,16 +98,17 @@ my @td  = (
         -case   => 'top-0-fuzz',        # mess with -top
         -args   => [ 
                     'Bazfaz: ',
-                    -top    => 0, 
                     -text   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
+        -merge  => [ -top => 0 ],
         -fuzz   => words(qw/ 
                     lines
                         foobar error bazfaz
+                        error base fuss lib error base
                         error base cuss lib error base
-                        eval cuss
-                        ____ cuss                        
+                    eval line new 
+                    exck line new
                     top 0
                     foo bar
                 /),
@@ -109,6 +122,10 @@ my @td  = (
                     -text   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
+        -merge  => [                     
+                    -quiet  => 1, 
+                    zig => 'zag', 
+                ],
         -want   => words(qw/
                     foobar error bazfaz
                 /),
@@ -118,9 +135,12 @@ my @td  = (
         -case   => 'quiet-fuzz',        # verify no backtrace
         -args   => [ 
                     'Bazfaz: ',
-                    -quiet  => 1, 
                     -text   => 'Foobar error ', 
                     foo     => 'bar', 
+                ],
+        -merge  => [                     
+                    -quiet  => 1, 
+                    zig => 'zag', 
                 ],
         -fuzz   => words(qw/ 
                     lines
@@ -135,7 +155,7 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: cuss(): ';
+my $base        = 'Error-Base: new-merge: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
@@ -158,6 +178,7 @@ for (@td) {
 sub exck {
     my $t           = shift;
     my @args        = eval{ @{ $t->{-args} } };
+    my @merge       = eval{ @{ $t->{-merge} } };
     my $die         = $t->{-die};
     my $want        = $t->{-want};
     my $deep        = $t->{-deep};
@@ -165,7 +186,8 @@ sub exck {
     
     $diag           = 'execute';
     @rv             = eval{ 
-        Error::Base->cuss(@args); 
+        my $self        = Error::Base->new(@args);
+        $self->cuss(@merge);
     };
     pass( $diag );          # test didn't blow up
     note($@) if $@;         # did code under test blow up?

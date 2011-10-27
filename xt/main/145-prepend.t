@@ -9,13 +9,17 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 #----------------------------------------------------------------------------#
 
+my $prepend     = '@ Big Important Error: ';
+my $madeup      = '@                      ';
+my $indent      = '!--------------------! ';
+
 my @td  = (
     {
         -case   => 'null',              # stringified normal return
         -want   => words(qw/ 
                     undefined error 
-                    eval line cuss 
-                    ____ line cuss 
+                    eval line prepend 
+                    ____ line prepend 
                 /),
     },
     
@@ -24,7 +28,7 @@ my @td  = (
         -fuzz   => words(qw/ 
                     bless 
                     frames 
-                        eval undef file cuss line package main sub eval
+                        eval undef file prepend line package main sub eval
                         bottom sub ___ 
                     lines
                         undefined error
@@ -33,100 +37,115 @@ my @td  = (
     },
     
     {
-        -case   => 'foo-fuzz',          # preserve private attribute
-        -args   => [ foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        foo bar
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-fuzz',         # emit error text
-        -args   => [ 'Foobar error', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-fuzz',         # emit error text, named arg
-        -args   => [ -text => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both-fuzz',    # emit error text, both ways
-        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error bazfaz in
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both',         # emit error text, stringified normal
-        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
-        -want   => words(qw/ 
-                    foobar error bazfaz
-                    eval line cuss 
-                    ____ line cuss
-                /),
-    },
-    
-    {
-        -case   => 'top-0-fuzz',        # mess with -top
+        -case   => 'prepend',               # prepend only
         -args   => [ 
-                    'Bazfaz: ',
-                    -top    => 0, 
-                    -text   => 'Foobar error ', 
-                    foo     => 'bar', 
+                    -prepend    => $prepend,
                 ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                        error base cuss lib error base
-                        eval cuss
-                        ____ cuss                        
-                    top 0
-                    foo bar
-                /),
+        -fuzz   => words(
+                    qw/ 
+                        bless 
+                        lines
+                    /,
+                    $prepend,
+                    qw/ 
+                        undefined error
+                    /,
+                    $madeup, 'line',
+                    $madeup, 'line',
+                    $madeup, 'line',
+                    qw/
+                        error base
+                    /,                    
+                ),
+    },
+    
+    {
+        -case   => 'prepend-indent',               # both
+        -args   => [ 
+                    -prepend    => $prepend,
+                    -indent     => $indent,
+                ],
+        -fuzz   => words(
+                    qw/ 
+                        bless 
+                        lines
+                    /,
+                    $prepend,
+                    qw/ 
+                        undefined error
+                    /,
+                    $indent, 'line',
+                    $indent, 'line',
+                    $indent, 'line',
+                    qw/
+                        error base
+                    /,                    
+                ),
+    },
+    
+    {
+        -case   => 'indent',               # indent only
+        -args   => [ 
+                    -indent     => $indent,
+                ],
+        -fuzz   => words(
+                    qw/ 
+                        bless 
+                        bottom
+                        sub ____
+                        lines
+                        undefined error
+                    /,
+                    $indent, 'line',
+                    $indent, 'line',
+                    $indent, 'line',
+                    qw/
+                        error base
+                    /,                    
+                ),
+    },
+    
+    {
+        -case   => 'prepend-text-both',     # emit error text, both ways
+        -args   => [ 
+                    'Bazfaz: ', 
+                    -text       => 'Foobar error ', 
+                    foo         => 'bar', 
+                    -prepend    => $prepend,
+                ],
+        -fuzz   => words(
+                    qw/ 
+                        bless 
+                        lines
+                    /,
+                    $prepend,
+                    qw/ 
+                        foobar error bazfaz in
+                    /,
+                    $madeup, 'line',
+                    $madeup, 'line',
+                    $madeup, 'line',
+                    qw/
+                        error base
+                    /,                    
+                ),
     },
     
     {
         -case   => 'quiet',             # emit error text, no backtrace
         -args   => [ 
-                    'Bazfaz: ',
+                    'Bazfaz: ', 
+                    -text       => 'Foobar error ', 
+                    foo         => 'bar', 
+                    -prepend    => $prepend,
                     -quiet  => 1, 
-                    -text   => 'Foobar error ', 
-                    foo     => 'bar', 
                 ],
-        -want   => words(qw/
-                    foobar error bazfaz
-                /),
-    },
-    
-    {
-        -case   => 'quiet-fuzz',        # verify no backtrace
-        -args   => [ 
-                    'Bazfaz: ',
-                    -quiet  => 1, 
-                    -text   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -fuzz   => words(qw/ 
-                    lines
+        -want   => words(
+                    $prepend,
+                    qw/
                         foobar error bazfaz
-                    quiet
-                /),
+                    /
+                ),
     },
     
     
@@ -135,7 +154,7 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: cuss(): ';
+my $base        = 'Error-Base: -prepend: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
@@ -211,6 +230,7 @@ done_testing($tc);
 exit 0;
 
 #============================================================================#
+#~ use Devel::Comments '#####', ({ -file => 'debug.log' });
 
 sub words {                         # sloppy match these strings
     my @words   = @_;
@@ -220,7 +240,7 @@ sub words {                         # sloppy match these strings
         $_      = lc $_;
         $regex  = $regex . $_ . '.*';
     };
-    
+    ##### $regex
     return qr/$regex/is;
 };
 

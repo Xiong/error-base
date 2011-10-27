@@ -12,10 +12,10 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 my @td  = (
     {
         -case   => 'null',              # stringified normal return
-        -want   => words(qw/ 
+        -warn   => words(qw/ 
                     undefined error 
-                    eval line cuss 
-                    ____ line cuss 
+                    eval line crank 
+                    ____ line crank 
                 /),
     },
     
@@ -24,80 +24,11 @@ my @td  = (
         -fuzz   => words(qw/ 
                     bless 
                     frames 
-                        eval undef file cuss line package main sub eval
+                        eval undef file crank line package main sub eval
                         bottom sub ___ 
                     lines
                         undefined error
                     error base
-                /),
-    },
-    
-    {
-        -case   => 'foo-fuzz',          # preserve private attribute
-        -args   => [ foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        foo bar
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-fuzz',         # emit error text
-        -args   => [ 'Foobar error', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-fuzz',         # emit error text, named arg
-        -args   => [ -text => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both-fuzz',    # emit error text, both ways
-        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error bazfaz in
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both',         # emit error text, stringified normal
-        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
-        -want   => words(qw/ 
-                    foobar error bazfaz
-                    eval line cuss 
-                    ____ line cuss
-                /),
-    },
-    
-    {
-        -case   => 'top-0-fuzz',        # mess with -top
-        -args   => [ 
-                    'Bazfaz: ',
-                    -top    => 0, 
-                    -text   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                        error base cuss lib error base
-                        eval cuss
-                        ____ cuss                        
-                    top 0
-                    foo bar
                 /),
     },
     
@@ -109,7 +40,7 @@ my @td  = (
                     -text   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
-        -want   => words(qw/
+        -warn   => words(qw/
                     foobar error bazfaz
                 /),
     },
@@ -135,12 +66,15 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: cuss(): ';
+my $base        = 'Error-Base: crank(): ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
 my $want        ;
+my $warning     ;
 
+$SIG{__WARN__}      = sub { $warning = $_[0] };
+    
 #----------------------------------------------------------------------------#
 
 # Extra-verbose dump optional for test script debug.
@@ -159,37 +93,34 @@ sub exck {
     my $t           = shift;
     my @args        = eval{ @{ $t->{-args} } };
     my $die         = $t->{-die};
+    my $warn        = $t->{-warn};
     my $want        = $t->{-want};
     my $deep        = $t->{-deep};
     my $fuzz        = $t->{-fuzz};
     
     $diag           = 'execute';
+    $warning        = undef;
     @rv             = eval{ 
-        Error::Base->cuss(@args); 
+        Error::Base->crank(@args); 
     };
     pass( $diag );          # test didn't blow up
     note($@) if $@;         # did code under test blow up?
     
     if    ($die) {
-        $diag           = 'should throw';
-        $got            = $@;
+        $diag           = 'should-throw-string';
+        $got            = lc $@;
         $want           = $die;
         like( $got, $want, $diag );
     }
-    elsif ($want) {
-        $diag           = 'return-words';
-        $got            = lc join qq{\n}, @rv;
+    elsif ($warn) {
+        $diag           = 'should-warn-string';
+        $got            = lc $warning;
+        $want           = $warn;
         like( $got, $want, $diag );
-    } 
-    elsif ($deep) {
-        $diag           = 'return-deeply';
-        $got            = \@rv;
-        $want           = $deep;
-        is_deeply( $got, $want, $diag );
     }
     elsif ($fuzz) {
-        $diag           = 'return-fuzzily';
-        $got            = join qq{\n}, explain \@rv;
+        $diag           = 'should-warn-fuzzily';
+        $got            = join qq{\n}, explain \$warning;
         $want           = $fuzz;
         like( $got, $want, $diag );
     }
@@ -199,7 +130,7 @@ sub exck {
 
     # Extra-verbose dump optional for test script debug.
     if ( $Verbose >= 1 ) {
-        note( 'explain: ', explain \@rv     );
+        note( 'explain: ', explain \$warning      );
         note( ''                            );
     };
     

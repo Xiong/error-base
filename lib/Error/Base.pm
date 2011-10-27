@@ -6,31 +6,20 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version 0.94; our $VERSION = qv('0.0.0');
+use version 0.94; our $VERSION = qv('0.0.1');
 
 # Core modules
 use overload                    # Overload Perl operations
     '""'    => \&_stringify,
     ;
-
-
-#~ use File::Spec;                 # Portably perform operations on file names
 use Scalar::Util;               # General-utility scalar subroutines
-#~ use ExtUtils::Installed;        # Inventory management of installed modules
 
 # CPAN modules
-#~ use Data::Lock qw( dlock );     # Declare locked scalars
-#~ use File::HomeDir;              # Find your home... on any platform
-
-
-#~ use Scalar::Util::Reftype;      # Alternate reftype() interface
-
-
-## use
 
 # Alternate uses
-#~ use Devel::Comments '#####', ({ -file => 'debug.log' });
+#~ use Devel::Comments '#####', ({ -file => 'debug.log' });                 #~
 
+## use
 #============================================================================#
 
 # Pseudo-globals
@@ -151,9 +140,9 @@ sub _trace {
         
         # Safety exit from while loop.
         $i++;
-        die 'Error::Base internal error: excessive backtrace', $!
+        die 'Error::Base internal error: excessive backtrace: ', $!
             if $i > 99;
-#~ last if $i > 9;                                                 # DEBUG ONLY
+#~ last if $i > 9;                                             # DEBUG ONLY #~
         
     }; ## while not bottomed
     
@@ -215,7 +204,34 @@ sub _trace {
 # 
 sub _merge {
     my $self        = shift;
+    my $xtext       ;
+    if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
+        $xtext          = shift;    # and now it's even
+    };
+    
+    # Append text, don't overwrite.
+    # Save old text...
+    my $old_text        = $self->{-text};
+    
+    # Merge all values. Newer values always overwrite. 
     %{$self}        = ( %{$self}, @_ );
+    
+    # ... integrate any new text...
+    if    ( defined $self->{-text} and defined $xtext ) {
+        $self->{-text}  = $self->{-text} . $xtext;
+    } 
+    elsif ( defined $self->{-text} ) {
+        # do nothing; we're good
+    } 
+    elsif ( defined $xtext ) {
+        $self->{-text}  = $xtext;
+    } 
+    else {
+        $self->{-text}  = q{};
+    };
+    
+    # ... and restore old text in front of new text.
+    $self->{-text}  = $old_text . $self->{-text};
     
     return $self;
 }; ## _merge
@@ -266,6 +282,9 @@ sub _fuss {
         $self->{-text}  = $self->{-text} . $self->{ $self->{-key} };
     };
     
+    # If still no text in there, finally default.
+    $self->{-text}  = $self->{-text} || 'Undefined error';
+    
     # Optionally prepend some stuff.
     my $prepend     = q{};                      # prepended to first line
     my $indent      = q{};                      # prepended to all others
@@ -301,7 +320,7 @@ sub _fuss {
         push @{ $self->{-lines} }, map { $indent . $_ } @trace;
     };
     
-    ##### $self
+#~     ##### $self
     return $self;
 }; ## _fuss
 
@@ -324,103 +343,6 @@ sub cuss{
     
     return $self;
 }; ## crank
-
-
-
-
-# TODO: REMOVE - DEBUG ONLY
-sub _test_trace { main::B() };
-
-
-=for scrap
-    
-    my @lines           ;
-    my $text            ;
-    my $unimplemented   = 'Unimplemented error.';
-    ##### @_
-    
-    @lines              = _unfold_errors(@_);
-    if ( not @lines ) { @lines = $unimplemented };
-    
-    # Stack backtrace.
-    my $call_pkg        = 0;
-    my $call_sub        = 3;
-    my $call_line       = 2;
-    for my $frame (1..3) {
-        my @caller_ary  = caller($frame);
-        push @lines,      $caller_ary[$call_pkg] . ( q{ } x 4 )
-                        . $caller_ary[$call_sub] . q{() line }
-                        . $caller_ary[$call_line]
-                        ;
-    };
-    
-    my $prepend     = __PACKAGE__;      # prepend to all errors
-       $prepend     = join q{}, q{# }, $prepend, q{: };
-    my $indent      = qq{\n} . q{ } x length $prepend;
-    
-    # Expand error.
-    $text           = $prepend . join $indent, @lines;
-    $text           = $text . $indent;      # before croak()'s trace
-    
-    # now croak()
-    croak $text;
-    return 0;                   # should never get here, though
-
-
-#=========# INTERNAL ROUTINE
-#
-#   @lines  = _unfold_errors(@args);     # get error text
-#       
-# Purpose   : For each element recursively, get error text.
-# Parms     : ____
-# Reads     : ____
-# Returns   : ____
-# Writes    : ____
-# Throws    : ____
-# See also  : ____
-# 
-# ____
-# 
-sub _unfold_errors {
-    my $self        ;       # don't just shift: check first
-    my @lines       ;       # accumulate output
-    ##### @_
-    for (@_) {
-        # Is arg in this class or a subclass of it?
-        #   isa() will throw if called on an unblessed ref.
-        if    ( eval{ $_->isa (__PACKAGE__) } ) {
-            $self       = $_;
-        } 
-        elsif ( ref $_ eq 'HASH' ) {
-            $self       = $_;
-        } 
-        elsif ( 0 ) {
-            
-        } 
-        elsif ( 0 ) {
-            
-        } 
-        elsif ( ref $_ eq 'ARRAY' ) {
-            push @lines, _unfold_errors(@$_);
-        } 
-        elsif ( $_ =~ /^_/ ) {      # leading underbar: an $errkey was passed
-            my $errkey      = $_;
-            push @lines, $errkey;
-            # find and expand error if possible
-            if ( $self and ( defined $self->{$errkey} ) ) {
-                push @lines, _unfold_errors( $self, $self->{$errkey} );
-            };
-        } 
-        else {  # not a ref or errkey
-            push @lines, $_;            
-        };
-    }; ## for @_
-    
-    return @lines;
-}; ## _unfold_errors
-
-=cut
-
 
 #=========# INTERNAL FUNCTION
 #
@@ -475,25 +397,30 @@ sub new {
 #
 #
 sub init {
-    ##### init:
-    ##### @_
     my $self        = shift;
     my $xtext       ;
     if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
         $xtext          = shift;    # and now it's even
-    }
-    else {
-        $xtext          = q{};      # avoid undef warning
     };
     
     %{$self}        = @_;
-    ##### before defaults:
-    ##### $self
     
     # Set some default values.
-    no warnings 'uninitialized';
-    $self->{-text}  = ( $self->{-text} . $xtext ) || 'Undefined error';
-    $self->{-top}   = defined $self->{-top} ? $self->{-top} : 2;
+
+    if    ( defined $self->{-text} and defined $xtext ) {
+        $self->{-text}  = $self->{-text} . $xtext;
+    } 
+    elsif ( defined $self->{-text} ) {
+        # do nothing; we're good
+    } 
+    elsif ( defined $xtext ) {
+        $self->{-text}  = $xtext;
+    } 
+    else {
+        $self->{-text}  = q{};
+    };
+    
+    $self->{-top}   = defined $self->{-top}  ? $self->{-top}  : 2;
     
     return $self;
 }; ## init
@@ -511,7 +438,7 @@ Error::Base - Simple structured errors with full backtrace
 
 =head1 VERSION
 
-This document describes Error::Base version 0.0.0
+This document describes Error::Base version 0.0.1
 
 =head1 SYNOPSIS
 
@@ -519,8 +446,8 @@ This document describes Error::Base version 0.0.0
     Error::Base->crash('Sanity check failed');  # die() with backtrace
     
     my $err     = Error::Base->new('Foo');      # construct object first
-        yourcodehere(...);          # ... do other stuff
-    $err->crash;
+        yourcodehere(...);                  # ... do other stuff
+    $err->crash;                                # as object method
     
     my $err     = Error::Base->new(
                     'Foo error',                # args start with text
@@ -530,11 +457,11 @@ This document describes Error::Base version 0.0.0
                 );
     $err->crash;
     
-    $err->crank;            # get cranky: warn() but don't die()
-    my $err = Error::Base->crank('Me!');   # also a constructor
+    $err->crank;                    # get cranky: warn() but don't die()
+    my $err = Error::Base->crank('Me!');        # also a constructor
     
     eval{ Error::Base->crash( 'car', -foo => 'bar' ) }; 
-    my $err     = $@ if $@;     # catch and examine the object
+    my $err     = $@ if $@;         # catch and examine the object
     
 
 =head1 DESCRIPTION
@@ -547,81 +474,325 @@ I<J'avais cru plus difficile de mourir.>
 =back
 
 Die early, die often. Make frequent sanity checks and raise a fatal exception 
-as soon as a check fails. 
+as soon as a check fails. Trap an exception object and examine the contents; 
+or let it tell its sad tale and end it. 
 
-=head1 INTERFACE 
+Error::Base usage can be simple or complex. For quick sanity checks, 
+construct and throw a simple fatal error in one line. At the other extreme, 
+you can set up subclasses of error and override methods as you please. 
+
+=head1 METHODS 
+
+=head2 new()
+
+    my $err     = Error::Base->new('Foo');      # constructor
+    my $err     = Error::Base->new(             # with named args
+                    -text       => 'Bar error: ',
+                    -quiet      => 1,
+                    -top        => 3,
+                    -prepend    => '@! Globalcorpcoapp: ',
+                    -indent     => '@!                   ',
+                    foo         => bar,
+                );
+    my $err     = Error::Base->new(             # okay to pass both
+                        'bartender: '           # lone string first...
+                    -text   => 'Bar error: ',   # ... and named args
+                    _beer   => 'out of beer',   # your private attribute(s)
+                );
+
+The constructor must be called as a class method; there is no mutator 
+returning a new object based on an old one. You do have some freedom in how 
+you call, though. 
+
+Called with an even number of args, they are all considered key/value pairs. 
+Keys with leading dash (C<'-'>) are reserved for use by Error::Base; 
+all others are free to use as you see fit. Error message text is stored in 
+C<-text> as a single string.
+
+Called with an odd number of args, the first arg is shifted off and appended
+to the error message text. This shorthand may be offensive to some; in which 
+case, don't do that. 
+
+You may stash any arbitrary data inside the returned object (during 
+construction or later) and do whatever you like with it. You might choose to 
+supply additional optional texts for later access. 
+
+See L<PARAMETERS>.
+
+=head2 crash()
+
+    Error::Base->crash('Sanity check failed');  # as class method
+    my $err = Error::Base->crash('Flat tire:'); # also a constructor
+    $err->crash;                                # as object method
+    $err->crash(                    # all the same args are okay in call
+                'bartender: '
+            -text   => 'Bar error: ',
+            -key    => '_beer',                 # append additional text
+        );
+    eval{ $err->crash }; 
+    my $err     = $@ if $@;         # catch and examine the object
+
+C<crash()> and other public methods may be called as class or object methods. 
+If called as a class method, then C<new()> is called internally. Call C<new()>
+yourself first if you want to call C<crash()> as an object method. 
+
+C<crash()> is a very thin wrapper, easy to subclass. It differs from similar 
+methods in that instead of returning its object, it C<die()>-s with it. 
+If uncaught, the exception will stringify; if caught, the entire object 
+is yours. 
+
+=head2 crank()
+
+    Error::Base->crank('More gruel!');          # as class method
+    $err->crank;                                # as object method
+    my $err = Error::Base->crank('Me!');        # also a constructor
+
+This is exactly like C<crash()> except that it C<warn()>s instead of 
+C<die()>-ing. Therefore it can also usefully be used as a constructor of an 
+object for later use. 
+
+C<crank()> is also a very thin wrapper. You may subclass it; you may catch 
+the entire object or let it stringify.
+
+=head2 cuss()
+
+    my $err = Error::Base->cuss('x%@#*!');      # also a constructor
+
+Again, exactly like C<crash()> or C<crank()> except that it neither 
+C<die()>-s nor C<warn()>s; it I<only> returns the object. 
+
+The difference between C<new()> and the other methods is that C<new()> returns 
+the constructed object containing only what was passed in as arguments. 
+C<crash()>, C<crank()>, and C<cuss()> perform a full stack backtrace 
+(if not passed -quiet) and format the result for stringified display.
+
+You may find C<cuss()> useful in testing your subclass or to see how your 
+error will be thrown without the bother of actually catching C<crash()>.
+
+=head2 init()
+
+    $err->init(@args);
+
+Probably, it is not useful to call this object method directly. Perhaps you 
+might subclass it or call it from within your subclass constructor. 
+The calling conventions are exactly the same as for the other public methods. 
+
+=head1 PARAMETERS
+
+All public methods accept the same arguments, with the same conventions. 
+All parameter names begin with a leading dash (C<'-'>); please choose other 
+names for your private keys. 
+
+If the same parameter is set multiple times, the most recent argument 
+completely overwrites the previous: 
+
+    my $err     = Error::Base->new( -top    => 3, );
+        # -top is now 3
+    $err->cuss(  -top    => 0, );
+        # -top is now 0
+    $err->crank( -top    => 1, );
+        # -top is now 1
+
+The exceptions are the various ways of setting C<< -text >>. Later assignments 
+will be appended to previous assignments. To clear out the previous value: 
+
+    delete $err->{-text};
+
+You are cautioned that deleting other keys may be unwise. 
+
+=head2 -text
+
+I<scalar string> default: 'Undefined error'
+
+    $err->crash;                        # emits 'Undefined error'
+    $err->crash('Foo');                 # emits 'Foo'
+    $err->crash( -text => 'Bar');       # emits 'Bar'
+    $err->crash(
+              zap   => 'Yip',
+              -key  => 'zap',
+          );                            # emits 'Yip'
+
+The value of C<< -text >> is printed in the first line of the stringified 
+error object after a call to C<crash()>, C<crank()>, or C<cuss()>. As a 
+convenience, if the number of arguments passed in is odd, then the first arg 
+is shifted off and assigned to C<< -text >>. This is done to simplify writing 
+one-off, one-line sanity checks:
+
+    open( my $in_fh, '<', $filename )
+        or Error::Base->crash("Couldn't open $filename for reading.");
+
+Either way, it is expected that the argument be a single scalar. If you need 
+to pass a multi-line string then please embed escaped newlines (C<'\n'>). 
+
+=head2 -key
+
+I<scalar string> default: undef
+
+    my $err     = Error::Base->new(
+                    _err00  => 'frobnitz error',
+                    _err01  => 'What, me worry?',
+                );
+    $assertion      or $err->crash( -key => '_err00' );
+    $expectation    or $err->crank( -key => '_err01' );
+
+You may store arbitrary error text against arbitrary keys and access them 
+later with C<< -key >>. This may suit you if you like to group all your error 
+messages in one place; you need only create a single object to hold them all. 
+The value of whatever key you pass will be assigned to C<< -text >>. 
+The leading underbar (C<'_'>) is merely a suggested convention. 
+
+Note that multiple assignments to C<< -text >> are currently supported but 
+the exact approach may change. Currently, they are all concatenated. 
+
+=head2 -quiet
+
+I<scalar boolean> default: undef
+
+    $err->crash( -quiet         => 1, );        # no backtrace
+
+By default, you get a full stack backtrace. If you want none, set this 
+parameter. Only C<< -text >> will be emitted. 
+
+=head2 -top
+
+I<scalar unsigned integer> default: 2
+
+    $err->crash( -top           => 0, );        # really full backtrace
+
+By default, you get a full stack backtrace: "full" meaning, from the point of
+invocation. Some stack frames are added by the process of crash()-ing itself; 
+by default, these are not seen. If you want more or fewer frames you may set 
+this parameter. 
+
+Beware that future implementations may change the number of stack frames 
+added internally by Error::Base; and also you may see a different number of 
+frames if you subclass, depending on how you do that. The safe way: 
+
+    my $err     = Error::Base->new('Foo');      # construct object
+    $err->{ -top => ($err->{-top})++ };         # drop the first frame
+    $err->crash();
+
+This is ugly and you may get a convenience method in future. 
+
+=head2 -prepend
+
+I<scalar string> default: undef
+
+=head2 -indent
+
+I<scalar string> default: first char of -prepend, padded with spaces to length
+
+=head2 -prepend_all
+
+I<scalar string> default: undef
+
+    my $err     = Error::Base->new(
+                    -prepend    => '#! Globalcorpcoapp: ',
+                );
+    $err->crash ('Boy Howdy!');
+        # emits '@! Globalcorpcoapp: Boy Howdy!
+        #        @                   in main::fubar at line 42    [test.pl]'
+
+Any string passed to C<< -prepend >> will be prepended to the first line only 
+of the formatted error message. If C<< -indent >> is defined then that will be
+prepended to all following lines. If C<< -indent >> is undefined then it will 
+be formed from the first character only of C<< -prepend >>, padded with spaces
+to the length of C<< -prepend >>. 
+C<< -prepend_all >> will be prepended to all lines. 
+
+This is a highly useful feature that improves readability in the middle of a 
+dense dump. So the default may be changed to form C<< -prepend >> in some way 
+if not defined. If you are certain you want no prepending or indentation, 
+pass the empty string, C<q{}>.
+
+=head1 OTHER KEYS
+
+=head2 -lines
+
+I<array of strings>
+
+The formatted error message, fully expanded. 
+
+=head2 -frames
+
+I<array of hashrefs>
+
+The raw stack dump. 
+
+=head1 SUBCLASSING
+
+    use base 'Error::Base';
+    sub init{
+        my $self    = shift;
+        _munge_my_args(@_);
+        $self->SUPER::init(@_);
+        return $self;
+    };
+
+While useful standing alone, L<Error::Base> is written to be subclassed, 
+if you so desire. Perhaps the most useful method to subclass may be C<init()>.
+You might also subclass C<crash()>, C<crank()>, or C<cuss()> if you want to 
+do something first: 
+
+    use base 'Error::Base';
+    sub crash{
+        my $self    = _fuss(@_);
+        $self->a_kiss_before_dying();
+        die $self;
+    };
+
+The author hopes that most users will not be driven to subclassing but if you
+do so, successfully or not, please be so kind as to notify. 
 
 =head1 INSTALLATION
 
+This module is installed using L<Module::Build>. 
 
 =head1 DIAGNOSTICS
 
-=for author to fill in:
-    List every single error and warning message that the module can
-    generate (even the ones that will "never happen"), with a full
-    explanation of each problem, one or more likely causes, and any
-    suggested remedies.
+This module emits error message I<for> you; it is hoped you won't encounter 
+any from within itself. 
 
 =over
 
-=item C<< Error message here, perhaps with %s placeholders >>
+=item C<< Error::Base internal error: excessive backtrace:  >>
 
-[Description of error here]
+You attempted to dump too many frames of backtrace. 
+You probably mis-set C<< -top >>, rational values of which are perhaps C<0..5>.
 
-=item C<< Another error message here >>
+=item C<< Error::Base internal error: unpaired args:  >>
 
-[Description of error here]
-
-[Et cetera, et cetera]
+You do I<not> have to pass paired args to most public methods. 
+You probably passed an odd number of args to a private method. 
 
 =back
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-=for author to fill in:
-    A full explanation of any configuration system(s) used by the
-    module, including the names and locations of any configuration
-    files, and the meaning of any environment variables or properties
-    that can be set. These descriptions must also include details of any
-    configuration language used.
-
 Error::Base requires no configuration files or environment variables.
 
 =head1 DEPENDENCIES
 
-=for author to fill in:
-    A list of all the other modules that this module relies upon,
-    including any restrictions on versions, and an indication whether
-    the module is part of the standard Perl distribution, part of the
-    module's distribution, or must be installed separately. ]
+There are no non-core dependencies. 
 
-None.
+L<version> 0.94                 # Perl extension for Version Objects
+
+L<overload>                     # Overload Perl operations
+
+L<Scalar::Util>                 # General-utility scalar subroutines
+
+This module should work with any version of perl 5.8.8 and up. 
 
 =head1 INCOMPATIBILITIES
 
-=for author to fill in:
-    A list of any modules that this module cannot be used in conjunction
-    with. This may be due to name conflicts in the interface, or
-    competition for system or program resources, or due to internal
-    limitations of Perl (for example, many modules that use source code
-    filters are mutually incompatible).
-
-None reported.
+None known.
 
 =head1 BUGS AND LIMITATIONS
 
-=for author to fill in:
-    A list of known problems with the module, together with some
-    indication Whether they are likely to be fixed in an upcoming
-    release. Also a list of restrictions on the features the module
-    does provide: data types that cannot be handled, performance issues
-    and the circumstances in which they may arise, practical
-    limitations on the size of data sets, special cases that are not
-    (yet) handled, etc.
-
+This is a very early release. Reports will be warmly welcomed. 
 
 Please report any bugs or feature requests to
-C<bug-path-finder@rt.cpan.org>, or through the web interface at
+C<bug-error-base@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 THANKS
