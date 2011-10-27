@@ -753,6 +753,15 @@ modules (and few of those), exports no symbols, and is purely object-oriented.
 I hope you will be able to use it commonly instead of a simple C<die()>. 
 You are not required to subclass it. 
 
+L<Error> is self-deprecated in its own POD as "black magic"; 
+which recommends L<Exception::Class> instead.
+
+L<Exception> installs a C<< $SIG{__DIE__} >> handler that converts text 
+passed to C<die> into an exception object. It permits environment variables 
+and setting global state; and implements a C<try> syntax. This module may be 
+closest in spirit to Error::Base. 
+For some reason, I can't persuade C<cpan> to find it. 
+
 L<Carp> is well-known and indeed, does a full backtrace with C<confess()>. 
 The better-known C<carp()> may be a bit too clever and in any case, the dump 
 is not formatted to my taste. The module is full of global variable settings. 
