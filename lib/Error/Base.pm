@@ -473,13 +473,19 @@ I<J'avais cru plus difficile de mourir.>
 
 =back
 
-Die early, die often. Make frequent sanity checks and raise a fatal exception 
-as soon as a check fails. Trap an exception object and examine the contents; 
-or let it tell its sad tale and end it. 
+Die early, die often. Make frequent sanity checks and die when a check fails. 
+See neat dumps of the caller stack with each error. Construct a group of 
+error messages in one object or write error text I<ad hoc>. Trap an error 
+object and examine the contents; or let it tell its sad tale and end it. 
 
 Error::Base usage can be simple or complex. For quick sanity checks, 
 construct and throw a simple fatal error in one line. At the other extreme, 
-you can set up subclasses of error and override methods as you please. 
+you can override methods in your own error subclasses. 
+
+Error::Base is lightweight. It defines no global variables, uses no non-core 
+modules (and few of those), exports no symbols, and is purely object-oriented.
+I hope you will be able to use it commonly instead of a simple C<die()>. 
+You are not required to subclass it. 
 
 =head1 METHODS 
 
@@ -538,8 +544,7 @@ yourself first if you want to call C<crash()> as an object method.
 
 C<crash()> is a very thin wrapper, easy to subclass. It differs from similar 
 methods in that instead of returning its object, it C<die()>-s with it. 
-If uncaught, the exception will stringify; if caught, the entire object 
-is yours. 
+If uncaught, the error will stringify; if caught, the entire object is yours. 
 
 =head2 crank()
 
@@ -747,11 +752,6 @@ do so, successfully or not, please be so kind as to notify.
 =head1 SEE ALSO
 
 Many error-related modules are available on CPAN. Some do bizarre things. 
-
-Error::Base is simple. It defines no global variables, uses no non-core 
-modules (and few of those), exports no symbols, and is purely object-oriented.
-I hope you will be able to use it commonly instead of a simple C<die()>. 
-You are not required to subclass it. 
 
 L<Error> is self-deprecated in its own POD as "black magic"; 
 which recommends L<Exception::Class> instead.
