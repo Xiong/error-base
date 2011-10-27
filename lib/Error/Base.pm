@@ -744,6 +744,41 @@ do something first:
 The author hopes that most users will not be driven to subclassing but if you
 do so, successfully or not, please be so kind as to notify. 
 
+=head1 SEE ALSO
+
+Many error-related modules are available on CPAN. Some do bizarre things. 
+
+Error::Base is simple. It defines no global variables, uses no non-core 
+modules (and few of those), exports no symbols, and is purely object-oriented.
+I hope you will be able to use it commonly instead of a simple C<die()>. 
+You are not required to subclass it. 
+
+L<Carp> is well-known and indeed, does a full backtrace with C<confess()>. 
+The better-known C<carp()> may be a bit too clever and in any case, the dump 
+is not formatted to my taste. The module is full of global variable settings. 
+It's not object-oriented and an error object can't easily be pre-created.  
+
+The pack leader seems to be L<Exception::Class>. Error::Base differs most 
+strongly in that it has a shorter learning curve (since it does much less); 
+confines itself to error message emission (catching errors is another job); 
+and does a full stack backtrace dump by default. Less code may also be 
+required for simple tasks. 
+
+To really catch errors, I like L<Test::Trap> ('block eval on steroids'). 
+It has a few shortcomings but is extremely powerful. I don't see why its use 
+should be confined to testing. 
+
+The line between emitting a message and catching it is blurred in many 
+related modules. I did not want a jack-in-the-box object that phoned home if 
+it was thrown under a full moon. The only clever part of an Error::Base 
+object is that it stringifies. 
+
+It may be true to say that many error modules seem to I<expect> to be caught. 
+I usually expect my errors to cause all execution to come to a fatal, 
+non-recoverable crash. Oh, yes; I agree it's sometimes needful to catch such 
+errors, especially during testing. But if you're regularly throwing and 
+catching, the term 'exception' may be appropriate but perhaps not 'error'. 
+
 =head1 INSTALLATION
 
 This module is installed using L<Module::Build>. 
