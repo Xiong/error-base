@@ -6,7 +6,7 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version 0.94; our $VERSION = qv('0.0.1');
+use version 0.94; our $VERSION = qv('0.0.2');
 
 # Core modules
 use overload                    # Overload Perl operations
@@ -438,7 +438,7 @@ Error::Base - Simple structured errors with full backtrace
 
 =head1 VERSION
 
-This document describes Error::Base version 0.0.1
+This document describes Error::Base version 0.0.2
 
 =head1 SYNOPSIS
 
@@ -473,13 +473,19 @@ I<J'avais cru plus difficile de mourir.>
 
 =back
 
-Die early, die often. Make frequent sanity checks and raise a fatal exception 
-as soon as a check fails. Trap an exception object and examine the contents; 
-or let it tell its sad tale and end it. 
+Die early, die often. Make frequent sanity checks and die when a check fails. 
+See neat dumps of the caller stack with each error. Construct a group of 
+error messages in one object or write error text I<ad hoc>. Trap an error 
+object and examine the contents; or let it tell its sad tale and end it. 
 
 Error::Base usage can be simple or complex. For quick sanity checks, 
 construct and throw a simple fatal error in one line. At the other extreme, 
-you can set up subclasses of error and override methods as you please. 
+you can override methods in your own error subclasses. 
+
+Error::Base is lightweight. It defines no global variables, uses no non-core 
+modules (and few of those), exports no symbols, and is purely object-oriented.
+I hope you will be able to use it commonly instead of a simple C<die()>. 
+You are not required to subclass it. 
 
 =head1 METHODS 
 
@@ -538,8 +544,7 @@ yourself first if you want to call C<crash()> as an object method.
 
 C<crash()> is a very thin wrapper, easy to subclass. It differs from similar 
 methods in that instead of returning its object, it C<die()>-s with it. 
-If uncaught, the exception will stringify; if caught, the entire object 
-is yours. 
+If uncaught, the error will stringify; if caught, the entire object is yours. 
 
 =head2 crank()
 
@@ -743,6 +748,45 @@ do something first:
 
 The author hopes that most users will not be driven to subclassing but if you
 do so, successfully or not, please be so kind as to notify. 
+
+=head1 SEE ALSO
+
+Many error-related modules are available on CPAN. Some do bizarre things. 
+
+L<Error> is self-deprecated in its own POD as "black magic"; 
+which recommends L<Exception::Class> instead.
+
+L<Exception> installs a C<< $SIG{__DIE__} >> handler that converts text 
+passed to C<die> into an exception object. It permits environment variables 
+and setting global state; and implements a C<try> syntax. This module may be 
+closest in spirit to Error::Base. 
+For some reason, I can't persuade C<cpan> to find it. 
+
+L<Carp> is well-known and indeed, does a full backtrace with C<confess()>. 
+The better-known C<carp()> may be a bit too clever and in any case, the dump 
+is not formatted to my taste. The module is full of global variable settings. 
+It's not object-oriented and an error object can't easily be pre-created.  
+
+The pack leader seems to be L<Exception::Class>. Error::Base differs most 
+strongly in that it has a shorter learning curve (since it does much less); 
+confines itself to error message emission (catching errors is another job); 
+and does a full stack backtrace dump by default. Less code may also be 
+required for simple tasks. 
+
+To really catch errors, I like L<Test::Trap> ('block eval on steroids'). 
+It has a few shortcomings but is extremely powerful. I don't see why its use 
+should be confined to testing. 
+
+The line between emitting a message and catching it is blurred in many 
+related modules. I did not want a jack-in-the-box object that phoned home if 
+it was thrown under a full moon. The only clever part of an Error::Base 
+object is that it stringifies. 
+
+It may be true to say that many error modules seem to I<expect> to be caught. 
+I usually expect my errors to cause all execution to come to a fatal, 
+non-recoverable crash. Oh, yes; I agree it's sometimes needful to catch such 
+errors, especially during testing. But if you're regularly throwing and 
+catching, the term 'exception' may be appropriate but perhaps not 'error'. 
 
 =head1 INSTALLATION
 
