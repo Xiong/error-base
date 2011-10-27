@@ -11,31 +11,17 @@ my $builder = Module::Build->new(
     requires            => {
         'perl'                      => 5.008008,
         'version'                   => 0.94,
-#~         'parent'                    => 0,
-        'Carp'                      => 0,
-#~         'Cwd'                       => 0,
-#~         'Data::Dumper'              => 0,
-#~         'Data::Lock'                => 0,
-#~         'File::Spec'                => 0,
-#~         'File::Spec::Functions'     => 0,
-#~         'IO::File'                  => 0,
-#~         'List::MoreUtils'           => 0,
-#~         'POSIX'                     => 0,
-#~         'Scalar::Util'              => 0,
-#~         'Scalar::Util::Reftype'     => 0,
-#~         'Test::Builder2::Tester'    => 2.00_07,
-#~         'Test::Deep'                => 0,
-        'Test::More'                => 0.94,
-        'Test::Trap'                => 0,
+        'Scalar::Util'              => 0,
+        'overload'                  => 0,
 #~         ''  => 0,
     },
     recommends          => {
         'Devel::Comments'           => '1.1.4',
     },
-#~     build_requires      => {
-#~         'Acme::Teddy'               => 1.002003,
-#~     },
-    add_to_cleanup      => [ 'Path-Finder-*' ],
+    build_requires      => {
+        'Test::More'                => 0.94,
+    },
+    add_to_cleanup      => [ 'Error-Base-*' ],
     meta_merge          => {
         resources           => {
             repository          => 'http://github.com/Xiong/error-base',

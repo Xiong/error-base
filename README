@@ -3,6 +3,14 @@ Error-Base version 0.0.1
 J'avais cru plus difficile de mourir. 
         -- Louis XIV
 
+Die early, die often. Make frequent sanity checks and raise a fatal exception 
+as soon as a check fails. Trap an exception object and examine the contents; 
+or let it tell its sad tale and end it. 
+
+Error::Base usage can be simple or complex. For quick sanity checks, 
+construct and throw a simple fatal error in one line. At the other extreme, 
+you can set up subclasses of error and override methods as you please. 
+
 INSTALLATION
 
 To install this module with Module::Build, run the following commands:
