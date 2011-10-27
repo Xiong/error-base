@@ -1,0 +1,20 @@
+# .gitignore
+#
+# This file tells git which folders and files not to track. 
+# See also $ man git-ignore
+
+# Rule 1: These items will not be tracked
+hold/
+sym/
+sym
+
+# Ignore temporary files
+*.tmp
+*.pm.html
+
+# Ignore Devel::Cover files
+cover_db/
+
+# Don't track internal symlink -- will blow up
+t
+t/

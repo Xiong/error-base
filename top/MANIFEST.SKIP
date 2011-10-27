@@ -1,0 +1,84 @@
+^MYMETA.yml$
+
+#!start included /rad/perl/lib/private/ExtUtils/MANIFEST.SKIP
+# Avoid version control files.
+\bRCS\b
+\bCVS\b
+\bSCCS\b
+,v$
+\B\.svn\b
+\B\.git\b
+\B\.gitignore\b
+\b_darcs\b
+
+# Avoid Makemaker generated and utility files.
+\bMANIFEST\.bak
+\bMakefile$
+\bblib/
+\bMakeMaker-\d
+\bpm_to_blib\.ts$
+\bpm_to_blib$
+\bblibdirs\.ts$         # 6.18 through 6.25 generated this
+
+# Avoid Module::Build generated and utility files.
+\bBuild$
+\b_build/
+
+# Avoid temp and backup files.
+~$
+\.old$
+\#$
+\b\.#
+\.bak$
+
+# Avoid Devel::Cover files.
+\bcover_db\b
+#!end included /rad/perl/lib/private/ExtUtils/MANIFEST.SKIP
+
+# Avoid configuration metadata file
+^MYMETA\.
+
+# Avoid Module::Build generated and utility files.
+\bBuild$
+\bBuild.bat$
+\b_build
+\bBuild.COM$
+\bBUILD.COM$
+\bbuild.com$
+^MANIFEST\.SKIP
+
+#----------------------------------------------------------------------------#
+# Xiong                                                                      #
+#----------------------------------------------------------------------------#
+
+# Avoid archives of this distribution
+\bError-Base-v[\d\.\_]+
+
+# Avoid stuff untracked by Git
+^hold\b
+
+# Avoid all top-level .dotfiles and .dotfolders
+^\.
+
+# Avoid top/ which is copied to the top level anyway
+^top\b
+
+# Avoid pod2html-related files
+pod2htm
+pm\.html
+
+# Avoid temp devel files. 
+result.txt
+errors.txt
+debug.log
+play.log
+
+# Avoid alternate lib/.
+\bliba\b
+
+# Avoid Devel::Cover stuff.
+\bcover_db\b
+
+# Avoid my experiments. 
+\bplay\b
+

@@ -1,0 +1,27 @@
+Error-Base version 0.0.0
+
+J'avais cru plus difficile de mourir. 
+        -- Louis XIV
+
+INSTALLATION
+
+To install this module with Module::Build, run the following commands:
+
+    perl Build.PL
+    Build
+    Build test
+    Build install
+
+DEPENDENCIES
+
+perl 5.8.8 or better. 
+For Perl module dependencies, please see Build.PL.
+This module has no non-core dependencies. 
+
+LICENSE
+
+Copyright (C) 2011 Xiong Changnian <xiong@cpan.org>
+
+This library and its contents are released under Artistic License 2.0:
+
+(http://www.opensource.org/licenses/artistic-license-2.0.php)
