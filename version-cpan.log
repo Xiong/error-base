@@ -1,0 +1,56 @@
+cpan[11]> m Error::Base
+Module id = Error::Base
+    CPAN_USERID  XIONG (Xiong Changnian <xiong-cpan@xuefang.com>)
+    CPAN_VERSION v0.0.2
+    CPAN_FILE    X/XI/XIONG/developer-tools/Error-Base-v0.0.2.tar.gz
+    UPLOAD_DATE  2011-10-27
+    INST_FILE    (not installed)
+ 
+ 
+cpan[12]> install Error::Base
+Running install for module 'Error::Base'
+Running make for X/XI/XIONG/developer-tools/Error-Base-v0.0.2.tar.gz
+Fetching with LWP:
+ftp://cpan-sj.viaverio.com/pub/CPAN/authors/id/X/XI/XIONG/developer-tools/Error-Base-v0.0.2.tar.gz
+Checksum for /ark/rig/sources/authors/id/X/XI/XIONG/developer-tools/Error-Base-v0.0.2.tar.gz ok
+ 
+  CPAN.pm: Building X/XI/XIONG/developer-tools/Error-Base-v0.0.2.tar.gz
+ 
+Checking prerequisites...
+  requires:
+    !  version (0.88) is installed, but we need version >= 0.94
+ 
+ERRORS/WARNINGS FOUND IN PREREQUISITES.  You may wish to install the versions
+of the modules indicated above before proceeding with this installation
+ 
+Error evaling version line 'BEGIN { q#  Hide from _packages_inside()
+    #; package Module::Metadata::_version::p3;
+    use version;
+    no strict;
+ 
+      $vsub = sub {
+        local $VERSION;
+        $VERSION=undef;
+        use version 0.94; our $VERSION = qv('0.0.2');;
+        $VERSION
+      };
+  }' in /ark/rig/build/Error-Base-v0.0.2-ShLiMJ/lib/Error/Base.pm: version version 0.94 required--this is only version 0.88 at (eval 24) line 9, <GEN2> line 9.
+BEGIN failed--compilation aborted at (eval 24) line 9, <GEN2> line 9.
+ 
+failed to build version sub for /ark/rig/build/Error-Base-v0.0.2-ShLiMJ/lib/Error/Base.pm at /rig/lib/b/Module/Metadata.pm line 556, <GEN2> line 9.
+(/rig/bin/perl Build.PL  exited with 6400)
+Could not read metadata file. Falling back to other methods to determine prerequisites
+CPAN::Reporter: Build.PL result is 'na', Perl version too low.
+CPAN::Reporter: preparing a CPAN Testers report for Error-Base-v0.0.2
+CPAN::Reporter: sending test report with 'na' via Metabase
+Warning: No success on command[/rig/bin/perl Build.PL ]
+  XIONG/developer-tools/Error-Base-v0.0.2.tar.gz
+  /rig/bin/perl Build.PL  -- NOT OK
+Running Build test
+  Make had some problems, won't test
+Running Build install
+  Make had some problems, won't install
+Failed during this command:
+ XIONG/developer-tools/Error-Base-v0.0.2.tar.gz: writemakefile NO '/rig/bin/perl Build.PL ' returned status 6400
+ 
+cpan[13]>
