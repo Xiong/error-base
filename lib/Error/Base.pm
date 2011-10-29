@@ -794,7 +794,7 @@ This module is installed using L<Module::Build>.
 
 =head1 DIAGNOSTICS
 
-This module emits error message I<for> you; it is hoped you won't encounter 
+This module emits error messages I<for> you; it is hoped you won't encounter 
 any from within itself. 
 
 =over
