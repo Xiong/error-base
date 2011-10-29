@@ -1,5 +1,8 @@
 Revision history for Error-Base
 
+0.0.3   2011-10-28 17:28:11
+    - Localize warn handler in t/140-crank.t.
+
 0.0.2   2011-10-27 12:54:34
     - Documentation changes only.
 
