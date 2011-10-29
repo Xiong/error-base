@@ -73,8 +73,6 @@ my $got         ;
 my $want        ;
 my $warning     ;
 
-$SIG{__WARN__}      = sub { $warning = $_[0] };
-    
 #----------------------------------------------------------------------------#
 
 # Extra-verbose dump optional for test script debug.
@@ -101,6 +99,7 @@ sub exck {
     $diag           = 'execute';
     $warning        = undef;
     @rv             = eval{ 
+        local $SIG{__WARN__}      = sub { $warning = $_[0] };
         Error::Base->crank(@args); 
     };
     pass( $diag );          # test didn't blow up
@@ -120,7 +119,7 @@ sub exck {
     }
     elsif ($fuzz) {
         $diag           = 'should-warn-fuzzily';
-        $got            = join qq{\n}, explain \$warning;
+        $got            = lc join qq{\n}, explain \$warning;
         $want           = $fuzz;
         like( $got, $want, $diag );
     }

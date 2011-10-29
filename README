@@ -1,11 +1,11 @@
-Error-Base version 0.0.2
+Error-Base version 0.0.3
 
 J'avais cru plus difficile de mourir. 
         -- Louis XIV
 
 Die early, die often. Make frequent sanity checks and die when a check fails. 
 See neat dumps of the caller stack with each error. Construct a group of 
-error messages in one object or write error text I<ad hoc>. Trap an error 
+error messages in one object or write error text ad hoc. Trap an error 
 object and examine the contents; or let it tell its sad tale and end it. 
 
 Error::Base usage can be simple or complex. For quick sanity checks, 
