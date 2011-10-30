@@ -11,14 +11,41 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 my @td  = (
     {
-        -case   => 'null',              # stringified normal return
+        -case   => 'null',                      # stringified normal return
         -want   => words(qw/ 
                     undefined error 
-                    eval line cuss 
-                    ____ line cuss 
+                    eval line 
+                    ____ line 
                 /),
     },
     
+    {
+        -case   => 'null-fuzz',                 # explain whole object
+        -fuzz   => words(qw/ 
+                    bless
+                    lines
+                        undefined error 
+                        eval line 
+                        ____ line 
+                    error base
+                /),
+    },
+    
+    {
+        -case   => 'q-fuzz',                    # no backtrace
+        -args   => [
+                    -quiet          => 1,
+                ],
+        -fuzz   => words(qw/ 
+                    bless
+                    lines
+                        undefined error 
+                    quiet
+                    error base
+                /),
+    },
+    
+);
 
 #----------------------------------------------------------------------------#
 
@@ -33,7 +60,7 @@ my $want        ;
 
 # Extra-verbose dump optional for test script debug.
 my $Verbose     = 0;
-#~    $Verbose++;
+   $Verbose++;
 
 for (@td) {
     $tc++;
@@ -92,6 +119,10 @@ sub exck {
         note( 'explain: ', explain \@rv     );
         note( ''                            );
     };
+#~     if ( $Verbose >= 1 ) {
+#~         note( 'rv: ', join qq{\n}, @rv      );
+#~         note( ''                            );
+#~     };
     
 }; ## subtest
 
