@@ -6,7 +6,7 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version 0.94; our $VERSION = qv('0.0.2');
+use version 0.77; our $VERSION = qv('v0.0.2');
 
 # Core modules
 use overload                    # Overload Perl operations
