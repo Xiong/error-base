@@ -1,1 +1,0 @@
-/home/xiong/projects/error-base/xt/main/140-crank.t

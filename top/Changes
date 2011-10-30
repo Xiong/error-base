@@ -1,5 +1,10 @@
 Revision history for Error-Base
 
+v0.0.4  2011-10-30 04:40:00
+    - use version 0.77; per POD.
+    - Use leading 'v' per "strong recommendation".
+    - Skip crank() test, probably unnecessary anyway. 
+
 0.0.3   2011-10-28 17:28:11
     - Localize warn handler in t/140-crank.t.
 
