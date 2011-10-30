@@ -45,6 +45,25 @@ my @td  = (
                 /),
     },
     
+    {
+        -case   => 'no-terp',                    # almost interpolate
+        -args   => [
+                        'My $dog has fleas.',
+                    -quiet          => 1,
+                ],
+        -merge  => [
+                        '$mom said: ',
+                    -quiet          => 1,
+                ],
+        -fuzz   => words(qw/ 
+                    bless
+                    lines
+                        undefined error 
+                    quiet
+                    error base
+                /),
+    },
+    
 );
 
 #----------------------------------------------------------------------------#
