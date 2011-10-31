@@ -42,38 +42,46 @@ my @td  = (
         -fuzz   => words(qw/ 
                     bless 
                         foo bar
-                    zig zag
+                        zig zag
                     error base
                 /),
     },
     
     {
-        -case   => 'text-fuzz',         # emit error text
+        -case   => 'pronto-fuzz',         # emit error text pronto
         -args   => [ 'Foobar error', foo => 'bar' ],
         -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
                     bless 
-                        lines foobar error
+                    lines 
+                        foobar error
+                    foo bar
                     zig zag
                     error base
                 /),
     },
     
     {
-        -case   => 'text-named-fuzz',         # emit error text, named arg
-        -args   => [ -text => 'Foobar error ', foo => 'bar' ],
+        -case   => 'base-fuzz',         # emit base error text
+        -args   => [ -base => 'Foobar error ', foo => 'bar' ],
         -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
                     bless 
-                        lines foobar error
+                    lines 
+                        foobar error
+                    foo bar
                     zig zag
                     error base
                 /),
     },
     
     {
-        -case   => 'text-both-fuzz',    # emit error text, both ways
-        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -case   => 'base-pronto-fuzz',    # emit error text, both ways
+        -args   => [ 
+                    'Bazfaz', 
+                    -base   => 'Foobar error', 
+                    foo     => 'bar' 
+                ],
         -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
                     bless 
@@ -84,8 +92,12 @@ my @td  = (
     },
     
     {
-        -case   => 'text-both',         # emit error text, stringified normal
-        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -case   => 'base-pronto-stringy',   # both ways stringified
+        -args   => [ 
+                    'Bazfaz', 
+                    -base   => 'Foobar error', 
+                    foo     => 'bar' 
+                ],
         -merge  => [ zig => 'zag' ],
         -want   => words(qw/ 
                     foobar error bazfaz
@@ -97,9 +109,9 @@ my @td  = (
     {
         -case   => 'top-0-fuzz',        # mess with -top
         -args   => [ 
-                    'Bazfaz: ',
-                    -text   => 'Foobar error ', 
-                    foo     => 'bar', 
+                    'Bazfaz', 
+                    -base   => 'Foobar error', 
+                    foo     => 'bar' 
                 ],
         -merge  => [ -top => 0 ],
         -fuzz   => words(qw/ 
@@ -115,38 +127,46 @@ my @td  = (
     },
     
     {
-        -case   => 'quiet',             # emit error text, no backtrace
+        -case   => 'quiet-new-stringy',   # no backtrace in new - exact
         -args   => [ 
-                    'Bazfaz: ',
+                    'ccc', 
+                    -base   => 'aaa', 
                     -quiet  => 1, 
-                    -text   => 'Foobar error ', 
-                    foo     => 'bar', 
+                    foo     => 'bar' 
                 ],
         -merge  => [                     
-                    -quiet  => 1, 
                     zig => 'zag', 
                 ],
-        -want   => words(qw/
-                    foobar error bazfaz
-                /),
+        -want   => qr/aaaccc$/,
     },
     
     {
-        -case   => 'quiet-fuzz',        # verify no backtrace
+        -case   => 'quiet-cuss-stringy',   # no backtrace in cuss - exact
         -args   => [ 
-                    'Bazfaz: ',
-                    -text   => 'Foobar error ', 
-                    foo     => 'bar', 
+                    'ccc', 
+                    -base   => 'aaa', 
+                    foo     => 'bar' 
                 ],
         -merge  => [                     
                     -quiet  => 1, 
                     zig => 'zag', 
                 ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                    quiet
-                /),
+        -want   => qr/aaaccc$/,
+    },
+    
+    {
+        -case   => 'quiet-cuss-stringy',   # new quiet, cuss loud
+        -args   => [ 
+                    'ccc', 
+                    -base   => 'aaa', 
+                    -quiet  => 1, 
+                    foo     => 'bar' 
+                ],
+        -merge  => [                     
+                    -quiet  => 0, 
+                    zig => 'zag', 
+                ],
+        -want   => qr/aaaccc$/,
     },
     
     
