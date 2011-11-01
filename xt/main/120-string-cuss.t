@@ -22,6 +22,7 @@ my @td  = (
     },
     
     {
+#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'null-fuzz',         
         -fuzz   => words(qw/ 
                     bless 
@@ -59,7 +60,7 @@ my @td  = (
     
     {
         -case   => 'text-fuzz',         # emit error text, named arg
-        -args   => [ -text => 'Foobar error ', foo => 'bar' ],
+        -args   => [ -base => 'Foobar error ', foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
                         lines foobar error
@@ -69,7 +70,7 @@ my @td  = (
     
     {
         -case   => 'text-both-fuzz',    # emit error text, both ways
-        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
                         lines foobar error bazfaz in
@@ -79,7 +80,7 @@ my @td  = (
     
     {
         -case   => 'text-both',         # emit error text, stringified normal
-        -args   => [ 'Bazfaz: ', -text => 'Foobar error ', foo => 'bar' ],
+        -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
         -want   => words(qw/ 
                     foobar error bazfaz
                     main throw line cuss
@@ -93,7 +94,7 @@ my @td  = (
         -args   => [ 
                     'Bazfaz: ',
                     -top    => 4, 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
         -fuzz   => words(qw/ 
@@ -112,7 +113,7 @@ my @td  = (
         -args   => [ 
                     'Bazfaz: ',
                     -quiet  => 1, 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
         -want   => words(qw/
@@ -125,7 +126,7 @@ my @td  = (
         -args   => [ 
                     'Bazfaz: ',
                     -quiet  => 1, 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
         -fuzz   => words(qw/ 
@@ -159,6 +160,7 @@ my $Verbose     = 0;
 #~    $Verbose++;
 
 for (@td) {
+    last if $_->{-end};
     $tc++;
     my $case        = $base . $_->{-case};
     

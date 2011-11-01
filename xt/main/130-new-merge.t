@@ -21,6 +21,7 @@ my @td  = (
     },
     
     {
+#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'merge-only-fuzz',         
         -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
@@ -137,7 +138,7 @@ my @td  = (
         -merge  => [                     
                     zig => 'zag', 
                 ],
-        -want   => qr/aaaccc$/,
+        -want   => qr/aaa ccc$/,
     },
     
     {
@@ -151,11 +152,11 @@ my @td  = (
                     -quiet  => 1, 
                     zig => 'zag', 
                 ],
-        -want   => qr/aaaccc$/,
+        -want   => qr/aaa ccc$/,
     },
     
     {
-        -case   => 'quiet-cuss-stringy',   # new quiet, cuss loud
+        -case   => 'new quiet, cuss loud',   # should backtrace
         -args   => [ 
                     'ccc', 
                     -base   => 'aaa', 
@@ -166,7 +167,11 @@ my @td  = (
                     -quiet  => 0, 
                     zig => 'zag', 
                 ],
-        -want   => qr/aaaccc$/,
+        -want   => words(qw/ 
+                    aaa ccc
+                    eval line merge
+                    ____ line merge
+                /),
     },
     
     
@@ -188,6 +193,7 @@ my $Verbose     = 0;
 #~    $Verbose++;
 
 for (@td) {
+    last if $_->{-end};
     $tc++;
     my $case        = $base . $_->{-case};
     

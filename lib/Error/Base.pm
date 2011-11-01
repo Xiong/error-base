@@ -188,73 +188,30 @@ sub _trace {
     return @lines;
 }; ## _trace
 
-#=========# INTERNAL METHOD
-#
-#   $self->_merge(@_);     # short
-#       
-# Purpose   : Merge new args with current contents.
-# Parms     : ____
-# Reads     : ____
-# Returns   : ____
-# Writes    : ____
-# Throws    : ____
-# See also  : ____
-# 
-# ____
-# 
-sub _merge {
-    my $self        = shift;
-    my $xtext       ;
-    if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
-        $xtext          = shift;    # and now it's even
-    };
-    
-    # Append text, don't overwrite.
-    # Save old text...
-    my $old_text        = $self->{-text};
-    
-    # Merge all values. Newer values always overwrite. 
-    %{$self}        = ( %{$self}, @_ );
-    
-    # ... integrate any new text...
-    if    ( defined $self->{-text} and defined $xtext ) {
-        $self->{-text}  = $self->{-text} . $xtext;
-    } 
-    elsif ( defined $self->{-text} ) {
-        # do nothing; we're good
-    } 
-    elsif ( defined $xtext ) {
-        $self->{-text}  = $xtext;
-    } 
-    else {
-        $self->{-text}  = q{};
-    };
-    
-    # ... and restore old text in front of new text.
-    $self->{-text}  = $old_text . $self->{-text};
-    
-    return $self;
-}; ## _merge
-
 #=========# CLASS OR OBJECT METHOD
 #
 #    Error::Base->crash( $text );    # class method; error text required
 #    $err->crash;                    # object method
 #    $err->crash( $text );           # object method; error text optional
-#    $err->crash( -text => $text );  # named argument okay
-#    $err->crash( -key  => '42'  );  # expand into -text
+#    $err->crash( -base => $base );  # named argument okay
+#    $err->crash( -key  => '42'  );  # expand into -type
 #    $err->crash( -foo  => 'bar' );  # set Error::Base options now
 #    $err->crash( mybit => 'baz' );  # set your private stuff now
 #
-# Purpose   : Fatal out of internal errors
-# Parms     : $text   : string    : text of error message
+# Purpose   : Fatal out of your program's errors
+# Parms     : $text     : string    : final   part of error message [odd arg]
+#           : -type     : string    : middle  part of error message
+#           : -base     : string    : initial part of error message
+#           : -top      : integer   : starting backtrace frame
+#           : -quiet    : boolean   : TRUE for no backtrace at all
+#           : -$"       : string    : local list separator
 # Returns   : never
-# Throws    : always die()-s
-# See also  : _fuss(), crank(), cuss()
+# Throws    : $self     : die will stringify
+# See also  : _fuss(), crank(), cuss(), init()
 # 
 # The first arg is tested to see if it's a class or object reference.
 # Then the next test is to see if an odd number of args remain.
-#   If so, then the next arg is shifted off and considered -text.
+#   If so, then the next arg is shifted off and considered -base.
 # All remaining args are considered key/value pairs and passed to new().
 #   
 sub crash{
@@ -271,19 +228,36 @@ sub crash{
 sub _fuss {
     my $self        = shift;
     if ( Scalar::Util::blessed $self ) {        # called on existing object
-        $self->_merge(@_);
+        $self->init(@_);                        # initialize or overwrite
     } 
     else {                                      # called as class method
         $self       = $self->new(@_);
     };
+    my $max         = 78;                       # maximum line length
     
-    # Expand one of some stored texts.
+    # Optionally expand one of some stored texts.
     if ( defined $self->{-key} ) {
-        $self->{-text}  = $self->{-text} . $self->{ $self->{-key} };
+        $self->{-type}  = $self->{ $self->{-key} };
     };
     
+##### _fuss() before:
+##### $self
+    
+    # Collect all the texts into one message.
+    $self->{-msg}   = $self->_join_local(
+                        $self->{-base},
+                        $self->{-type},
+                        $self->{-pronto},
+                    );
+    
+    
+##### _fuss() after:
+##### $self
+    
     # If still no text in there, finally default.
-    $self->{-text}  = $self->{-text} || 'Undefined error';
+    if    ( not $self->{-msg}   ) {
+        $self->{-msg}   = 'Undefined error.';
+    }; 
     
     # Optionally prepend some stuff.
     my $prepend     = q{};                      # prepended to first line
@@ -292,11 +266,9 @@ sub _fuss {
     if    ( defined $self->{-prepend} ) {
         $prepend        = $self->{-prepend};
     };
-    
     if    ( defined $self->{-indent} ) {
         $indent         = $self->{-indent};
     };
-    
     if    ( defined $self->{-prepend_all} ) {
         $prepend        = $self->{-prepend_all};
         $indent         = $prepend;
@@ -308,11 +280,20 @@ sub _fuss {
     }; 
     
     # First line is basic error text.
-    my $text        = $prepend . $self->{-text};
-    my @temp        = split /\n/, $text;         # in case it's multi-line
-    my $infix       = qq{\n} . $indent;
-       $text        = join $infix, @temp;    
-    push @{ $self->{-lines} }, $text;
+    my $msg         = $self->_join_local(
+                        $prepend,
+                        $self->{-msg},
+                    );
+    
+#~     # Do something to control line length and deal with multi-line $msg.
+#~     my @temp        = split /\n/, $msg;         # in case it's multi-line
+#~     my $limit       = $max - length $prepend;
+#~        @temp        = map { s//\n/ if length > $limit } 
+#~                         @temp; # avoid excessive line length
+#~     my $infix       = qq{\n} . $indent;
+#~        $msg         = join $infix, @temp;
+    
+    $self->{-lines} = [ $msg ];                 # don't push; clear old @lines
     
     # Stack backtrace by default.
     if ( not $self->{-quiet} ) {
@@ -343,6 +324,42 @@ sub cuss{
     
     return $self;
 }; ## crank
+
+#=========# INTERNAL OBJECT METHOD
+#
+#   $string = $self->_join_local(@_);     # short
+#       
+# Purpose   : Like builtin join() but with local list separator.
+# Parms     : @_        : strings to join
+# Reads     : -$"       : like $"   : $self parm    : default q{ }
+# Returns   : $string   : joined strings
+# Throws    : ____
+# See also  : init()
+# 
+# Buitin join() does not take $" (or anything else) by default; 
+#   and in any case $" eq q{} by default. 
+# Caller can set $self->{'-$"'} in any method that invokes init(). 
+# 
+sub _join_local {
+    my $self        = shift;
+    local $"        = $self->{'-$"'};
+    die 'Error::Base internal error: undefined local list separator: ', $!
+        if not defined $";
+    my @parts       = @_;
+    
+    
+##### _join_local() before:
+##### @parts
+    
+        # Splice out empty strings. 
+       @parts       = grep { $_ ne q** } @parts;
+    
+##### _join_local() after:
+##### @parts
+    
+    
+    return join $", @parts;
+}; ## _join_local
 
 #=========# INTERNAL FUNCTION
 #
@@ -376,9 +393,7 @@ sub _paired {
 # Returns   : $self
 # Invokes   : init()
 # 
-# If invoked with $class only, blesses and returns an empty hashref. 
-# If invoked with $class and a hashref, blesses and returns it. 
-# Note that you can't skip passing the hashref if you mean to init() it. 
+# Good old-fashioned hashref-based object constructor. 
 # 
 sub new {
     my $class   = shift;
@@ -395,36 +410,42 @@ sub new {
 #   $err->init(        '-key' => $value, '-foo' => $bar );
 #   $err->init( $text, '-key' => $value, '-foo' => $bar );
 #
+# An object can be init()-ed more than once; all new values overwrite the old.
+# This non-standard init() allows an unnamed initial arg. 
+#
+# See: crash()
 #
 sub init {
     my $self        = shift;
-    my $xtext       ;
-    if ( scalar @_ % 2 ) {          # an odd number modulo 2 is one: true
-        $xtext          = shift;    # and now it's even
+    if ( scalar @_ % 2 ) {              # an odd number modulo 2 is one: true
+        $self->{-pronto}    = shift;    # and now it's even
     };
     
-    %{$self}        = @_;
+    # Merge all values. Newer values always overwrite. 
+    %{$self}        = ( %{$self}, @_ );
     
-    # Set some default values.
-
-    if    ( defined $self->{-text} and defined $xtext ) {
-        $self->{-text}  = $self->{-text} . $xtext;
-    } 
-    elsif ( defined $self->{-text} ) {
-        # do nothing; we're good
-    } 
-    elsif ( defined $xtext ) {
-        $self->{-text}  = $xtext;
-    } 
-    else {
-        $self->{-text}  = q{};
-    };
-    
-    $self->{-top}   = defined $self->{-top}  ? $self->{-top}  : 2;
-    
+    # Set some default values, mostly to avoid 'uninitialized' warnings.
+    if    ( not defined $self->{-base}  ) {
+        $self->{-base}  = q{};
+    }; 
+    if    ( not defined $self->{-type}  ) {
+        $self->{-type}  = q{};
+    }; 
+    if    ( not defined $self->{-pronto}  ) {
+        $self->{-pronto}  = q{};
+    }; 
+    if    ( not defined $self->{-msg}   ) {
+        $self->{-msg}   = q{};
+    }; 
+    if    ( not defined $self->{-top}   ) {
+        $self->{-top}   = 2;                # skip frames internal to E::B
+    }; 
+    if    ( not defined $self->{q'-$"'} ) {
+        $self->{q'-$"'} = q{ };             # local list separator
+    }; 
+        
     return $self;
 }; ## init
-
 
 
 ## END MODULE
@@ -450,7 +471,7 @@ This document describes Error::Base version 0.0.3
     $err->crash;                                # as object method
     
     my $err     = Error::Base->new(
-                    'Foo error',                # args start with text
+                    'Foo error',                # odd arg is error text
                     -quiet    => 1,             # no backtrace
                     grink     => 'grunt',       # store somethings
                     puppy     => 'dog',         # your keys, no leading dash 
@@ -493,16 +514,17 @@ You are not required to subclass it.
 
     my $err     = Error::Base->new('Foo');      # constructor
     my $err     = Error::Base->new(             # with named args
-                    -text       => 'Bar error: ',
+                    -base       => 'Bar error:',
                     -quiet      => 1,
                     -top        => 3,
-                    -prepend    => '@! Globalcorpcoapp: ',
-                    -indent     => '@!                   ',
+                    -prepend    => '@! Globalcorpcoapp:',
+                    -indent     => '@!                 ',
                     foo         => bar,
                 );
     my $err     = Error::Base->new(             # okay to pass both
-                        'bartender: '           # lone string first...
-                    -text   => 'Bar error: ',   # ... and named args
+                        'bartender:'            # lone string...
+                    -base   => 'Bar error:',    # ... and named args
+                    -type   => 'last call',     # be more specific
                     _beer   => 'out of beer',   # your private attribute(s)
                 );
 
@@ -512,12 +534,12 @@ you call, though.
 
 Called with an even number of args, they are all considered key/value pairs. 
 Keys with leading dash (C<'-'>) are reserved for use by Error::Base; 
-all others are free to use as you see fit. Error message text is stored in 
-C<-text> as a single string.
+all others are free to use as you see fit. Error message text is constructed 
+as a single string.
 
 Called with an odd number of args, the first arg is shifted off and appended
 to the error message text. This shorthand may be offensive to some; in which 
-case, don't do that. 
+case, don't do that. Instead, pass -base, -type, or both. 
 
 You may stash any arbitrary data inside the returned object (during 
 construction or later) and do whatever you like with it. You might choose to 
@@ -530,10 +552,10 @@ See L<PARAMETERS>.
     Error::Base->crash('Sanity check failed');  # as class method
     my $err = Error::Base->crash('Flat tire:'); # also a constructor
     $err->crash;                                # as object method
-    $err->crash(                    # all the same args are okay in call
+    $err->crash(        # all the same args are okay in crash() as in new()
                 'bartender: '
-            -text   => 'Bar error: ',
-            -key    => '_beer',                 # append additional text
+            -base   => 'Bar error:',
+            -key    => '_beer',                 # instert additional text
         );
     eval{ $err->crash }; 
     my $err     = $@ if $@;         # catch and examine the object
@@ -556,8 +578,8 @@ This is exactly like C<crash()> except that it C<warn()>s instead of
 C<die()>-ing. Therefore it can also usefully be used as a constructor of an 
 object for later use. 
 
-C<crank()> is also a very thin wrapper. You may subclass it; you may catch 
-the entire object or let it stringify.
+C<crank()> is also a very thin wrapper. You may subclass it; you may trap 
+the entire object or let it stringify to STDERR.
 
 =head2 cuss()
 
@@ -582,6 +604,15 @@ Probably, it is not useful to call this object method directly. Perhaps you
 might subclass it or call it from within your subclass constructor. 
 The calling conventions are exactly the same as for the other public methods. 
 
+C<init()>, is called on a newly constructed object, as is conventional. 
+If you call it a second time on an existing object, new C<@args> will 
+overwrite previous values. Internally, when called on an existing object,
+C<crash()>, C<crank()>, and C<cuss()> each call C<init()>. 
+
+Therefore, the chief distinction between calling as class or object method is 
+that if you call new() first then you can separate the definition of your 
+error text from the actual throw. 
+
 =head1 PARAMETERS
 
 All public methods accept the same arguments, with the same conventions. 
@@ -598,40 +629,69 @@ completely overwrites the previous:
     $err->crank( -top    => 1, );
         # -top is now 1
 
-The exceptions are the various ways of setting C<< -text >>. Later assignments 
-will be appended to previous assignments. To clear out the previous value: 
+You are cautioned that deleting keys may be unwise. 
 
-    delete $err->{-text};
+=head2 -base
 
-You are cautioned that deleting other keys may be unwise. 
-
-=head2 -text
-
-I<scalar string> default: 'Undefined error'
+I<scalar string>
 
     $err->crash;                        # emits 'Undefined error'
-    $err->crash('Foo');                 # emits 'Foo'
-    $err->crash( -text => 'Bar');       # emits 'Bar'
-    $err->crash(
-              zap   => 'Yip',
-              -key  => 'zap',
-          );                            # emits 'Yip'
+    $err->crash( -base => 'Bar');       # emits 'Bar'
 
-The value of C<< -text >> is printed in the first line of the stringified 
-error object after a call to C<crash()>, C<crank()>, or C<cuss()>. As a 
-convenience, if the number of arguments passed in is odd, then the first arg 
-is shifted off and assigned to C<< -text >>. This is done to simplify writing 
-one-off, one-line sanity checks:
+The value of C<< -base >> is printed in the first line of the stringified 
+error object after a call to C<crash()>, C<crank()>, or C<cuss()>. 
+
+=head2 -type
+
+I<scalar string>
+
+    $err->crash( 
+            -type   => 'last call'
+        );                              # emits 'last call'
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+        );                              # emits 'Bar last call'
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+            zap     => 'tab',
+            zing    => 'cash',
+            -key    => 'zing',
+        );                              # emits 'Bar cash'
+
+This parameter is provided as a way to express a subtype of error. It will be 
+overwritten by any value provided indirectly by -key (Please see which.)
+
+=head2 -pronto
+
+I<scalar string>
+
+    $err->crash( 'Pronto!' );           # emits 'Pronto!'
+    $err->crash(
+                'Pronto!',
+            -base   => 'Bar',
+            -type   => 'last call',
+        );                              # emits 'Bar last call Pronto!'
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+            -pronto => 'Pronto!',
+        );                              # same thing
+
+As a convenience, if the number of arguments passed in is odd, then the first 
+arg is shifted off and appnended to the error message. This is done to 
+simplify writing one-off, one-line sanity checks:
 
     open( my $in_fh, '<', $filename )
         or Error::Base->crash("Couldn't open $filename for reading.");
 
-Either way, it is expected that the argument be a single scalar. If you need 
+It is expected that each message argument be a single scalar. If you need 
 to pass a multi-line string then please embed escaped newlines (C<'\n'>). 
 
 =head2 -key
 
-I<scalar string> default: undef
+I<scalar string>
 
     my $err     = Error::Base->new(
                     _err00  => 'frobnitz error',
@@ -643,11 +703,8 @@ I<scalar string> default: undef
 You may store arbitrary error text against arbitrary keys and access them 
 later with C<< -key >>. This may suit you if you like to group all your error 
 messages in one place; you need only create a single object to hold them all. 
-The value of whatever key you pass will be assigned to C<< -text >>. 
+The value of whatever key you pass will be assigned to C<< -type >>. 
 The leading underbar (C<'_'>) is merely a suggested convention. 
-
-Note that multiple assignments to C<< -text >> are currently supported but 
-the exact approach may change. Currently, they are all concatenated. 
 
 =head2 -quiet
 
@@ -656,7 +713,7 @@ I<scalar boolean> default: undef
     $err->crash( -quiet         => 1, );        # no backtrace
 
 By default, you get a full stack backtrace. If you want none, set this 
-parameter. Only C<< -text >> will be emitted. 
+parameter. Only C<< -msg >> will be emitted. 
 
 =head2 -top
 
@@ -692,7 +749,7 @@ I<scalar string> default: first char of -prepend, padded with spaces to length
 I<scalar string> default: undef
 
     my $err     = Error::Base->new(
-                    -prepend    => '#! Globalcorpcoapp: ',
+                    -prepend    => '#! Globalcorpcoapp:',
                 );
     $err->crash ('Boy Howdy!');
         # emits '@! Globalcorpcoapp: Boy Howdy!
@@ -706,23 +763,85 @@ to the length of C<< -prepend >>.
 C<< -prepend_all >> will be prepended to all lines. 
 
 This is a highly useful feature that improves readability in the middle of a 
-dense dump. So the default may be changed to form C<< -prepend >> in some way 
-if not defined. If you are certain you want no prepending or indentation, 
-pass the empty string, C<q{}>.
+dense dump. So in future releases, the default may be changed to form 
+C<< -prepend >> in some way for you if not defined. If you are certain you 
+want no prepending or indentation, pass the empty string, C<q{}>.
 
-=head1 OTHER KEYS
+=head2 -$"
+
+I<scalar string> default: q{ }
+
+    my $err     = Error::Base->new(
+                    -base   => 'Bar',
+                    -type   => 'last call',
+                );
+    $err->crash(
+                'Pronto!',
+        );                              # emits 'Bar last call Pronto!'
+    $err->crash(
+                'Pronto!',
+            '-$"'   => '=',
+        );                              # emits 'Bar=last call=Pronto!'
+
+If you interpolate an array into a double-quoted literal string, perl will 
+join the elements with C<$">. Similarly, if you slow interpolate an array into
+an error message part, Error::Base will join the elements with the value of 
+C<< $self->{'-$"'} >>. This does not have any effect on the global C<$">. 
+
+Also, message parts themselves are joined with C<< $self->{'-$"'} >>. 
+The default is a single space. This may work better than the default value 
+for C<$">: the empty string. This helps to avoid the unsightly appearance of 
+words stuck together because you did not include enough space in your args. 
+
+Note that C<< '-$"' >> is a perfectly acceptable hash key but it must be 
+quoted, lest trains derail in Vermont. The fat comma does not help. 
+
+=head1 SLOW INTERPOLATION
+
+    my $err     = Error::Base->new(
+                    -base   => 'Panic:',
+                    -type   => 'lost my $foo.',
+                );
+    $err->crash(
+                'Help!',
+            '$foo'  => 'hat',
+        );      # emits 'Panic: lost my hat. Help!'
+    
+    my $err     = Error::Base->new(
+                    -base   => 'Sing:',
+                    '$favs' => [qw/ schnitzel with noodles /],
+                );
+    $err->crash(
+            -type   => 'My favorite things are $favs.',
+        );      # emits 'Sing: My favorite things are schnitzel with noodles.'
+
+
+
+
+
+
+=head1 RESULTS
+
+Soon, I'll write accessor methods for all of these. For now, rough it. 
+
+=head2 -msg
+
+I<scalar string> default: 'Undefined error'
+
+The error message, expanded, without -prepend or backtrace. An empty message 
+is not allowed; if none is provided by any means, 'Undefined error' emits. 
 
 =head2 -lines
 
 I<array of strings>
 
-The formatted error message, fully expanded. 
+The formatted error message, fully expanded, including backtrace. 
 
 =head2 -frames
 
 I<array of hashrefs>
 
-The raw stack dump. 
+The raw stack frames used to compose the backtrace. 
 
 =head1 SUBCLASSING
 
@@ -801,13 +920,19 @@ any from within itself.
 
 =item C<< Error::Base internal error: excessive backtrace:  >>
 
-You attempted to dump too many frames of backtrace. 
-You probably mis-set C<< -top >>, rational values of which are perhaps C<0..5>.
+Attempted to capture too many frames of backtrace. 
+You probably mis-set C<< -top >>, rational values of which are perhaps C<0..9>.
 
 =item C<< Error::Base internal error: unpaired args:  >>
 
-You do I<not> have to pass paired args to most public methods. 
-You probably passed an odd number of args to a private method. 
+You do I<not> have to pass paired arguments to most public methods. 
+Perhaps you passed an odd number of args to a private method. 
+
+=item C<< Error::Base internal error: undefined local list separator:   >>
+
+C<init()> sets C<< $self->{'-$"'} = q{ } >> by default; you may also set it 
+to another value. If you want your message substrings tightly joined, 
+set C<< $self->{'-$"'} = q{} >>; don't undefine it. 
 
 =back
 
