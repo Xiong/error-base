@@ -29,42 +29,23 @@ use Error::Base;
 
 say 'Running...';
 
-my $vp          = 'P42';
+my $foo         = 'bar'; 
+my $dog         = 'cat';
+my @zork        = qw/ flood control dam three /;
+
 my %hash        = ( 
                     '$foo'      => 'bar', 
                     '$dog'      => 'cat',
                     'internal'  => 42,
                     '@zork'     => [qw/ flood control dam three /],
-#~                     '$"'        => '-',
-#~                     '$"'        => '',
                 );
-my $text        = '>$foo<>$dog<>@zork<';
+my $text        = q*>$foo-$dog-@zork<|$zork[0]=@hash{ '$foo', '$dog' }*;
 
-for (keys %hash) {
-    my $val     = $hash{$_};
-    s/^(.)//;
-    my $sigil   = $1;
-    my $re      = qr/$_/;
-    ### $re
-    ### $val
-    ### $sigil
-    
-    if    ( $sigil eq '$' ) {
-        $text       =~ s/\$$re/$val/g;            
-    } 
-    elsif ( $sigil eq '@' ) {
-        local $"    = defined $hash{'$"'} ? $hash{'$"'} : q{ };
-        $val        = join $", @$val;
-        $text       =~ s/\@$re/$val/g;            
-    } 
-    else {
-        # do nothing
-    };
-    
-};
+$text           = q{"} . "$text" . q{"};
+$text           = eval "$text";
 
 say $text;
-
+say $@ if $@;
 say '...Done.';
 
 #~ my @zork    = @{ $hash{'@zork'} };
