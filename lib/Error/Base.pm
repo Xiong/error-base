@@ -786,17 +786,21 @@ I<scalar string> default: q{ }
 If you interpolate an array into a double-quoted literal string, perl will 
 join the elements with C<$">. Similarly, if you slow interpolate an array into
 an error message part, Error::Base will join the elements with the value of 
-C<< $self->{'-$"'} >>. This does not have any effect on the global C<$">. 
+C<< $self->{'-$"'} >>. This does not have any effect on the Perlish C<$">. 
+Similarly, C<$"> is ignored when Error::Base stirs the pot. 
 
 Also, message parts themselves are joined with C<< $self->{'-$"'} >>. 
-The default is a single space. This may work better than the default value 
-for C<$">: the empty string. This helps to avoid the unsightly appearance of 
+The default is a single space. This helps to avoid the unsightly appearance of 
 words stuck together because you did not include enough space in your args. 
 
 Note that C<< '-$"' >> is a perfectly acceptable hash key but it must be 
 quoted, lest trains derail in Vermont. The fat comma does not help. 
 
 =head1 SLOW INTERPOLATION
+
+Recall that all methods, on init(), pass through all arguments as key/value 
+pairs in the error object. Except for those parameters reserved by the class 
+API (by convention of leading dash), these are preserved unaltered. 
 
     my $err     = Error::Base->new(
                     -base   => 'Panic:',
@@ -809,16 +813,72 @@ quoted, lest trains derail in Vermont. The fat comma does not help.
     
     my $err     = Error::Base->new(
                     -base   => 'Sing:',
-                    '$favs' => [qw/ schnitzel with noodles /],
+                    '@favs' => [qw/ schnitzel with noodles /],
                 );
     $err->crash(
-            -type   => 'My favorite things are $favs.',
+            -type   => 'My favorite things are @favs.',
         );      # emits 'Sing: My favorite things are schnitzel with noodles.'
 
+If we want to emit an error including information only available within a 
+given scope we can interpolate it then and there with a double-quoted literal: 
 
+    open( my $in_fh, '<', $filename )
+        or Error::Base->crash("Couldn't open $filename for reading.");
 
+This doesn't work if we want to declare lengthy error text well ahead of time: 
 
+    my $err     = Error::Base->new(
+                    -base   => 'Up, Up and Away:',
+                    -type   => "FCC wardrobe malfunction of $jackson",
+                );
+    sub call_ethel {
+        my $jackson     = 'Janet';
+        $err->crank;
+    };                  # won't work the way we might hope
 
+What we need is B<slow interpolation>, which Error::Base provides. 
+
+When we have the desired value in scope, we simply pass it as the value to a key 
+matching the I<placeholder> C<$jackson>: 
+
+    my $err     = Error::Base->new(
+                    -base   => 'Up, Up and Away:',
+                    -type   => 'FCC wardrobe malfunction of $jackson',
+                );
+    sub call_ethel {
+        my $jackson     = 'Janet';
+        $err->crank( '$jackson' => $jackson );
+    };                  # 'Up, Up and Away: FCC wardrobe malfunction of Janet'
+
+B<Note> that the string passed to C<new()> as the value of C<< -type >> is now 
+single quoted, which avoids a futile attempt to interpolate immediately. Also, 
+the I<variable> C<$jackson> is passed as the value of the I<key> C<'$jackson'>.
+The key is quoted to avoid it being parsed as a variable. 
+
+You may use scalar or array placeholders, signifying them with 
+the usual sigils. If you want to slow interpolate an array, you'll have to 
+pass an array reference as the value of the corresponding key; this value will 
+be dereferenced and joined with the value of C<< $self->{'-$"'} >>, by default 
+a single space. Although you pass an aryref, use the array sigil C<@>. 
+
+This is not full-on Perlish interpolation; don't do this: 
+
+    my $err     = Error::Base->new(
+                    -base   => 'Trouble:',
+                    -type   => 'right here in $cities[$i].',
+                );
+    $err->crash(
+            '@cities'   => [ 'Metropolis', 'River City', 'Gotham City' ],
+            '$i'        => 1,
+        );          # don't do this; you will not be the Music Man
+
+Maybe someday. 
+
+Do not try a C<< %hash >>, C<< *typeglob >>, or C<< &coderef either >>. 
+This is, after all, just a way to print a line or two of text. Also, escapes 
+such as C<< "\t" >> are not slow interpolated; you should interpolate them 
+conventionally into a scalar (which you can slow interpolate) or just 
+interpolate them directly. 
 
 =head1 RESULTS
 
