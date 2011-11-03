@@ -784,7 +784,7 @@ I<scalar string> default: q{ }
         );                              # emits 'Bar=last call=Pronto!'
 
 If you interpolate an array into a double-quoted literal string, perl will 
-join the elements with C<$">. Similarly, if you slow interpolate an array into
+join the elements with C<$">. Similarly, if you late interpolate an array into
 an error message part, Error::Base will join the elements with the value of 
 C<< $self->{'-$"'} >>. This does not have any effect on the Perlish C<$">. 
 Similarly, C<$"> is ignored when Error::Base stirs the pot. 
@@ -796,7 +796,7 @@ words stuck together because you did not include enough space in your args.
 Note that C<< '-$"' >> is a perfectly acceptable hash key but it must be 
 quoted, lest trains derail in Vermont. The fat comma does not help. 
 
-=head1 SLOW INTERPOLATION
+=head1 LATE INTERPOLATION
 
 Recall that all methods, on init(), pass through all arguments as key/value 
 pairs in the error object. Except for those parameters reserved by the class 
@@ -836,7 +836,7 @@ This doesn't work if we want to declare lengthy error text well ahead of time:
         $err->crank;
     };                  # won't work the way we might hope
 
-What we need is B<slow interpolation>, which Error::Base provides. 
+What we need is B<late interpolation>, which Error::Base provides. 
 
 When we have the desired value in scope, we simply pass it as the value to a key 
 matching the I<placeholder> C<$jackson>: 
@@ -855,29 +855,32 @@ single quoted, which avoids a futile attempt to interpolate immediately. Also,
 the I<variable> C<$jackson> is passed as the value of the I<key> C<'$jackson'>.
 The key is quoted to avoid it being parsed as a variable. 
 
-You may use scalar or array placeholders, signifying them with 
-the usual sigils. If you want to slow interpolate an array, you'll have to 
-pass an array reference as the value of the corresponding key; this value will 
-be dereferenced and joined with the value of C<< $self->{'-$"'} >>, by default 
-a single space. Although you pass an aryref, use the array sigil C<@>. 
-
-This is not full-on Perlish interpolation; don't do this: 
-
     my $err     = Error::Base->new(
+                        '$who got',
                     -base   => 'Trouble:',
                     -type   => 'right here in $cities[$i].',
                 );
     $err->crash(
             '@cities'   => [ 'Metropolis', 'River City', 'Gotham City' ],
             '$i'        => 1,
-        );          # don't do this; you will not be the Music Man
+        );          # you're the Music Man
+
+You may use scalar or array placeholders, signifying them with 
+the usual sigils. If you want to late interpolate an array, array slice, or 
+hash slice, you'll have to pass a reference as the value of the corresponding 
+key; this value will be dereferenced for you. Although you pass a reference, 
+use the appropriate C<@> or C<%> sigil to lead the corresponding key. 
+
+This is Perlish interpolation, only delayed. You can interpolate escape 
+sequences and anything else you would in a double-quoted string. 
+
 
 Maybe someday. 
 
 Do not try a C<< %hash >>, C<< *typeglob >>, or C<< &coderef either >>. 
 This is, after all, just a way to print a line or two of text. Also, escapes 
-such as C<< "\t" >> are not slow interpolated; you should interpolate them 
-conventionally into a scalar (which you can slow interpolate) or just 
+such as C<< "\t" >> are not late interpolated; you should interpolate them 
+conventionally into a scalar (which you can late interpolate) or just 
 interpolate them directly. 
 
 =head1 RESULTS
