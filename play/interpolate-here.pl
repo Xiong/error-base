@@ -39,7 +39,7 @@ my %hash        = (
                     'internal'  => 42,
                     '@zork'     => [qw/ flood control dam three /],
                 );
-my $text        = q*>$foo-$dog-@zork<|$zork[0]=@hash{ '$foo', '$dog' }*;
+my $text        = q*>$foo\t$dog\n@zork<|$zork[0]=@hash{ '$foo', '$dog' }*;
 
 $text           = q{"} . "$text" . q{"};
 $text           = eval "$text";
@@ -47,9 +47,6 @@ $text           = eval "$text";
 say $text;
 say $@ if $@;
 say '...Done.';
-
-#~ my @zork    = @{ $hash{'@zork'} };
-#~ say @zork;
 
 __DATA__
 
