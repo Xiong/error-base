@@ -37,7 +37,7 @@ my @td  = (
         -args   => [ 
                     'Bazfaz: ',
                     -quiet  => 1, 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
         -warn   => words(qw/
@@ -50,7 +50,7 @@ my @td  = (
         -args   => [ 
                     'Bazfaz: ',
                     -quiet  => 1, 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
         -fuzz   => words(qw/ 
