@@ -1,5 +1,5 @@
 #!/run/bin/perl
-#       padwalker.pl
+#       jackbnimble.pl
 #       = Copyright 2011 Xiong Changnian <xiong@cpan.org> =
 #       = Free Software = Artistic License 2.0 = NO WARRANTY =
 
@@ -25,8 +25,8 @@ use Devel::Comments '###', '####';
 
 
 use lib 'lib';
-use Error::Base;
-use PadWalker qw/ peek_my peek_our var_name /;
+#~ use Error::Base;
+#~ use PadWalker qw/ peek_my peek_our var_name /;
 
 say 'Running...';
 
@@ -83,14 +83,6 @@ sub peek_all {
     ### $peek_our
     say q{};
     
-#~     my $_scaref     = $peek_my->{'$_scaref'};
-#~     ### $_scaref
-#~     my $dref1       = $$_scaref;
-#~     ### $dref1
-#~     say $dref1;
-#~     my $dref2       = $$$_scaref;
-#~     ### $dref2
-#~     say $dref2;
     
     
     
