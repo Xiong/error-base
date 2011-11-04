@@ -3,6 +3,9 @@ package Error::Base;
 #~ use Error::Base;               # Simple structured errors with full backtrace
 #~ 
 
+#=========# PACKAGE BLOCK
+{   #=====# Entire package inside bare block, not indented....
+
 use 5.008008;
 use strict;
 use warnings;
@@ -17,7 +20,7 @@ use Scalar::Util;               # General-utility scalar subroutines
 # CPAN modules
 
 # Alternate uses
-#~ use Devel::Comments '#####', ({ -file => 'debug.log' });                 #~
+use Devel::Comments '#####', ({ -file => 'debug.log' });                 #~
 
 ## use
 #============================================================================#
@@ -25,8 +28,8 @@ use Scalar::Util;               # General-utility scalar subroutines
 # Pseudo-globals
 
 # Compiled regexes
-our $QRFALSE      = qr/\A0?\z/            ;
-our $QRTRUE       = qr/\A(?!$QRFALSE)/    ;
+our $QRFALSE            = qr/\A0?\z/            ;
+our $QRTRUE             = qr/\A(?!$QRFALSE)/    ;
 
 #----------------------------------------------------------------------------#
 
@@ -347,19 +350,94 @@ sub _join_local {
         if not defined $";
     my @parts       = @_;
     
-    
-##### _join_local() before:
-##### @parts
-    
-        # Splice out empty strings. 
-       @parts       = grep { $_ ne q** } @parts;
-    
-##### _join_local() after:
-##### @parts
-    
+    # Splice out empty strings. 
+   @parts       = grep { $_ ne q** } @parts;
     
     return join $", @parts;
 }; ## _join_local
+
+#=========# INTERNAL OBJECT METHOD
+#
+#   $out    = $self->_late( $in );     # late interpolate
+#       
+# Purpose   : ____
+# Parms     : $in       : scalar string
+# Reads     : every key in $self starting with a $, @, or % sigil
+# Returns   : $out      : scalar string
+# Writes    : ____
+# Throws    : ____
+# See also  : ____
+# 
+# ____
+# 
+sub _late {
+    my $self            = shift;
+    $Error::Base::in    = shift;    # package variable visible 'outside'
+    
+    my @keys        = grep { /^[\$\@%]/ } keys %$self;  # with leading sigil
+    my $fake_pkg    = 'Fake::Package::1337';            # bizarre strings...
+    my $heredoc     = 'Y0uMaYFiReWHeNReaDYGRiDLeY';     # ... won't collide
+    
+    my @code        ;                                   # to be eval-ed
+    my $out         ;                                   # interpolated
+    
+    # Some preamble.
+    push @code, 
+        q**,
+        q*#----------------------------------------------------------------#*,
+        q*# START EVAL                                                      *,
+        q**,
+    ;
+    
+    # Unpack all appropriate k/v pairs into their own lexical variables... 
+    my $key         ;  # placeholder includes sigil!
+    my $val         ;  # value to be interpolated
+    my $rt          ;  # builtin 'ref' returns (unwanted) class of blessed ref
+    for my $key (@keys) {
+        $key            = shift @keys;
+        $val            = $self->{$key};
+        $rt             = Scalar::Util::reftype $val;   # returns no class
+        
+        if    ( not $rt ) {                             # simple scalar...
+        push @code, 
+                ( join q{ }, q*my*, $key, q*=*, $val, q*;* );   # ... no deref
+        } 
+        elsif ( $rt eq 'SCALAR' ) {                     # scalar ref
+        push @code, 
+                ( join q{ }, q*my*, $key, q*=*, ${$val}, q*;* );
+        } 
+        elsif ( $rt eq 'ARRAY' ) {                      # array ref
+        push @code, 
+                ( join q{ }, q*my*, $key, q*=*, @{$val}, q*;* );
+        } 
+        elsif ( $rt eq 'HASH' ) {                       # hash ref
+        push @code, 
+                ( join q{ }, q*my*, $key, q*=*, %{$val}, q*;* );
+        } 
+        else {
+            die 'Error::Base internal error: bad sigil: ', $!
+        };
+    }; ## for keys
+    # ... done unpacking.
+    
+    # Do the late interpolation phase. 
+    push @code, 
+        q**,
+        q*my $return_string;                            *,
+        q*chomp ( $return_string = * . qq|<<$heredoc);|,
+          $Error::Base::in,
+        q**,
+       qq|$heredoc|,
+        q**,
+        q*#----------------------------------------------------------------#*,
+    ;
+    
+    # ... code is now fully assembled.
+    my $eval_code   = join qq{\n}, @code;
+    ##### $eval_code
+    
+    return $out;
+}; ## _late
 
 #=========# INTERNAL FUNCTION
 #
@@ -447,6 +525,8 @@ sub init {
     return $self;
 }; ## init
 
+}   #=====# ... Entire package inside bare block, not indented.
+#=========# END PACKAGE BLOCK
 
 ## END MODULE
 1;
@@ -792,6 +872,7 @@ Similarly, C<$"> is ignored when Error::Base stirs the pot.
 Also, message parts themselves are joined with C<< $self->{'-$"'} >>. 
 The default is a single space. This helps to avoid the unsightly appearance of 
 words stuck together because you did not include enough space in your args. 
+Empty elements are spliced out to avoid multiple consecutive spaces. 
 
 Note that C<< '-$"' >> is a perfectly acceptable hash key but it must be 
 quoted, lest trains derail in Vermont. The fat comma does not help. 
@@ -808,7 +889,7 @@ API (by convention of leading dash), these are preserved unaltered.
                 );
     $err->crash(
                 'Help!',
-            '$foo'  => 'hat',
+            '$foo'  => \'hat',
         );      # emits 'Panic: lost my hat. Help!'
     
     my $err     = Error::Base->new(
@@ -834,12 +915,12 @@ This doesn't work if we want to declare lengthy error text well ahead of time:
     sub call_ethel {
         my $jackson     = 'Janet';
         $err->crank;
-    };                  # won't work the way we might hope
+    };                  # won't work; $jackson out of scope
 
 What we need is B<late interpolation>, which Error::Base provides. 
 
-When we have the desired value in scope, we simply pass it as the value to a key 
-matching the I<placeholder> C<$jackson>: 
+When we have the desired value in scope, we simply pass it a reference to it 
+as the value to a key matching the I<placeholder> C<$jackson>: 
 
     my $err     = Error::Base->new(
                     -base   => 'Up, Up and Away:',
@@ -847,41 +928,35 @@ matching the I<placeholder> C<$jackson>:
                 );
     sub call_ethel {
         my $jackson     = 'Janet';
-        $err->crank( '$jackson' => $jackson );
+        $err->crank( '$jackson' => \$jackson );
     };                  # 'Up, Up and Away: FCC wardrobe malfunction of Janet'
 
 B<Note> that the string passed to C<new()> as the value of C<< -type >> is now 
 single quoted, which avoids a futile attempt to interpolate immediately. Also, 
-the I<variable> C<$jackson> is passed as the value of the I<key> C<'$jackson'>.
-The key is quoted to avoid it being parsed as a variable. 
+a reference to the I<variable> C<$jackson> is passed as the value of the 
+I<key> C<'$jackson'>. The key is quoted to avoid it being parsed as a variable. 
 
     my $err     = Error::Base->new(
-                        '$who got',
-                    -base   => 'Trouble:',
-                    -type   => 'right here in $cities[$i].',
+                        'right here in $cities[$i].',
+                    -base   => 'Our $children{'who'} gonna have',
+                    -type   => '$self->{'_what'}',
                 );
     $err->crash(
+            '_what'     => 'trouble:'
+            '%children' => { who => 'children\'s children' },
             '@cities'   => [ 'Metropolis', 'River City', 'Gotham City' ],
             '$i'        => 1,
         );          # you're the Music Man
 
-You may use scalar or array placeholders, signifying them with 
-the usual sigils. If you want to late interpolate an array, array slice, or 
-hash slice, you'll have to pass a reference as the value of the corresponding 
-key; this value will be dereferenced for you. Although you pass a reference, 
-use the appropriate C<@> or C<%> sigil to lead the corresponding key. 
+You may use scalar or array placeholders, signifying them with the usual 
+sigils. Although you pass a reference, use the appropriate 
+C<$>, C<@> or C<%> sigil to lead the corresponding key. As a convenience, you 
+may pass simple scalars directly. Any value that is I<not> a 
+reference will be late-interpolated directly; anything else will be 
+deferenced (once). 
 
 This is Perlish interpolation, only delayed. You can interpolate escape 
 sequences and anything else you would in a double-quoted string. 
-
-
-Maybe someday. 
-
-Do not try a C<< %hash >>, C<< *typeglob >>, or C<< &coderef either >>. 
-This is, after all, just a way to print a line or two of text. Also, escapes 
-such as C<< "\t" >> are not late interpolated; you should interpolate them 
-conventionally into a scalar (which you can late interpolate) or just 
-interpolate them directly. 
 
 =head1 RESULTS
 
@@ -981,21 +1056,26 @@ any from within itself.
 
 =over
 
-=item C<< Error::Base internal error: excessive backtrace:  >>
+=item C<< Error::Base internal error: excessive backtrace: >>
 
 Attempted to capture too many frames of backtrace. 
 You probably mis-set C<< -top >>, rational values of which are perhaps C<0..9>.
 
-=item C<< Error::Base internal error: unpaired args:  >>
+=item C<< Error::Base internal error: unpaired args: >>
 
 You do I<not> have to pass paired arguments to most public methods. 
 Perhaps you passed an odd number of args to a private method. 
 
-=item C<< Error::Base internal error: undefined local list separator:   >>
+=item C<< Error::Base internal error: undefined local list separator: >>
 
 C<init()> sets C<< $self->{'-$"'} = q{ } >> by default; you may also set it 
 to another value. If you want your message substrings tightly joined, 
 set C<< $self->{'-$"'} = q{} >>; don't undefine it. 
+
+=item C<< Error::Base internal error: bad sigil: >>
+
+There is no possible way for this error to emit. So, if you see it, please 
+do let the author know. 
 
 =back
 

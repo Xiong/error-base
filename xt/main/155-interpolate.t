@@ -9,6 +9,15 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 #----------------------------------------------------------------------------#
 
+my $err     = Error::Base->new(
+                '$foo'      => 'bar',
+            );
+my $out     = $err->_late('-->$foo<--');
+
+say STDERR '>', $out, '<';
+
+exit;
+
 my @td  = (
     {
         -case   => 'null',                      # stringified normal return
