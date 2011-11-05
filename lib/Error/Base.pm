@@ -243,15 +243,7 @@ sub _fuss {
         $self       = $self->new(@_);
     };
     my $max         = 78;                       # maximum line length
-    
-    # Optionally expand one of some stored texts.
-    if ( defined $self->{-key} ) {
-        $self->{-type}  = $self->{ $self->{-key} };
-    };
-    
-##### _fuss() before:
-##### $self
-    
+        
     # Collect all the texts into one message.
     $self->{-msg}   = $self->_join_local(
                         $self->{-base},
@@ -259,9 +251,8 @@ sub _fuss {
                         $self->{-pronto},
                     );
     
-    
-##### _fuss() after:
-##### $self
+    # Late interpolate.
+    $self->{-msg}   = $self->_late( $self->{-msg} );
     
     # If still no text in there, finally default.
     if    ( not $self->{-msg}   ) {
@@ -408,8 +399,8 @@ sub new {
 
 #=========# OBJECT METHOD
 #
-#   $err->init(        '-key' => $value, '-foo' => $bar );
-#   $err->init( $text, '-key' => $value, '-foo' => $bar );
+#   $err->init(        k => 'v', f => $b );
+#   $err->init( $text, k => 'v', f => $b );
 #
 # An object can be init()-ed more than once; all new values overwrite the old.
 # This non-standard init() allows an unnamed initial arg. 
