@@ -42,51 +42,94 @@ my @td  = (
         -case   => 'instring-placeholder-no-value',
         -istr   => q*yabba($farmboy)dabba*,
         -want   => q*yabba($farmboy)dabba*,
+        # interpolation suppressed entirely when no k/v pairs found in $self
     },
     
     {
-        -case   => 'instring-placeholder-and-scalar-value',
+        -case   => 'no-placeholder-some-value',
         -args   => [ 
-                    '$farmboy' => 'Hawk',
+                    '$farmboy'      => 'Hank',
+                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
                 ],
-        -istr   => q*yabba($farmboy)dabba*,
-        -want   => q*yabba(Hawk)dabba*,
+        -istr   => q*yabba dabba doo*,
+        -want   => q*yabba dabba doo*,
+        # interpolation suppressed entirely when no sigil found in -istr
     },
     
     {
-        -case   => 'instring-placeholder-and-scalar-ref',
+        -case   => 'scalar-value',
         -args   => [ 
-                    '$farmboy' => \$yokel,
+                    '$farmboy'      => 'Hank',
                 ],
         -istr   => q*yabba($farmboy)dabba*,
+        -want   => q*yabba(Hank)dabba*,
+    },
+    
+    {
+        -case   => 'scalar-ref',
+        -args   => [ 
+                    '$farmhand'      => \$yokel,
+                ],
+        -istr   => q*yabba($farmhand)dabba*,
         -want   => q*yabba(Tom)dabba*,
     },
     
     {
-        -case   => 'instring-placeholder-and-array-ref',
+        -case   => 'array-ref',
         -args   => [ 
-                    '@farmgirls' => [qw/ Ann Betty Cindy /],
+                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
                 ],
         -istr   => q*yabba(@farmgirls)dabba*,
         -want   => q*yabba(Ann Betty Cindy)dabba*,
     },
     
     {
-        -case   => 'instring-placeholder-and-array-slice',
+        -case   => 'array-slice',
         -args   => [ 
-                    '@farmgirls' => [qw/ Ann Betty Cindy /],
+                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
                 ],
         -istr   => q*yabba(@farmgirls[ 0, 2 ])dabba*,
         -want   => q*yabba(Ann Cindy)dabba*,
     },
     
     {
-        -case   => 'instring-placeholder-and-hash-slice',
+        -case   => 'hash-slice',
         -args   => [ 
-                    '%livestock' => {qw/ dog Spot cow Bessie horse Stud/},
+                    '%livestock'    => {qw/ dog Spot cow Bessie horse Stud/},
                 ],
         -istr   => q*yabba(@livestock{ 'dog', 'cow' })dabba*,
         -want   => q*yabba(Spot Bessie)dabba*,
+    },
+    
+    {
+        -case   => 'two-placeholders-one-value',
+        -args   => [ 
+                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
+                ],
+        -istr   => q*yabba($farmboy)($farmgirls[1])dabba*,
+        -want   => q*yabba()(Betty)dabba*,
+        # interpolates empty string for undefined placeholder
+        #   but who the hell knows where the uninitialized warning went
+    },
+    
+    {
+        -case   => 'the-whole-farm',
+        -args   => [ 
+                    '$farmboy'      => 'Hank',
+                    '$farmhand'      => \$yokel,
+                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
+                    '%livestock'    => {qw/ dog Spot cow Bessie horse Stud/},
+                ],
+        -istr   =>  q*Old MacDonald had *
+                  . q*$farmhand, * 
+                  . q*@livestock{ 'horse', 'cow' }, * 
+                  . q*@farmgirls[ 2, 1 ], * 
+                  . q*$farmboy, * 
+                  . q* e-i-e-i-o*
+                  ,
+        -want   =>  q*Old MacDonald had Tom, Stud Bessie, Cindy Betty, Hank, *
+                  . q* e-i-e-i-o*
+                  ,
     },
     
     
@@ -103,7 +146,7 @@ my $want        ;
 
 #----------------------------------------------------------------------------#
 
-local $SIG{__WARN__}      = sub { note( $_[0]) };
+#~ local $SIG{__WARN__}      = sub { note( $_[0]) };
 
 # Extra-verbose dump optional for test script debug.
 my $Verbose     = 0;

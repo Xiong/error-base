@@ -500,6 +500,8 @@ sub _late {
     $Error::Base::Late::self    = shift 
         or die 'Error::Base internal error: no $self: ', $!;
     $Error::Base::Late::in      = shift || undef;
+    return $Error::Base::Late::in 
+        unless $Error::Base::Late::in =~ /[\$\@%]/; # no sigil, don't bother
     
     # Y0uMaYFiReWHeNReaDYGRiDLeY          # quite unlikely to collide
     
@@ -521,7 +523,8 @@ sub _late {
         
         # Each key includes leading sigil.
         my @keys    = grep { /^[\$\@%]/ } keys %$Error::Base::Late::self;
-        return $Error::Base::Late::in unless @keys;   # no interpolation today
+        return $Error::Base::Late::in 
+            unless @keys;       # no interpolation today
         my $key     ;  # placeholder includes sigil!
         my $val     ;  # value to be interpolated
         my $rt      ;  # builtin 'ref' returns (unwanted) class of blessed ref
@@ -572,19 +575,11 @@ sub _late {
     # Do the late interpolation phase. 
     push @code, 
         q**,
-#~         q*warn q!===:!, $foo, q!:===!;*,
-#~         q**,
-#~         q*$Error::Base::Late::out = * .
         q*<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;*,
 <<Heredoc02_Y0uMaYFiReWHeNReaDYGRiDLeY,
 $Error::Base::Late::in
 Heredoc02_Y0uMaYFiReWHeNReaDYGRiDLeY
         q*Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY*,
-        q**,
-#~         q*warn q!===:!, $out, q!:===!;*,
-#~         q**,
-#~         q*return $out*,
-        q**,
         q*#--------------------------------------------------------#*,
         q**,
     ;
@@ -1054,6 +1049,10 @@ C<'$aryref'>.
 
 Don't forget to store your value against the appropriate key! 
 This implementation of this feature does not peek into your pad. 
+You may not receive an 'uninitialized' warning if a value is missing. 
+However, no late interpolation will be attempted if I<no> keys are stored, 
+prefixed with C<$>, C<@> or C<%>. The literal sigil will be printed. 
+So if you don't like this feature, don't use it. 
 
 =head1 RESULTS
 
