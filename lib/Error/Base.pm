@@ -251,13 +251,12 @@ sub _fuss {
                         $self->{-pronto},
                     );
     
-    # Late interpolate.
-    
-    ##### _fuss before:
-    ##### $self
+    # Late interpolate.    
+#~     ##### _fuss before:
+#~     ##### $self
     $self->{-msg}   = $self->_late( $self->{-msg} );
-    ##### _fuss after:
-    ##### $self
+#~     ##### _fuss after:
+#~     ##### $self
     
     # If still no text in there, finally default.
     if    ( not $self->{-msg}   ) {
@@ -588,7 +587,7 @@ Heredoc02_Y0uMaYFiReWHeNReaDYGRiDLeY
     
     } ## setup
     #--------------------------------------------------------------------#
-    { # eval
+    { # eval string
         
 $Error::Base::Late::out     = eval 
 <<Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY;
@@ -597,13 +596,13 @@ Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY
         
         warn "Error::Base internal warning: in _late eval: '$@" if $@;
         
-        ##### CASE
-        ##### $Error::Base::Late::self
-        ##### $Error::Base::Late::in
-        ##### $Error::Base::Late::eval_code
-        ##### $@
+#~         ##### CASE
+#~         ##### $Error::Base::Late::self
+#~         ##### $Error::Base::Late::in
+#~         ##### $Error::Base::Late::eval_code
+#~         ##### $@
     
-    } ## eval
+    } ## eval string
     #--------------------------------------------------------------------#
     
     # Heredocs add spurious newlines.
