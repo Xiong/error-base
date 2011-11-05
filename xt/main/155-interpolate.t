@@ -8,15 +8,22 @@ my $QRTRUE       = $Error::Base::QRTRUE    ;
 my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 #----------------------------------------------------------------------------#
+# CRAP
 
 my $err     = Error::Base->new(
                 '$foo'      => 'bar',
             );
 my $out     = $err->_late('-->$foo<--');
 
-say STDERR '>', $out, '<';
+say STDERR q{};
+say STDERR '*]', $out, '[*';
+pass();
 
-exit;
+
+done_testing(1);
+exit 0;
+
+#----------------------------------------------------------------------------#
 
 my @td  = (
     {

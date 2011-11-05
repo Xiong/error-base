@@ -30,6 +30,14 @@ use lib 'lib';
 
 say 'Running...';
 
+#~ my $foo     = '42';
+#~ my $bar     = 'baz';
+#~ my $funk    = {$foo};
+#~ my $pond    = {$bar};
+#~ 
+#~ say $funk, $pond;
+#~ exit;
+
 my $_scalar     = 'mfoo';
 my @_array      = qw/ m0 m1 m2 m3/;
 my %_hash       = ( x => 'mx', y => 'my',  );
@@ -39,9 +47,9 @@ my $_aryref     = [qw/ mr0 mr1 mr2 mr3/];
 my $_hshref     = { x => 'mx', y => 'my',  };
 
 no  strict 'vars';
-                $P_             = 'P_null';
+#~                 $P_             = 'P_null';
     our         $P_our          = 'our_P';
-    local       $P_local        = 'local_P';
+#~     local       $P_local        = 'local_P';
     local our   $P_local_our    = 'local_our_P';
 use strict 'vars';
 
@@ -56,13 +64,31 @@ sub A {
             my @B_array     = qw/ B0 B1 B2 B3/;
             my %B_hash      = ( x => 'Bx', y => 'By',  );
             
-            peek_all();
+            Fake::peek_all();
         };
         
     &$B_coderef();
 };
 
-sub peek_all {
+package Fake;
+{
+    sub peek_all {
+        say $_scalar;
+        
+        
+        
+        
+    };
+}
+
+package main;
+
+A();
+
+say '...Done.';
+
+__DATA__
+
 #~     my $err     = Error::Base->new( -prepend => '|--' );
 #~     say $err->cuss('Backtrace in peek_all():');
 #~     say q{};
@@ -77,26 +103,11 @@ sub peek_all {
 #~         $f++;
 #~     };
     
-    my $peek_my     = peek_my(1);
-    ### $peek_my
-    my $peek_our    = peek_our(1);
-    ### $peek_our
-    say q{};
-    
-    
-    
-    
-    
-};
-
-
-A();
-
-say '...Done.';
-
-__DATA__
-
-Output: 
+#~     my $peek_my     = peek_my(1);
+#~     ### $peek_my
+#~     my $peek_our    = peek_our(1);
+#~     ### $peek_our
+#~     say q{};
 
 
 __END__

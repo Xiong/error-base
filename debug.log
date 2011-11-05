@@ -1,0 +1,21 @@
+
+### $Error::Base::Late::in: '-->$foo<--'
+### $Error::Base::Late::eval_code: '
+#--------------------------------------------------------#
+# START EVAL                                              
+
+my $foo = $Error::Base::Late::self->{\'$foo\'};
+
+warn q!===:!, $foo, q!:===!;
+
+my $out = <<Y0uMaYFiReWHeNReaDYGRiDLeY;
+-->$foo<--
+
+Y0uMaYFiReWHeNReaDYGRiDLeY
+
+warn q!===:!, $out, q!:===!;
+
+return $out
+
+#--------------------------------------------------------#
+'

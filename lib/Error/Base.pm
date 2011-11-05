@@ -356,89 +356,6 @@ sub _join_local {
     return join $", @parts;
 }; ## _join_local
 
-#=========# INTERNAL OBJECT METHOD
-#
-#   $out    = $self->_late( $in );     # late interpolate
-#       
-# Purpose   : ____
-# Parms     : $in       : scalar string
-# Reads     : every key in $self starting with a $, @, or % sigil
-# Returns   : $out      : scalar string
-# Writes    : ____
-# Throws    : ____
-# See also  : ____
-# 
-# ____
-# 
-sub _late {
-    my $self            = shift;
-    $Error::Base::in    = shift;    # package variable visible 'outside'
-    
-    my @keys        = grep { /^[\$\@%]/ } keys %$self;  # with leading sigil
-    my $fake_pkg    = 'Fake::Package::1337';            # bizarre strings...
-    my $heredoc     = 'Y0uMaYFiReWHeNReaDYGRiDLeY';     # ... won't collide
-    
-    my @code        ;                                   # to be eval-ed
-    my $out         ;                                   # interpolated
-    
-    # Some preamble.
-    push @code, 
-        q**,
-        q*#----------------------------------------------------------------#*,
-        q*# START EVAL                                                      *,
-        q**,
-    ;
-    
-    # Unpack all appropriate k/v pairs into their own lexical variables... 
-    my $key         ;  # placeholder includes sigil!
-    my $val         ;  # value to be interpolated
-    my $rt          ;  # builtin 'ref' returns (unwanted) class of blessed ref
-    for my $key (@keys) {
-        $key            = shift @keys;
-        $val            = $self->{$key};
-        $rt             = Scalar::Util::reftype $val;   # returns no class
-        
-        if    ( not $rt ) {                             # simple scalar...
-        push @code, 
-                ( join q{ }, q*my*, $key, q*=*, $val, q*;* );   # ... no deref
-        } 
-        elsif ( $rt eq 'SCALAR' ) {                     # scalar ref
-        push @code, 
-                ( join q{ }, q*my*, $key, q*=*, ${$val}, q*;* );
-        } 
-        elsif ( $rt eq 'ARRAY' ) {                      # array ref
-        push @code, 
-                ( join q{ }, q*my*, $key, q*=*, @{$val}, q*;* );
-        } 
-        elsif ( $rt eq 'HASH' ) {                       # hash ref
-        push @code, 
-                ( join q{ }, q*my*, $key, q*=*, %{$val}, q*;* );
-        } 
-        else {
-            die 'Error::Base internal error: bad sigil: ', $!
-        };
-    }; ## for keys
-    # ... done unpacking.
-    
-    # Do the late interpolation phase. 
-    push @code, 
-        q**,
-        q*my $return_string;                            *,
-        q*chomp ( $return_string = * . qq|<<$heredoc);|,
-          $Error::Base::in,
-        q**,
-       qq|$heredoc|,
-        q**,
-        q*#----------------------------------------------------------------#*,
-    ;
-    
-    # ... code is now fully assembled.
-    my $eval_code   = join qq{\n}, @code;
-    ##### $eval_code
-    
-    return $out;
-}; ## _late
-
 #=========# INTERNAL FUNCTION
 #
 #   my %args    = _paired(@_);     # check for unpaired arguments
@@ -525,8 +442,163 @@ sub init {
     return $self;
 }; ## init
 
+#=========# INTERNAL OBJECT METHOD
+#
+#   $out    = $self->_late( $in );     # late interpolate
+#
+# Wrapper method; see Error::Base::Late::_late().
+sub _late { return Error::Base::Late::_late(@_) };
+##
+
 }   #=====# ... Entire package inside bare block, not indented.
 #=========# END PACKAGE BLOCK
+
+package Error::Base::Late;   # switch package to avoid pseudo-global lexicals
+{
+
+#=========# INTERNAL FUNCTION IN FOREIGN PACKAGE
+#
+#   $out    = _late( $self, $in );     # late interpolate
+#       
+# Purpose   : ____
+# Parms     : $in       : scalar string
+# Reads     : every key in $self starting with a $, @, or % sigil
+#           : $self     : available as '$self'
+# Returns   : $out      : scalar string
+# Writes    : ____
+# Throws    : ____
+# See also  : ____
+# 
+# ____                  Error::Base::Late::
+# 
+sub _late {
+    # No lexical variables loose in the outer block of the subroutine.
+    $Error::Base::Late::self    = shift;
+    $Error::Base::Late::in      = shift;
+    
+    $Error::Base::Late::heredoc1 = 
+        'Y0uMaYFiReWHeNReaDYGRiDLeY';           # quite unlikely to collide
+    $Error::Base::Late::heredoc2 = 
+        reverse $Error::Base::Late::heredoc1;   # don't collide with $heredoc1
+    
+    @Error::Base::Late::code    ;         # to be eval-ed
+    $Error::Base::Late::out     ;         # interpolated
+    
+    #--------------------------------------------------------------------#
+    { # setup block
+        
+        # Some preamble.
+        push @Error::Base::Late::code, 
+            q**,
+            q*#--------------------------------------------------------#*,
+            q*# START EVAL                                              *,
+            q**,
+        ;
+        
+        # Unpack all appropriate k/v pairs into their own lexical variables... 
+        
+        # Each key includes leading sigil.
+        my @keys    = grep { /^[\$\@%]/ } keys %$Error::Base::Late::self;        
+        my $key     ;  # placeholder includes sigil!
+        my $val     ;  # value to be interpolated
+        my $rt      ;  # builtin 'ref' returns (unwanted) class of blessed ref
+        
+        #            my $key = $sigil?$Error::Base::Late::self->{'$key'}?;
+        my $ch1  = q*my *                                                   ;
+        my $ch2  =        q* = *                                            ;
+        my $ch3  =                  q*Error::Base::Late::self->{'*          ;
+        my $ch4  =                                                q*'}*     ;
+        my $ch5  =                                                  q*;*    ;
+        
+        for my $key (@keys) {
+            $val            = $Error::Base::Late::self->{$key};
+            $rt             = Scalar::Util::reftype $val;   # returns no class
+            
+            my $sigil   ;           # sigil (if any) to deref
+            my $lbc     = q*{$*;    # left  brace if sigil . '$' for $self
+            my $rbc     = q*}*;     # right brace if sigil
+            
+            if    ( not $rt ) {                             # simple scalar...
+                # ... don't deref
+                $lbc    = q{$};     # only '$' for $self
+                $rbc    = q{};
+            }
+            elsif ( $rt eq 'SCALAR' ) {                     # scalar ref
+                $sigil      = q{$};
+            } 
+            elsif ( $rt eq 'ARRAY'  ) {                     # array ref
+                $sigil      = q{@};
+            } 
+            elsif ( $rt eq 'HASH'   ) {                     # hash ref
+                $sigil      = q{%};
+            } 
+            else {
+                die 'Error::Base internal error: bad reftype: ', $!
+            };
+            
+            #        my $key = $sigil?$Error::Base::Late::self->{'$key'}?;
+            push @code, 
+                ( join q{}, 
+                    $ch1, $key, $ch2, 
+                    $sigil, $lbc, $ch3, $key, $ch4, $rbc, $ch5,
+                );
+            
+        }; ## for keys
+    # ... done unpacking.
+    
+    # Do the late interpolation phase. 
+    push @code, 
+        q**,
+        q*warn q!===:!, $foo, q!:===!;*,
+        q**,
+        q*my $out = * .
+       qq|<<$Error::Base::Late::heredoc1;|,
+<<aosnetuhaos,
+$Error::Base::Late::in
+aosnetuhaos
+       qq|$Error::Base::Late::heredoc1|,
+        q**,
+        q*warn q!===:!, $out, q!:===!;*,
+        q**,
+        q*return $out*,
+        q**,
+        q*#--------------------------------------------------------#*,
+        q**,
+    ;
+    
+    # Code is now fully assembled.
+    $Error::Base::Late::eval_code   = 
+        join qq{\n}, @Error::Base::Late::code;
+    
+    } ## setup
+    #--------------------------------------------------------------------#
+    { # eval
+        
+        ##### $Error::Base::Late::in
+        ##### $Error::Base::Late::eval_code
+        
+        # reverse $Error::Base::Late::heredoc1; # don't collide with $heredoc1
+$Error::Base::Late::out     = eval <<YeLDiRGYDaeRNeHWeRiFYaMu0Y;
+$Error::Base::Late::eval_code
+YeLDiRGYDaeRNeHWeRiFYaMu0Y
+    
+    warn "Error::Base internal warning: _late eval: '$@" if $@;
+    
+    } ## eval
+    #--------------------------------------------------------------------#
+    
+    
+    
+    
+    
+    
+    
+    chomp  $Error::Base::Late::out;
+    chomp  $Error::Base::Late::out;
+    return $Error::Base::Late::out;
+}; ## _late
+
+} ## package Error::Base::Late
 
 ## END MODULE
 1;
@@ -956,7 +1028,12 @@ reference will be late-interpolated directly; anything else will be
 deferenced (once). 
 
 This is Perlish interpolation, only delayed. You can interpolate escape 
-sequences and anything else you would in a double-quoted string. 
+sequences and anything else you would in a double-quoted string. You can pass 
+a reference to a package variable; but do so against a simple key such as 
+C<'$aryref'>. 
+
+Don't forget to store your value against the appropriate key! 
+This implementation of this feature does not peek into your pad. 
 
 =head1 RESULTS
 
@@ -1052,7 +1129,8 @@ This module is installed using L<Module::Build>.
 =head1 DIAGNOSTICS
 
 This module emits error messages I<for> you; it is hoped you won't encounter 
-any from within itself. 
+any from within itself. If you do see one of these errors, kindly report to RT 
+so maintainer can take action. Thank you for helping. 
 
 =over
 
@@ -1072,10 +1150,9 @@ C<init()> sets C<< $self->{'-$"'} = q{ } >> by default; you may also set it
 to another value. If you want your message substrings tightly joined, 
 set C<< $self->{'-$"'} = q{} >>; don't undefine it. 
 
-=item C<< Error::Base internal error: bad sigil: >>
+=item C<< Error::Base internal error: bad reftype: >>
 
-There is no possible way for this error to emit. So, if you see it, please 
-do let the author know. 
+You attempted to late-interpolate a reference other than to a scalar, array, or hash. Don't pass such references as values to any key with the wrong sigil. 
 
 =back
 
