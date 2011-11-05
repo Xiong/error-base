@@ -252,7 +252,12 @@ sub _fuss {
                     );
     
     # Late interpolate.
+    
+    ##### _fuss before:
+    ##### $self
     $self->{-msg}   = $self->_late( $self->{-msg} );
+    ##### _fuss after:
+    ##### $self
     
     # If still no text in there, finally default.
     if    ( not $self->{-msg}   ) {
@@ -593,6 +598,7 @@ Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY
         warn "Error::Base internal warning: in _late eval: '$@" if $@;
         
         ##### CASE
+        ##### $Error::Base::Late::self
         ##### $Error::Base::Late::in
         ##### $Error::Base::Late::eval_code
         ##### $@
