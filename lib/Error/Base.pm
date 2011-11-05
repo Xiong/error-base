@@ -650,15 +650,18 @@ This document describes Error::Base version v0.1.1
     my $err = Error::Base->crank('Me!');        # also a constructor
     
     eval{ Error::Base->crash( 'car', -foo => 'bar' ) }; 
-    my $err     = $@ if $@;         # catch and examine the object
+    my $err     = $@ if $@;         # catch and examine the full object
     
     my $err     = Error::Base->new(
                     -base       => 'File handler error:',
                     _openerr    => 'Couldn\t open $file for $op',
                 );
-    $err->crash(
-        -type
-    );
+    open my $fh, '<', $file
+        or $err->crash(
+            -type       => $err->{_openerr},
+            '$file'     => $file,
+            '$op'       => 'reading',
+        );
 
 =head1 DESCRIPTION
 
@@ -1041,7 +1044,8 @@ C<< -type >> is defined as C<< '$self->{_what}' >>
 C<< _what >> is defined as C<< 'trouble:' >>. 
 When late-interpolated, C<< -type >> expands to C<< 'trouble:' >>. 
 Note that Error::Base has no idea what you have called your error object 
-(perhaps '$err'); use the placeholder C<< '$self' >> at all times. 
+(perhaps '$err'); use the placeholder C<< '$self' >> 
+in the string to be expanded. 
 
 Don't forget to store your value against the appropriate key! 
 This implementation of this feature does not peek into your pad. 
