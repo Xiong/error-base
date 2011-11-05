@@ -8,6 +8,9 @@ my $builder = Module::Build->new(
     license             => 'artistic_2',
     dist_author         => 'Xiong Changnian <xiong@cpan.org>',
     dist_version_from   => 'lib/Error/Base.pm',
+    configure_requires  => { 
+        'Module::Build'             => 0.38, 
+    },
     requires            => {
         'perl'                      => 5.008008,
         'version'                   => 0.94,
