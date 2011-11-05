@@ -24,6 +24,7 @@ my @td  = (
     },
     
     {
+#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'null-fuzz',         
         -fuzz   => words(qw/ 
                     bless 
@@ -106,10 +107,10 @@ my @td  = (
     },
     
     {
-        -case   => 'prepend-text-both',     # emit error text, both ways
+        -case   => 'prepend-base-both',     # emit error text, both ways
         -args   => [ 
                     'Bazfaz: ', 
-                    -text       => 'Foobar error ', 
+                    -base       => 'Foobar error ', 
                     foo         => 'bar', 
                     -prepend    => $prepend,
                 ],
@@ -135,7 +136,7 @@ my @td  = (
         -case   => 'quiet',             # emit error text, no backtrace
         -args   => [ 
                     'Bazfaz: ', 
-                    -text       => 'Foobar error ', 
+                    -base       => 'Foobar error ', 
                     foo         => 'bar', 
                     -prepend    => $prepend,
                     -quiet  => 1, 
@@ -167,6 +168,7 @@ my $Verbose     = 0;
 #~    $Verbose++;
 
 for (@td) {
+    last if $_->{-end};
     $tc++;
     my $case        = $base . $_->{-case};
     
