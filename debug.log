@@ -1,0 +1,54 @@
+
+### _fuss before:
+### $self: bless( {
+###                 '$zig' => 'zag',
+###                 '-$"' => ' ',
+###                 '-base' => 'a $zig b',
+###                 '-msg' => 'a $zig b',
+###                 '-pronto' => '',
+###                 '-quiet' => 1,
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### CASE
+### $Error::Base::Late::self: bless( {
+###                                    '$zig' => 'zag',
+###                                    '-$"' => ' ',
+###                                    '-base' => 'a $zig b',
+###                                    '-msg' => 'a $zig b',
+###                                    '-pronto' => '',
+###                                    '-quiet' => 1,
+###                                    '-top' => 2,
+###                                    '-type' => '',
+###                                    foo => 'bar'
+###                                  }, 'Error::Base' )
+### $Error::Base::Late::in: 'a $zig b'
+### $Error::Base::Late::eval_code: '
+
+#--------------------------------------------------------#
+# START EVAL                                              
+
+my $zig = $Error::Base::Late::self->{\'$zig\'};
+
+<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
+a $zig b
+
+Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
+#--------------------------------------------------------#
+'
+### $@: ''
+
+### _fuss after:
+### $self: bless( {
+###                 '$zig' => 'zag',
+###                 '-$"' => ' ',
+###                 '-base' => 'a $zig b',
+###                 '-msg' => 'a zag b',
+###                 '-pronto' => '',
+###                 '-quiet' => 1,
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )

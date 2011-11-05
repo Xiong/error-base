@@ -20,6 +20,7 @@ my @td  = (
     },
     
     {
+#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'null-fuzz',         
         -fuzz   => words(qw/ 
                     bless 
@@ -37,7 +38,7 @@ my @td  = (
         -args   => [ 
                     'Bazfaz: ',
                     -quiet  => 1, 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
         -die    => words(qw/
@@ -50,7 +51,7 @@ my @td  = (
         -args   => [ 
                     'Bazfaz: ',
                     -quiet  => 1, 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
         -fuzz   => words(qw/ 
@@ -79,6 +80,7 @@ my $Verbose     = 0;
 #~    $Verbose++;
 
 for (@td) {
+    last if $_->{-end};
     $tc++;
     my $case        = $base . $_->{-case};
     

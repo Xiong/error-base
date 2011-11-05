@@ -10,7 +10,7 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 #----------------------------------------------------------------------------#
 
 my $err     = Error::Base->new(
-                -text       => '',
+                -base       => '',
                 _error1     => ' 1st error',
                 _error2     => ' 2nd error',
             );
@@ -30,6 +30,7 @@ my @td  = (
     },
     
     {
+#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'err-fuzz',          # emit error text
         -args   => [ 
                     'Foobar error', 
@@ -46,7 +47,7 @@ my @td  = (
     {
         -case   => 'text-fuzz',         # emit error text, named arg
         -args   => [ 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                     -key    => '_error1', 
                 ],
@@ -61,7 +62,7 @@ my @td  = (
         -case   => 'text-both-fuzz',    # emit error text, both ways
         -args   => [ 
                     'Bazfaz: ', 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                     -key    => '_error1', 
                 ],
@@ -76,7 +77,7 @@ my @td  = (
         -case   => 'text-both',         # emit error text, stringified normal
         -args   => [ 
                     'Bazfaz: ', 
-                    -text   => 'Foobar error ', 
+                    -base   => 'Foobar error ', 
                     foo     => 'bar', 
                     -key    => '_error1', 
                 ],
@@ -105,6 +106,7 @@ my $Verbose     = 0;
 #~    $Verbose++;
 
 for (@td) {
+    last if $_->{-end};
     $tc++;
     my $case        = $base . $_->{-case};
     
