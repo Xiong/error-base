@@ -496,6 +496,8 @@ package Error::Base::Late;   # switch package to avoid pseudo-global lexicals
 #       I chose heredocs and three long, arbitrary strings. 
 # 
 sub _late {
+    no warnings 'uninitialized';          # too many to count
+    
     # No lexical variables loose in the outer block of the subroutine.
     $Error::Base::Late::self    = shift 
         or die 'Error::Base internal error: no $self: ', $!;
