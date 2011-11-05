@@ -8,123 +8,42 @@ my $QRTRUE       = $Error::Base::QRTRUE    ;
 my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 #----------------------------------------------------------------------------#
-# CRAP
-
-#~ my $err     = Error::Base->new(
-#~                 '$foo'      => 'bar',
-#~             );
-#~ my $out     = $err->_late('-->$foo<--');
-#~ 
-#~ say STDERR q{};
-#~ say STDERR '*]', $out, '[*';
-#~ pass();
-#~ 
-#~ 
-#~ done_testing(1);
-#~ exit 0;
-
-#----------------------------------------------------------------------------#
 
 my $yokel   = 'Tom';
 
 my @td  = (
-    {
-        -case   => 'null',
-    },
-    
-    {
-        -case   => 'instring-only',
-        -istr   => q*yabba"qq||" dabba*,
-        -want   => q*yabba"qq||" dabba*,
-    },
-    
-    {
-        -case   => 'instring-placeholder-no-value',
-        -istr   => q*yabba($farmboy)dabba*,
-        -want   => q*yabba($farmboy)dabba*,
-        # interpolation suppressed entirely when no k/v pairs found in $self
-    },
-    
-    {
-        -case   => 'no-placeholder-some-value',
-        -args   => [ 
-                    '$farmboy'      => 'Hank',
-                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
-                ],
-        -istr   => q*yabba dabba doo*,
-        -want   => q*yabba dabba doo*,
-        # interpolation suppressed entirely when no sigil found in -istr
-    },
-    
-    {
-        -case   => 'scalar-value',
-        -args   => [ 
-                    '$farmboy'      => 'Hank',
-                ],
-        -istr   => q*yabba($farmboy)dabba*,
-        -want   => q*yabba(Hank)dabba*,
-    },
-    
-    {
-        -case   => 'scalar-ref',
-        -args   => [ 
-                    '$farmhand'      => \$yokel,
-                ],
-        -istr   => q*yabba($farmhand)dabba*,
-        -want   => q*yabba(Tom)dabba*,
-    },
     
     {
         -case   => 'array-ref',
         -args   => [ 
-                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
+                    '_farmgirls'    => [qw/ Ann Betty Cindy /],
                 ],
-        -istr   => q*yabba(@farmgirls)dabba*,
+        -istr   => q*yabba(@{ $self->{_farmgirls} })dabba*,
         -want   => q*yabba(Ann Betty Cindy)dabba*,
     },
     
     {
         -case   => 'array-slice',
         -args   => [ 
-                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
+                    '_farmgirls'    => [qw/ Ann Betty Cindy /],
                 ],
-        -istr   => q*yabba(@farmgirls[ 0, 2 ])dabba*,
+        -istr   => q*yabba(@{ $self->{_farmgirls} }[0,2])dabba*,
         -want   => q*yabba(Ann Cindy)dabba*,
-    },
-    
-    {
-        -case   => 'hash-slice',
-        -args   => [ 
-                    '%livestock'    => {qw/ dog Spot cow Bessie horse Stud/},
-                ],
-        -istr   => q*yabba(@livestock{ 'dog', 'cow' })dabba*,
-        -want   => q*yabba(Spot Bessie)dabba*,
-    },
-    
-    {
-        -case   => 'two-placeholders-one-value',
-        -args   => [ 
-                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
-                ],
-        -istr   => q*yabba($farmboy)($farmgirls[1])dabba*,
-        -want   => q*yabba()(Betty)dabba*,
-        # interpolates empty string for undefined placeholder
-        #   uninitialized warnings suppressed
     },
     
     {
         -case   => 'the-whole-farm',
         -args   => [ 
-                    '$farmboy'      => 'Hank',
-                    '$farmhand'     => \$yokel,
-                    '@farmgirls'    => [qw/ Ann Betty Cindy /],
-                    '%livestock'    => {qw/ dog Spot cow Bessie horse Stud/},
+                    '_farmboy'      => 'Hank',
+                    '_farmhand'     => \$yokel,
+                    '_farmgirls'    => [qw/ Ann Betty Cindy /],
+                    '_livestock'    => {qw/ dog Spot cow Bessie horse Stud/},
                 ],
         -istr   =>  q*Old MacDonald had *
-                  . q*$farmhand, * 
-                  . q*@livestock{ 'horse', 'cow' }, * 
-                  . q*@farmgirls[ 2, 1 ], * 
-                  . q*$farmboy, * 
+                  . q*${ $self->{ _farmhand  } }, * 
+                  . q*@{ $self->{ _livestock } }{ 'horse', 'cow' }, * 
+                  . q*@{ $self->{ _farmgirls } }[ 2, 1 ], * 
+                  .    q*$self->{ _farmboy   }, * 
                   . q* e-i-e-i-o*
                   ,
         -want   =>  q*Old MacDonald had Tom, Stud Bessie, Cindy Betty, Hank, *
@@ -138,7 +57,7 @@ my @td  = (
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: interpolate: ';
+my $base        = 'Error-Base: self-late: ';
 my $diag        = $base;
 my $rv          ;
 my $got         ;
