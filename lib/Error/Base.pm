@@ -243,15 +243,7 @@ sub _fuss {
         $self       = $self->new(@_);
     };
     my $max         = 78;                       # maximum line length
-    
-    # Optionally expand one of some stored texts.
-    if ( defined $self->{-key} ) {
-        $self->{-type}  = $self->{ $self->{-key} };
-    };
-    
-##### _fuss() before:
-##### $self
-    
+        
     # Collect all the texts into one message.
     $self->{-msg}   = $self->_join_local(
                         $self->{-base},
@@ -259,9 +251,12 @@ sub _fuss {
                         $self->{-pronto},
                     );
     
-    
-##### _fuss() after:
-##### $self
+    # Late interpolate.    
+#~     ##### _fuss before:
+#~     ##### $self
+    $self->{-msg}   = $self->_late( $self->{-msg} );
+#~     ##### _fuss after:
+#~     ##### $self
     
     # If still no text in there, finally default.
     if    ( not $self->{-msg}   ) {
@@ -408,8 +403,8 @@ sub new {
 
 #=========# OBJECT METHOD
 #
-#   $err->init(        '-key' => $value, '-foo' => $bar );
-#   $err->init( $text, '-key' => $value, '-foo' => $bar );
+#   $err->init(        k => 'v', f => $b );
+#   $err->init( $text, k => 'v', f => $b );
 #
 # An object can be init()-ed more than once; all new values overwrite the old.
 # This non-standard init() allows an unnamed initial arg. 
@@ -496,6 +491,8 @@ package Error::Base::Late;   # switch package to avoid pseudo-global lexicals
 #       I chose heredocs and three long, arbitrary strings. 
 # 
 sub _late {
+    no warnings 'uninitialized';          # too many to count
+    
     # No lexical variables loose in the outer block of the subroutine.
     $Error::Base::Late::self    = shift 
         or die 'Error::Base internal error: no $self: ', $!;
@@ -590,7 +587,7 @@ Heredoc02_Y0uMaYFiReWHeNReaDYGRiDLeY
     
     } ## setup
     #--------------------------------------------------------------------#
-    { # eval
+    { # eval string
         
 $Error::Base::Late::out     = eval 
 <<Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY;
@@ -599,12 +596,13 @@ Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY
         
         warn "Error::Base internal warning: in _late eval: '$@" if $@;
         
-        ##### CASE
-        ##### $Error::Base::Late::in
-        ##### $Error::Base::Late::eval_code
-        ##### $@
+#~         ##### CASE
+#~         ##### $Error::Base::Late::self
+#~         ##### $Error::Base::Late::in
+#~         ##### $Error::Base::Late::eval_code
+#~         ##### $@
     
-    } ## eval
+    } ## eval string
     #--------------------------------------------------------------------#
     
     # Heredocs add spurious newlines.
@@ -651,6 +649,13 @@ This document describes Error::Base version v0.1.0
     eval{ Error::Base->crash( 'car', -foo => 'bar' ) }; 
     my $err     = $@ if $@;         # catch and examine the object
     
+    my $err     = Error::Base->new(
+                    -base       => 'File handler error:',
+                    _openerr    => 'Couldn\t open $file for $op',
+                );
+    $err->crash(
+        -type
+    );
 
 =head1 DESCRIPTION
 
@@ -712,7 +717,7 @@ You may stash any arbitrary data inside the returned object (during
 construction or later) and do whatever you like with it. You might choose to 
 supply additional optional texts for later access. 
 
-See L<PARAMETERS>.
+See L</PARAMETERS>.
 
 =head2 crash()
 
@@ -722,7 +727,6 @@ See L<PARAMETERS>.
     $err->crash(        # all the same args are okay in crash() as in new()
                 'bartender: '
             -base   => 'Bar error:',
-            -key    => '_beer',                 # instert additional text
         );
     eval{ $err->crash }; 
     my $err     = $@ if $@;         # catch and examine the object
@@ -819,16 +823,8 @@ I<scalar string>
             -base   => 'Bar',
             -type   => 'last call',
         );                              # emits 'Bar last call'
-    $err->crash(
-            -base   => 'Bar',
-            -type   => 'last call',
-            zap     => 'tab',
-            zing    => 'cash',
-            -key    => 'zing',
-        );                              # emits 'Bar cash'
 
-This parameter is provided as a way to express a subtype of error. It will be 
-overwritten by any value provided indirectly by -key (Please see which.)
+This parameter is provided as a way to express a subtype of error. 
 
 =head2 -pronto
 
@@ -858,20 +854,7 @@ to pass a multi-line string then please embed escaped newlines (C<'\n'>).
 
 =head2 -key
 
-I<scalar string>
-
-    my $err     = Error::Base->new(
-                    _err00  => 'frobnitz error',
-                    _err01  => 'What, me worry?',
-                );
-    $assertion      or $err->crash( -key => '_err00' );
-    $expectation    or $err->crank( -key => '_err01' );
-
-You may store arbitrary error text against arbitrary keys and access them 
-later with C<< -key >>. This may suit you if you like to group all your error 
-messages in one place; you need only create a single object to hold them all. 
-The value of whatever key you pass will be assigned to C<< -type >>. 
-The leading underbar (C<'_'>) is merely a suggested convention. 
+This feature has been replaced by L</LATE INTERPOLATION>.
 
 =head2 -quiet
 
@@ -976,7 +959,7 @@ API (by convention of leading dash), these are preserved unaltered.
                 );
     $err->crash(
                 'Help!',
-            '$foo'  => \'hat',
+            '$foo'  => 'hat',
         );      # emits 'Panic: lost my hat. Help!'
     
     my $err     = Error::Base->new(
@@ -1002,12 +985,12 @@ This doesn't work if we want to declare lengthy error text well ahead of time:
     sub call_ethel {
         my $jackson     = 'Janet';
         $err->crank;
-    };                  # won't work; $jackson out of scope
+    };                  # won't work; $jackson out of scope for -type
 
 What we need is B<late interpolation>, which Error::Base provides. 
 
-When we have the desired value in scope, we simply pass it a reference to it 
-as the value to a key matching the I<placeholder> C<$jackson>: 
+When we have the desired value in scope, we simply pass it as the value 
+to a key matching the I<placeholder> C<$jackson>: 
 
     my $err     = Error::Base->new(
                     -base   => 'Up, Up and Away:',
@@ -1026,10 +1009,10 @@ I<key> C<'$jackson'>. The key is quoted to avoid it being parsed as a variable.
     my $err     = Error::Base->new(
                         'right here in $cities[$i].',
                     -base   => 'Our $children{'who'} gonna have',
-                    -type   => '$self->{'_what'}',
+                    -type   => q/$self->{'_what'}/,
                 );
     $err->crash(
-            '_what'     => 'trouble:'
+            _what       => 'trouble:'
             '%children' => { who => 'children\'s children' },
             '@cities'   => [ 'Metropolis', 'River City', 'Gotham City' ],
             '$i'        => 1,
@@ -1038,7 +1021,8 @@ I<key> C<'$jackson'>. The key is quoted to avoid it being parsed as a variable.
 You may use scalar or array placeholders, signifying them with the usual 
 sigils. Although you pass a reference, use the appropriate 
 C<$>, C<@> or C<%> sigil to lead the corresponding key. As a convenience, you 
-may pass simple scalars directly. Any value that is I<not> a 
+may pass simple scalars directly. (It's syntactically ugly to pass a 
+reference to a literal scalar.) Any value that is I<not> a 
 reference will be late-interpolated directly; anything else will be 
 deferenced (once). 
 
@@ -1046,6 +1030,15 @@ This is Perlish interpolation, only delayed. You can interpolate escape
 sequences and anything else you would in a double-quoted string. You can pass 
 a reference to a package variable; but do so against a simple key such as 
 C<'$aryref'>. 
+
+As a further convenience, you may interpolate a value from the error object 
+itself. In the previous example, 
+C<< -type >> is defined as C<< '$self->{_what}' >> 
+(please note the single quotes). And also, 
+C<< _what >> is defined as C<< 'trouble:' >>. 
+When late-interpolated, C<< -type >> expands to C<< 'trouble:' >>. 
+Note that Error::Base has no idea what you have called your error object 
+(perhaps '$err'); use the placeholder C<< '$self' >> at all times. 
 
 Don't forget to store your value against the appropriate key! 
 This implementation of this feature does not peek into your pad. 

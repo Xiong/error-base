@@ -1,122 +1,54 @@
 
+### _fuss before:
+### $self: bless( {
+###                 '$zig' => 'zag',
+###                 '-$"' => ' ',
+###                 '-base' => 'a $zig b',
+###                 '-msg' => 'a $zig b',
+###                 '-pronto' => '',
+###                 '-quiet' => 1,
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
 ### CASE
-### $Error::Base::Late::in: 'yabba($farmboy)dabba'
+### $Error::Base::Late::self: bless( {
+###                                    '$zig' => 'zag',
+###                                    '-$"' => ' ',
+###                                    '-base' => 'a $zig b',
+###                                    '-msg' => 'a $zig b',
+###                                    '-pronto' => '',
+###                                    '-quiet' => 1,
+###                                    '-top' => 2,
+###                                    '-type' => '',
+###                                    foo => 'bar'
+###                                  }, 'Error::Base' )
+### $Error::Base::Late::in: 'a $zig b'
 ### $Error::Base::Late::eval_code: '
 
 #--------------------------------------------------------#
 # START EVAL                                              
 
-my $farmboy = $Error::Base::Late::self->{\'$farmboy\'};
+my $zig = $Error::Base::Late::self->{\'$zig\'};
 
 <<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
-yabba($farmboy)dabba
+a $zig b
 
 Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
 #--------------------------------------------------------#
 '
 ### $@: ''
 
-### CASE
-### $Error::Base::Late::in: 'yabba($farmhand)dabba'
-### $Error::Base::Late::eval_code: '
-
-#--------------------------------------------------------#
-# START EVAL                                              
-
-my $farmhand = ${$Error::Base::Late::self->{\'$farmhand\'}};
-
-<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
-yabba($farmhand)dabba
-
-Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
-#--------------------------------------------------------#
-'
-### $@: ''
-
-### CASE
-### $Error::Base::Late::in: 'yabba(@farmgirls)dabba'
-### $Error::Base::Late::eval_code: '
-
-#--------------------------------------------------------#
-# START EVAL                                              
-
-my @farmgirls = @{$Error::Base::Late::self->{\'@farmgirls\'}};
-
-<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
-yabba(@farmgirls)dabba
-
-Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
-#--------------------------------------------------------#
-'
-### $@: ''
-
-### CASE
-### $Error::Base::Late::in: 'yabba(@farmgirls[ 0, 2 ])dabba'
-### $Error::Base::Late::eval_code: '
-
-#--------------------------------------------------------#
-# START EVAL                                              
-
-my @farmgirls = @{$Error::Base::Late::self->{\'@farmgirls\'}};
-
-<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
-yabba(@farmgirls[ 0, 2 ])dabba
-
-Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
-#--------------------------------------------------------#
-'
-### $@: ''
-
-### CASE
-### $Error::Base::Late::in: 'yabba(@livestock{ \'dog\', \'cow\' })dabba'
-### $Error::Base::Late::eval_code: '
-
-#--------------------------------------------------------#
-# START EVAL                                              
-
-my %livestock = %{$Error::Base::Late::self->{\'%livestock\'}};
-
-<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
-yabba(@livestock{ \'dog\', \'cow\' })dabba
-
-Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
-#--------------------------------------------------------#
-'
-### $@: ''
-
-### CASE
-### $Error::Base::Late::in: 'yabba($farmboy)($farmgirls[1])dabba'
-### $Error::Base::Late::eval_code: '
-
-#--------------------------------------------------------#
-# START EVAL                                              
-
-my @farmgirls = @{$Error::Base::Late::self->{\'@farmgirls\'}};
-
-<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
-yabba($farmboy)($farmgirls[1])dabba
-
-Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
-#--------------------------------------------------------#
-'
-### $@: ''
-
-### CASE
-### $Error::Base::Late::in: 'Old MacDonald had $farmhand, @livestock{ \'horse\', \'cow\' }, @farmgirls[ 2, 1 ], $farmboy,  e-i-e-i-o'
-### $Error::Base::Late::eval_code: '
-
-#--------------------------------------------------------#
-# START EVAL                                              
-
-my $farmhand = ${$Error::Base::Late::self->{\'$farmhand\'}};
-my @farmgirls = @{$Error::Base::Late::self->{\'@farmgirls\'}};
-my %livestock = %{$Error::Base::Late::self->{\'%livestock\'}};
-my $farmboy = $Error::Base::Late::self->{\'$farmboy\'};
-
-<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
-Old MacDonald had $farmhand, @livestock{ \'horse\', \'cow\' }, @farmgirls[ 2, 1 ], $farmboy,  e-i-e-i-o
-
-Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
-#--------------------------------------------------------#
-'
-### $@: ''
+### _fuss after:
+### $self: bless( {
+###                 '$zig' => 'zag',
+###                 '-$"' => ' ',
+###                 '-base' => 'a $zig b',
+###                 '-msg' => 'a zag b',
+###                 '-pronto' => '',
+###                 '-quiet' => 1,
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )

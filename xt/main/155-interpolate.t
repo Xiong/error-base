@@ -109,7 +109,7 @@ my @td  = (
         -istr   => q*yabba($farmboy)($farmgirls[1])dabba*,
         -want   => q*yabba()(Betty)dabba*,
         # interpolates empty string for undefined placeholder
-        #   but who the hell knows where the uninitialized warning went
+        #   uninitialized warnings suppressed
     },
     
     {
