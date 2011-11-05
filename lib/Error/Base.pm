@@ -514,14 +514,16 @@ sub _late {
             q*#--------------------------------------------------------#*,
             q*# START EVAL                                              *,
             q**,
+            q*my $self  = $Error::Base::Late::self;*,
+            q**,
         ;
         
         # Unpack all appropriate k/v pairs into their own lexical variables... 
         
         # Each key includes leading sigil.
         my @keys    = grep { /^[\$\@%]/ } keys %$Error::Base::Late::self;
-        return $Error::Base::Late::in 
-            unless @keys;       # no interpolation today
+        return $Error::Base::Late::in   # abort if not interpolating today
+            unless ( @keys or $Error::Base::Late::in =~ /\$self/ );
         my $key     ;  # placeholder includes sigil!
         my $val     ;  # value to be interpolated
         my $rt      ;  # builtin 'ref' returns (unwanted) class of blessed ref
@@ -599,6 +601,7 @@ Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY
 #~         ##### CASE
 #~         ##### $Error::Base::Late::self
 #~         ##### $Error::Base::Late::in
+#~         ##### @Error::Base::Late::code
 #~         ##### $Error::Base::Late::eval_code
 #~         ##### $@
     
