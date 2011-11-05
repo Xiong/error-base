@@ -714,7 +714,7 @@ You may stash any arbitrary data inside the returned object (during
 construction or later) and do whatever you like with it. You might choose to 
 supply additional optional texts for later access. 
 
-See L<PARAMETERS>.
+See L</PARAMETERS>.
 
 =head2 crash()
 
@@ -830,7 +830,7 @@ I<scalar string>
         );                              # emits 'Bar cash'
 
 This parameter is provided as a way to express a subtype of error. It will be 
-overwritten by any value provided indirectly by -key (Please see which.)
+overwritten by any value provided indirectly by -key (Please see L</-key>.)
 
 =head2 -pronto
 
