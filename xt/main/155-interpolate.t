@@ -10,75 +10,85 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 #----------------------------------------------------------------------------#
 # CRAP
 
-my $err     = Error::Base->new(
-                '$foo'      => 'bar',
-            );
-my $out     = $err->_late('-->$foo<--');
-
-say STDERR q{};
-say STDERR '*]', $out, '[*';
-pass();
-
-
-done_testing(1);
-exit 0;
+#~ my $err     = Error::Base->new(
+#~                 '$foo'      => 'bar',
+#~             );
+#~ my $out     = $err->_late('-->$foo<--');
+#~ 
+#~ say STDERR q{};
+#~ say STDERR '*]', $out, '[*';
+#~ pass();
+#~ 
+#~ 
+#~ done_testing(1);
+#~ exit 0;
 
 #----------------------------------------------------------------------------#
 
+my $yokel   = 'Tom';
+
 my @td  = (
     {
-        -case   => 'null',                      # stringified normal return
-        -want   => words(qw/ 
-                    undefined error 
-                    eval line 
-                    ____ line 
-                /),
+        -case   => 'null',
     },
     
     {
-        -case   => 'null-fuzz',                 # explain whole object
-        -fuzz   => words(qw/ 
-                    bless
-                    lines
-                        undefined error 
-                        eval line 
-                        ____ line 
-                    error base
-                /),
+        -case   => 'instring-only',
+        -istr   => q*yabba"qq||" dabba*,
+        -want   => q*yabba"qq||" dabba*,
     },
     
     {
-        -case   => 'q-fuzz',                    # no backtrace
-        -args   => [
-                    -quiet          => 1,
-                ],
-        -fuzz   => words(qw/ 
-                    bless
-                    lines
-                        undefined error 
-                    quiet
-                    error base
-                /),
+        -case   => 'instring-placeholder-no-value',
+        -istr   => q*yabba($farmboy)dabba*,
+        -want   => q*yabba($farmboy)dabba*,
     },
     
     {
-        -case   => 'no-terp',                    # almost interpolate
-        -args   => [
-                        'My $dog has fleas.',
-                    -quiet          => 1,
+        -case   => 'instring-placeholder-and-scalar-value',
+        -args   => [ 
+                    '$farmboy' => 'Hawk',
                 ],
-        -merge  => [
-                        '$mom said: ',
-                    -quiet          => 1,
-                ],
-        -fuzz   => words(qw/ 
-                    bless
-                    lines
-                        undefined error 
-                    quiet
-                    error base
-                /),
+        -istr   => q*yabba($farmboy)dabba*,
+        -want   => q*yabba(Hawk)dabba*,
     },
+    
+    {
+        -case   => 'instring-placeholder-and-scalar-ref',
+        -args   => [ 
+                    '$farmboy' => \$yokel,
+                ],
+        -istr   => q*yabba($farmboy)dabba*,
+        -want   => q*yabba(Tom)dabba*,
+    },
+    
+    {
+        -case   => 'instring-placeholder-and-array-ref',
+        -args   => [ 
+                    '@farmgirls' => [qw/ Ann Betty Cindy /],
+                ],
+        -istr   => q*yabba(@farmgirls)dabba*,
+        -want   => q*yabba(Ann Betty Cindy)dabba*,
+    },
+    
+    {
+        -case   => 'instring-placeholder-and-array-slice',
+        -args   => [ 
+                    '@farmgirls' => [qw/ Ann Betty Cindy /],
+                ],
+        -istr   => q*yabba(@farmgirls[ 0, 2 ])dabba*,
+        -want   => q*yabba(Ann Cindy)dabba*,
+    },
+    
+    {
+        -case   => 'instring-placeholder-and-hash-slice',
+        -args   => [ 
+                    '%livestock' => {qw/ dog Spot cow Bessie horse Stud/},
+                ],
+        -istr   => q*yabba(@livestock{ 'dog', 'cow' })dabba*,
+        -want   => q*yabba(Spot Bessie)dabba*,
+    },
+    
     
 );
 
@@ -87,11 +97,13 @@ my @td  = (
 my $tc          ;
 my $base        = 'Error-Base: interpolate: ';
 my $diag        = $base;
-my @rv          ;
+my $rv          ;
 my $got         ;
 my $want        ;
 
 #----------------------------------------------------------------------------#
+
+local $SIG{__WARN__}      = sub { note( $_[0]) };
 
 # Extra-verbose dump optional for test script debug.
 my $Verbose     = 0;
@@ -108,56 +120,42 @@ for (@td) {
 sub exck {
     my $t           = shift;
     my @args        = eval{ @{ $t->{-args} } };
-    my @merge       = eval{ @{ $t->{-merge} } };
+    my $istr        = $t->{-istr};
     my $die         = $t->{-die};
     my $want        = $t->{-want};
-    my $deep        = $t->{-deep};
-    my $fuzz        = $t->{-fuzz};
     
     $diag           = 'execute';
-    @rv             = eval{ 
+    $rv             = eval{ 
         my $err = Error::Base->new(@args); 
-           $err->cuss(@merge); 
+           $err->_late($istr); 
     };
     pass( $diag );          # test didn't blow up
-    note($@) if $@;         # did code under test blow up?
+    unless ($die) {
+        fail($@) if $@;     # did code under test blow up?
+    };
     
-    if    ($die) {
-        $diag           = 'should throw';
+    if    ( defined $die) {
+        $diag           = 'should-throw';
         $got            = $@;
         $want           = $die;
         like( $got, $want, $diag );
     }
-    elsif ($want) {
-        $diag           = 'return-words';
-        $got            = lc join qq{\n}, @rv;
-        like( $got, $want, $diag );
+    elsif ( defined $want ) {
+        $diag           = 'return-exact';
+        $got            = $rv;
+        is( $got, $want, $diag );
     } 
-    elsif ($deep) {
-        $diag           = 'return-deeply';
-        $got            = \@rv;
-        $want           = $deep;
-        is_deeply( $got, $want, $diag );
-    }
-    elsif ($fuzz) {
-        $diag           = 'return-fuzzily';
-        $got            = join qq{\n}, explain \@rv;
-        $want           = $fuzz;
-        like( $got, $want, $diag );
-    }
     else {
-        fail('Test script failure: unimplemented gimmick.');
+        $diag           = 'return-undef';
+        $got            = $rv;
+        is( $got, undef, $diag );
     };
 
     # Extra-verbose dump optional for test script debug.
     if ( $Verbose >= 1 ) {
-        note( 'explain: ', explain \@rv     );
+        note( 'rv: ', $rv                   );
         note( ''                            );
     };
-#~     if ( $Verbose >= 1 ) {
-#~         note( 'rv: ', join qq{\n}, @rv      );
-#~         note( ''                            );
-#~     };
     
 }; ## subtest
 

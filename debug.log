@@ -1,21 +1,95 @@
 
-### $Error::Base::Late::in: '-->$foo<--'
+### CASE
+### $Error::Base::Late::in: 'yabba($farmboy)dabba'
 ### $Error::Base::Late::eval_code: '
+
 #--------------------------------------------------------#
 # START EVAL                                              
 
-my $foo = $Error::Base::Late::self->{\'$foo\'};
+my $farmboy = $Error::Base::Late::self->{\'$farmboy\'};
 
-warn q!===:!, $foo, q!:===!;
+<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
+yabba($farmboy)dabba
 
-my $out = <<Y0uMaYFiReWHeNReaDYGRiDLeY;
--->$foo<--
+Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
 
-Y0uMaYFiReWHeNReaDYGRiDLeY
-
-warn q!===:!, $out, q!:===!;
-
-return $out
 
 #--------------------------------------------------------#
 '
+### $@: ''
+
+### CASE
+### $Error::Base::Late::in: 'yabba($farmboy)dabba'
+### $Error::Base::Late::eval_code: '
+
+#--------------------------------------------------------#
+# START EVAL                                              
+
+my $farmboy = ${$Error::Base::Late::self->{\'$farmboy\'}};
+
+<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
+yabba($farmboy)dabba
+
+Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
+
+
+#--------------------------------------------------------#
+'
+### $@: ''
+
+### CASE
+### $Error::Base::Late::in: 'yabba(@farmgirls)dabba'
+### $Error::Base::Late::eval_code: '
+
+#--------------------------------------------------------#
+# START EVAL                                              
+
+my @farmgirls = @{$Error::Base::Late::self->{\'@farmgirls\'}};
+
+<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
+yabba(@farmgirls)dabba
+
+Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
+
+
+#--------------------------------------------------------#
+'
+### $@: ''
+
+### CASE
+### $Error::Base::Late::in: 'yabba(@farmgirls[ 0, 2 ])dabba'
+### $Error::Base::Late::eval_code: '
+
+#--------------------------------------------------------#
+# START EVAL                                              
+
+my @farmgirls = @{$Error::Base::Late::self->{\'@farmgirls\'}};
+
+<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
+yabba(@farmgirls[ 0, 2 ])dabba
+
+Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
+
+
+#--------------------------------------------------------#
+'
+### $@: ''
+
+### CASE
+### $Error::Base::Late::in: 'yabba(@livestock{ \'dog\', \'cow\' })dabba'
+### $Error::Base::Late::eval_code: '
+
+#--------------------------------------------------------#
+# START EVAL                                              
+
+my %livestock = %{$Error::Base::Late::self->{\'%livestock\'}};
+
+<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;
+yabba(@livestock{ \'dog\', \'cow\' })dabba
+
+Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY
+
+
+#--------------------------------------------------------#
+'
+### $@: ''

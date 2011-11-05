@@ -52,7 +52,13 @@ sub _stringify {
     my ($self, undef,  undef) = @_;
     
     no warnings 'uninitialized';
-    return join qq{\n}, @{ $self->{-lines} }, q{};
+    if ( defined $self->{-lines} ) {
+        return join qq{\n}, @{ $self->{-lines} }, q{};
+    }
+    else {
+        return 'Error::Base internal error: failed to stringify $self';
+    };
+        
 }; ## _stringify
 
 #=========# INTERNAL ROUTINE
@@ -469,20 +475,36 @@ package Error::Base::Late;   # switch package to avoid pseudo-global lexicals
 # Throws    : ____
 # See also  : ____
 # 
-# ____                  Error::Base::Late::
+# I hope this is the worst possible implementation of late(). 
+# Late interpolation is accomplished by multiple immediate interpolations, 
+#   inside and outside of a string eval. 
+# Non-core PadWalker is not used to derive interpolation context; 
+#   caller is required to pass context inside the $self object. 
+# To avoid collision and unintended interpolation, I make housekeeping 
+#   variables internal to this routine, package variables. 
+#   These are fully qualified to a "foreign" package; caller cannot 
+#   accidentally access them (although I cannot stop you from doing stupid).
+# Some work is done in a bare "setup" block with lexical variables. 
+#   But package variables are used to pass values within the routine, 
+#   from block to block, inside to outside, within and without the eval. 
+# Quoting is a major concern. Heredocs are used in three places for 
+#   double-quoted interpolation; they may not conflict with each other 
+#   or with any string that may exist within any of: 
+#       - the string to be interpolated, $in
+#       - values passed in $self against @keys (keys with leading sigils)
+#   Rather than attempt to exclude all of these from a generic q//, 
+#       I chose heredocs and three long, arbitrary strings. 
 # 
 sub _late {
     # No lexical variables loose in the outer block of the subroutine.
-    $Error::Base::Late::self    = shift;
-    $Error::Base::Late::in      = shift;
+    $Error::Base::Late::self    = shift 
+        or die 'Error::Base internal error: no $self: ', $!;
+    $Error::Base::Late::in      = shift || undef;
     
-    $Error::Base::Late::heredoc1 = 
-        'Y0uMaYFiReWHeNReaDYGRiDLeY';           # quite unlikely to collide
-    $Error::Base::Late::heredoc2 = 
-        reverse $Error::Base::Late::heredoc1;   # don't collide with $heredoc1
+    # Y0uMaYFiReWHeNReaDYGRiDLeY          # quite unlikely to collide
     
-    @Error::Base::Late::code    ;         # to be eval-ed
-    $Error::Base::Late::out     ;         # interpolated
+    @Error::Base::Late::code    = undef;  # to be eval-ed
+    $Error::Base::Late::out     = undef;  # interpolated
     
     #--------------------------------------------------------------------#
     { # setup block
@@ -498,7 +520,8 @@ sub _late {
         # Unpack all appropriate k/v pairs into their own lexical variables... 
         
         # Each key includes leading sigil.
-        my @keys    = grep { /^[\$\@%]/ } keys %$Error::Base::Late::self;        
+        my @keys    = grep { /^[\$\@%]/ } keys %$Error::Base::Late::self;
+        return $Error::Base::Late::in unless @keys;   # no interpolation today
         my $key     ;  # placeholder includes sigil!
         my $val     ;  # value to be interpolated
         my $rt      ;  # builtin 'ref' returns (unwanted) class of blessed ref
@@ -533,7 +556,7 @@ sub _late {
                 $sigil      = q{%};
             } 
             else {
-                die 'Error::Base internal error: bad reftype: ', $!
+                die 'Error::Base internal error: bad reftype: ', $!;
             };
             
             #        my $key = $sigil?$Error::Base::Late::self->{'$key'}?;
@@ -549,18 +572,18 @@ sub _late {
     # Do the late interpolation phase. 
     push @code, 
         q**,
-        q*warn q!===:!, $foo, q!:===!;*,
-        q**,
-        q*my $out = * .
-       qq|<<$Error::Base::Late::heredoc1;|,
-<<aosnetuhaos,
+#~         q*warn q!===:!, $foo, q!:===!;*,
+#~         q**,
+#~         q*$Error::Base::Late::out = * .
+        q*<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;*,
+<<Heredoc02_Y0uMaYFiReWHeNReaDYGRiDLeY,
 $Error::Base::Late::in
-aosnetuhaos
-       qq|$Error::Base::Late::heredoc1|,
+Heredoc02_Y0uMaYFiReWHeNReaDYGRiDLeY
+        q*Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY*,
         q**,
-        q*warn q!===:!, $out, q!:===!;*,
-        q**,
-        q*return $out*,
+#~         q*warn q!===:!, $out, q!:===!;*,
+#~         q**,
+#~         q*return $out*,
         q**,
         q*#--------------------------------------------------------#*,
         q**,
@@ -574,25 +597,22 @@ aosnetuhaos
     #--------------------------------------------------------------------#
     { # eval
         
+$Error::Base::Late::out     = eval 
+<<Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY;
+$Error::Base::Late::eval_code
+Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY
+        
+        warn "Error::Base internal warning: in _late eval: '$@" if $@;
+        
+        ##### CASE
         ##### $Error::Base::Late::in
         ##### $Error::Base::Late::eval_code
-        
-        # reverse $Error::Base::Late::heredoc1; # don't collide with $heredoc1
-$Error::Base::Late::out     = eval <<YeLDiRGYDaeRNeHWeRiFYaMu0Y;
-$Error::Base::Late::eval_code
-YeLDiRGYDaeRNeHWeRiFYaMu0Y
-    
-    warn "Error::Base internal warning: _late eval: '$@" if $@;
+        ##### $@
     
     } ## eval
     #--------------------------------------------------------------------#
     
-    
-    
-    
-    
-    
-    
+    # Heredocs add spurious newlines.
     chomp  $Error::Base::Late::out;
     chomp  $Error::Base::Late::out;
     return $Error::Base::Late::out;
