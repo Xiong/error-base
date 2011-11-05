@@ -1,5 +1,10 @@
 Revision history for Error-Base
 
+v0.1.0  2011-11-04 23:04:40
+    - Add late interpolation feature.
+    - Change process of error message composition. ( -base, -type, -pronto )
+    - Massive POD rewrite. 
+
 v0.0.4  2011-10-30 04:40:00
     - use version 0.77; per POD.
     - Use leading 'v' per "strong recommendation".
