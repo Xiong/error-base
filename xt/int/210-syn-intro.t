@@ -17,7 +17,8 @@ my $diag        = $base;
 # Load non-core modules conditionally
 BEGIN{
     eval{
-        use Test::Trap;         # Trap exit codes, exceptions, output, etc.
+        require Test::Trap;         # Block eval on steroids
+        Test::Trap->import (qw/ :default /);
     };
     $::module_loaded    = !$@;          # loaded if no error
                                             #   must be package variable
@@ -36,17 +37,21 @@ if ( not $::module_loaded ) {
 
 my @td  = (
     {
-        -case   => 'merge-only',         # stringified normal return
-        -merge  => [ zig => 'zag' ],
+        -case   => 'sanity',
+        -code   => sub{
+            Error::Base->crash('Sanity check failed');  # die() with backtrace
+        },
+        -lby    => 'die',
         -want   => words(qw/ 
-                    undefined error 
-                    eval line new 
-                    ____ line new 
+                    sanity check failed 
+                    in main at line 
+                    in eval at line 
+                    ____    at line
                 /),
     },
     
     {
-#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
+        -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'merge-only-fuzz',         
         -merge  => [ zig => 'zag' ],
         -fuzz   => words(qw/ 
@@ -212,64 +217,63 @@ my $want        ;
 
 # Extra-verbose dump optional for test script debug.
 my $Verbose     = 0;
-#~    $Verbose++;
+   $Verbose++;
 
 for (@td) {
     last if $_->{-end};
     $tc++;
-    my $case        = $base . $_->{-case};
-    
+    my $case        = $base . $_->{-case};   
     note( "---- $case" );
     subtest $case => sub { exck($_) };
 }; ## for
     
 sub exck {
     my $t           = shift;
-    my @args        = eval{ @{ $t->{-args} } };
-    my @merge       = eval{ @{ $t->{-merge} } };
-    my $die         = $t->{-die};
+    my $code        = $t->{-code};
+    my $leaveby     = $t->{-lby};
     my $want        = $t->{-want};
-    my $deep        = $t->{-deep};
-    my $fuzz        = $t->{-fuzz};
     
     $diag           = 'execute';
-    @rv             = eval{ 
-        my $self        = Error::Base->new(@args);
-        $self->cuss(@merge);
+    @rv             = trap{ 
+        &$code;
     };
     pass( $diag );          # test didn't blow up
-    note($@) if $@;         # did code under test blow up?
     
-    if    ($die) {
-        $diag           = 'should throw';
-        $got            = $@;
-        $want           = $die;
-        like( $got, $want, $diag );
+    if    ( $leaveby eq 'die' ) {
+        $diag           = 'should-die';
+        $trap->did_die      ( $diag );
+        $diag           = 'die-like';
+        $trap->die_like     ( $want, $diag );       # fail if !die
+        $diag           = 'die-quiet';
+        $trap->quiet        ( $diag );
     }
-    elsif ($want) {
-        $diag           = 'return-words';
-        $got            = lc join qq{\n}, @rv;
-        like( $got, $want, $diag );
+    elsif ( $leaveby eq 'return-scalar' ) {
+        $diag           = 'should-return';
+        $trap->did_return   ( $diag );
+        $diag           = 'return-like';
+        $trap->return_like  ( 0, $want, $diag );    # always returns aryref
+        $diag           = 'return-quiet';
+        $trap->quiet        ( $diag );
     } 
-    elsif ($deep) {
-        $diag           = 'return-deeply';
-        $got            = \@rv;
-        $want           = $deep;
-        is_deeply( $got, $want, $diag );
-    }
-    elsif ($fuzz) {
-        $diag           = 'return-fuzzily';
-        $got            = join qq{\n}, explain \@rv;
-        $want           = $fuzz;
-        like( $got, $want, $diag );
-    }
+#~     elsif ($deep) {
+#~         $diag           = 'return-deeply';
+#~         $got            = \@rv;
+#~         $want           = $deep;
+#~         is_deeply( $got, $want, $diag );
+#~     }
+#~     elsif ($fuzz) {
+#~         $diag           = 'return-fuzzily';
+#~         $got            = join qq{\n}, explain \@rv;
+#~         $want           = $fuzz;
+#~         like( $got, $want, $diag );
+#~     }
     else {
         fail('Test script failure: unimplemented gimmick.');
     };
 
     # Extra-verbose dump optional for test script debug.
     if ( $Verbose >= 1 ) {
-        note( 'explain: ', explain \@rv     );
+        $trap->diag_all;
         note( ''                            );
     };
     
