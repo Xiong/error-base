@@ -7,9 +7,14 @@ use Error::Base;
 my $QRTRUE       = $Error::Base::QRTRUE    ;
 my $QRFALSE      = $Error::Base::QRFALSE   ;
 
+#----------------------------------------------------------------------------#
+
 my $tc          ;
 my $base        = 'Error-Base: synopsis-intro: ';
 my $diag        = $base;
+my @rv          ;
+my $got         ;
+my $want        ;
 
 #----------------------------------------------------------------------------#
 # SKIP OPTIONAL TEST
@@ -209,15 +214,9 @@ my @td  = (
 
 #----------------------------------------------------------------------------#
 
-my @rv          ;
-my $got         ;
-my $want        ;
-
-#----------------------------------------------------------------------------#
-
 # Extra-verbose dump optional for test script debug.
 my $Verbose     = 0;
-   $Verbose++;
+#~    $Verbose++;
 
 for (@td) {
     last if $_->{-end};
