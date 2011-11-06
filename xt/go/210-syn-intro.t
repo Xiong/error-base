@@ -1,0 +1,1 @@
+/home/xiong/projects/error-base/xt/syn/210-syn-intro.t
