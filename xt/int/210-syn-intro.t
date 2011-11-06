@@ -56,6 +56,125 @@ my @td  = (
     },
     
     {
+        -case   => 'two-step',
+        -code   => sub{
+            my $err     = Error::Base->new('Foo');      # construct object first
+              # yourcodehere(...);                  # ... do other stuff
+            $err->crash;                                # as object method
+        },
+        -lby    => 'die',
+        -want   => words(qw/ 
+                    foo 
+                    in main at line 
+                    in eval at line 
+                    ____    at line
+                /),
+    },
+    
+    {
+        -case   => 'quiet',
+        -code   => sub{
+            my $err     = Error::Base->new(
+                            'Foo error',                # odd arg is error text
+                            -quiet    => 1,             # no backtrace
+                            grink     => 'grunt',       # store somethings
+                            puppy     => 'dog',         # your keys, no leading dash 
+                        );
+            $err->crash;
+        },
+        -lby    => 'die',
+        -want   => qr/^Foo error$/,
+        -xtra   => sub{
+            my $self    = shift;
+               $got     = $self->{grink} . $self->{puppy};
+               $want    = 'gruntdog';
+               $diag    = 'xtra-keys';
+               is( $got, $want, $diag );
+        },
+    },
+    
+    {
+        -case   => 'crank-same',
+        -code   => sub{
+            my $err     = Error::Base->new(
+                            'Foo error',                # odd arg is error text
+                            -quiet    => 1,             # no backtrace
+                            grink     => 'grunt',       # store somethings
+                            puppy     => 'dog',         # your keys, no leading dash 
+                        );
+            $err->crank;
+        },
+        -lby    => 'warn',
+        -want   => qr/^Foo error$/,
+        -xtra   => sub{
+            my $self    = shift;
+               $got     = $self->{grink} . $self->{puppy};
+               $want    = 'gruntdog';
+               $diag    = 'xtra-keys';
+               is( $got, $want, $diag );
+        },
+    },
+    
+    {
+        -case   => 'crank-me',
+        -code   => sub{
+            my $err = Error::Base->crank('Me!');        # also a constructor
+        },
+        -lby    => 'warn',
+        -want   => words(qw/ 
+                    me 
+                    in main at line 
+                    in eval at line 
+                    ____    at line
+                /),
+    },
+    
+    {
+        -case   => 'catch-crash',
+        -code   => sub{
+            eval{ Error::Base->crash( 'car', -foo => 'bar' ) }; 
+            my $err     = $@ if $@;         # catch and examine the full object
+                                            # actually though, test stringifies
+        },
+        -lby    => 'return-scalar',
+        -want   => words(qw/ 
+                    car
+                    in main at line 
+                    in eval at line 
+                    ____    at line
+                /),
+    },
+    
+    {
+        -case   => 'late',
+        -code   => sub{
+            my $err     = Error::Base->new(
+                            -base       => 'File handler error:',
+                            _openerr    => 'Couldn\t open $file for $op',
+                        );
+            {
+                my $file = 'z00bie.xxx';    # uh-oh, variable out of scope...
+                open my $fh, '<', $file
+                    or $err->crash(
+                        -type       => $err->{_openerr},
+                        '$file'     => $file,
+                        '$op'       => 'reading',
+                    );                      # late interpolation to the rescue
+            }
+        },
+        -lby    => 'die',
+        -want   => words(qw/ 
+                    file handler error couldn open z00bie xxx for reading
+                    in main at line 
+                    in eval at line 
+                    ____    at line
+                /),
+    },
+    
+    
+    
+    
+    {
         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'merge-only-fuzz',         
         -merge  => [ zig => 'zag' ],
@@ -231,6 +350,7 @@ sub exck {
     my $code        = $t->{-code};
     my $leaveby     = $t->{-lby};
     my $want        = $t->{-want};
+    my $xtra        = $t->{-xtra};
     
     $diag           = 'execute';
     @rv             = trap{ 
@@ -238,38 +358,41 @@ sub exck {
     };
     pass( $diag );          # test didn't blow up
     
-    if    ( $leaveby eq 'die' ) {
+    if    ( $leaveby eq 'die' and defined $want ) {
         $diag           = 'should-die';
         $trap->did_die      ( $diag );
         $diag           = 'die-like';
         $trap->die_like     ( $want, $diag );       # fail if !die
-        $diag           = 'die-quiet';
+        $diag           = 'die-quietly';
         $trap->quiet        ( $diag );
     }
-    elsif ( $leaveby eq 'return-scalar' ) {
+    elsif ( $leaveby eq 'return-scalar' and defined $want ) {
         $diag           = 'should-return';
         $trap->did_return   ( $diag );
         $diag           = 'return-like';
         $trap->return_like  ( 0, $want, $diag );    # always returns aryref
-        $diag           = 'return-quiet';
+        $diag           = 'return-quietly';
         $trap->quiet        ( $diag );
     } 
-#~     elsif ($deep) {
-#~         $diag           = 'return-deeply';
-#~         $got            = \@rv;
-#~         $want           = $deep;
-#~         is_deeply( $got, $want, $diag );
-#~     }
-#~     elsif ($fuzz) {
-#~         $diag           = 'return-fuzzily';
-#~         $got            = join qq{\n}, explain \@rv;
-#~         $want           = $fuzz;
-#~         like( $got, $want, $diag );
-#~     }
+    elsif ( $leaveby eq 'warn' and defined $want ) {
+        $diag           = 'should-return';
+        $trap->did_return   ( $diag );
+        $diag           = 'warning-like';
+        $trap->warn_like  ( 0, $want, $diag );      # always returns aryref
+        $diag           = 'no-stdout';
+        ok( !$trap->stdout, $diag );
+    } 
     else {
         fail('Test script failure: unimplemented gimmick.');
     };
-
+    
+    if    ( $leaveby eq 'die' and defined $xtra ) {
+        my $self    = $trap->die;
+        eval { &$xtra($self) };
+        $diag       = 'xtra-test-execute';
+        fail($diag) if $@;
+    };
+    
     # Extra-verbose dump optional for test script debug.
     if ( $Verbose >= 1 ) {
         $trap->diag_all;

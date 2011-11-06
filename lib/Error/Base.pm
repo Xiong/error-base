@@ -656,12 +656,15 @@ This document describes Error::Base version v0.1.1
                     -base       => 'File handler error:',
                     _openerr    => 'Couldn\t open $file for $op',
                 );
-    open my $fh, '<', $file
-        or $err->crash(
-            -type       => $err->{_openerr},
-            '$file'     => $file,
-            '$op'       => 'reading',
-        );
+    {
+        my $file = 'z00bie.xxx';    # uh-oh, variable out of scope for new()
+        open my $fh, '<', $file
+            or $err->crash(
+                -type       => $err->{_openerr},
+                '$file'     => $file,
+                '$op'       => 'reading',
+            );                      # late interpolation to the rescue
+    }
 
 =head1 DESCRIPTION
 
