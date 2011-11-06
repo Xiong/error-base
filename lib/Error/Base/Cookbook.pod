@@ -1,0 +1,43 @@
+__DATA__
+
+=head1 NAME
+
+Error::Base::Cookbook - Examples of Error::Base usage
+
+=head1 DESCRIPTION
+
+Basic use of L<Error::Base> is extremely easy; and advanced usage is not hard. 
+The author hopes that nobody is forced to consult this Cookbook. But I am 
+myself quite fond of cookbook-style documentation; I get more from seeing it 
+all work together than from cut-and-dried reference manuals. I like those too, 
+though; and comprehensive reference documentation is found in L<Error::Base>.
+
+If you make use of Error::Base and don't find a similar example here in its 
+Cookbook, please be so kind as to send your use case to me for future 
+inclusion. Thank you very much.
+
+=head1 EXAMPLES
+
+
+=head1 PHILOSOPHY
+
+
+=head1 AUTHOR
+
+Xiong Changnian  C<< <xiong@cpan.org> >>
+
+=head1 LICENSE
+
+Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
+
+This library and its contents are released under Artistic License 2.0:
+
+L<http://www.opensource.org/licenses/artistic-license-2.0.php>
+
+=head1 SEE ALSO
+
+L<Error::Base>(3)
+
+=cut
+
+__END__
