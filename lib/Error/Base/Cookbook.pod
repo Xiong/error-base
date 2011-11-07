@@ -90,6 +90,26 @@ L<cuss()|Error::Base/cuss()> neither B<die>s nor B<warn>s but it does perform
 a full backtrace from the point of call. You might find it most useful when 
 debugging your error handling itself; substitute 'crash' or 'crank' later. 
 
+=head2 Escalation
+
+    my $err     = Error::Base->new( -base => 'Odor detected:' );
+    cook_dinner;
+    $err->init( _cooked => 1 );
+    
+    serve_chili('mild');
+    $err->cuss ( -type => $fart )           if $fart;
+    $err->crank( -type => 'Air underflow' ) if $fart > $room;
+    $log->store( $err );
+    
+    serve_chili('hot');
+    $err->crash( -type => 'Evacuate now' )  if $fire;
+
+Once constructed, the same object may be thrown repeatedly, with multiple 
+methods. On each invocation, new arguments overwrite old ones but previously 
+declared attributes, public and private, remain in force if not overwritten. 
+Also on each invocation, the stack is traced afresh and the error message text 
+re-composed and re-formatted. 
+
 =head2 Trapping the Fatal Error Object
 
     eval{ Error::Base->crash('Houston...') };   # trap...
