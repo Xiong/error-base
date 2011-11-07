@@ -1,0 +1,620 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Error::Base - Simple structured errors with full backtrace</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:xiong-cpan@xuefang.com" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#version">VERSION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#methods">METHODS</a></li>
+	<ul>
+
+		<li><a href="#new__"><code>new()</code></a></li>
+		<li><a href="#crash__"><code>crash()</code></a></li>
+		<li><a href="#crank__"><code>crank()</code></a></li>
+		<li><a href="#cuss__"><code>cuss()</code></a></li>
+		<li><a href="#init__"><code>init()</code></a></li>
+	</ul>
+
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<ul>
+
+		<li><a href="#_base">-base</a></li>
+		<li><a href="#_type">-type</a></li>
+		<li><a href="#_pronto">-pronto</a></li>
+		<li><a href="#_key">-key</a></li>
+		<li><a href="#_quiet">-quiet</a></li>
+		<li><a href="#_top">-top</a></li>
+		<li><a href="#_prepend">-prepend</a></li>
+		<li><a href="#_indent">-indent</a></li>
+		<li><a href="#_prepend_all">-prepend_all</a></li>
+		<li><a href="#__">-$&quot;</a></li>
+	</ul>
+
+	<li><a href="#late_interpolation">LATE INTERPOLATION</a></li>
+	<li><a href="#results">RESULTS</a></li>
+	<ul>
+
+		<li><a href="#_msg">-msg</a></li>
+		<li><a href="#_lines">-lines</a></li>
+		<li><a href="#_frames">-frames</a></li>
+	</ul>
+
+	<li><a href="#subclassing">SUBCLASSING</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#installation">INSTALLATION</a></li>
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#configuration_and_environment">CONFIGURATION AND ENVIRONMENT</a></li>
+	<li><a href="#dependencies">DEPENDENCIES</a></li>
+	<li><a href="#incompatibilities">INCOMPATIBILITIES</a></li>
+	<li><a href="#bugs_and_limitations">BUGS AND LIMITATIONS</a></li>
+	<li><a href="#thanks">THANKS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#license">LICENSE</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Error::Base - Simple structured errors with full backtrace</p>
+<p>
+</p>
+<hr />
+<h1><a name="version">VERSION</a></h1>
+<p>This document describes Error::Base version v0.1.1</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    use Error::Base;
+    Error::Base-&gt;crash('Sanity check failed');  # die() with backtrace
+    
+    my $err     = Error::Base-&gt;new('Foo');      # construct object first
+        yourcodehere(...);                  # ... do other stuff
+    $err-&gt;crash;                                # as object method
+    
+    my $err     = Error::Base-&gt;new(
+                        'Foo error',            # odd arg is error text
+                    -quiet    =&gt; 1,             # no backtrace
+                    grink     =&gt; 'grunt',       # store somethings
+                    puppy     =&gt; 'dog',         # your keys, no leading dash 
+                );
+    $err-&gt;crash;
+    
+    $err-&gt;crank;                    # get cranky: warn() but don't die()
+    my $err = Error::Base-&gt;crank('Me!');        # also a constructor
+    
+    eval{ Error::Base-&gt;crash( 'car', -foo =&gt; 'bar' ) }; 
+    my $err     = $@ if $@;         # catch and examine the full object
+    
+    my $err     = Error::Base-&gt;new(
+                    -base       =&gt; 'File handler error:',
+                    _openerr    =&gt; 'Couldn\t open $file for $op',
+                );
+    {
+        my $file = 'z00bie.xxx';    # uh-oh, variable out of scope for new()
+        open my $fh, '&lt;', $file
+            or $err-&gt;crash(
+                -type       =&gt; $err-&gt;{_openerr},
+                '$file'     =&gt; $file,
+                '$op'       =&gt; 'reading',
+            );                      # late interpolation to the rescue
+    }</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p><em>J'avais cru plus difficile de mourir.</em> 
+-- Louis XIV</p>
+<p>Die early, die often. Make frequent sanity checks and die when a check fails. 
+See neat dumps of the caller stack with each error. Construct a group of 
+error messages in one object or write error text <em>ad hoc</em>. Trap an error 
+object and examine the contents; or let it tell its sad tale and end it.</p>
+<p>Error::Base usage can be simple or complex. For quick sanity checks, 
+construct and throw a simple fatal error in one line. At the other extreme, 
+you can override methods in your own error subclasses.</p>
+<p>Error::Base is lightweight. It defines no global variables, uses no non-core 
+modules (and few of those), exports no symbols, and is purely object-oriented.
+I hope you will be able to use it commonly instead of a simple <code>die()</code>. 
+You are not required to subclass it.</p>
+<p>
+</p>
+<hr />
+<h1><a name="methods">METHODS</a></h1>
+<p>
+</p>
+<h2><a name="new__"><code>new()</code></a></h2>
+<pre>
+    my $err     = Error::Base-&gt;new('Foo');      # constructor
+    my $err     = Error::Base-&gt;new(             # with named args
+                    -base       =&gt; 'Bar error:',
+                    -quiet      =&gt; 1,
+                    -top        =&gt; 3,
+                    -prepend    =&gt; '@! Globalcorpcoapp:',
+                    -indent     =&gt; '@!                 ',
+                    foo         =&gt; bar,
+                );
+    my $err     = Error::Base-&gt;new(             # okay to pass both
+                        'bartender:'            # lone string...
+                    -base   =&gt; 'Bar error:',    # ... and named args
+                    -type   =&gt; 'last call',     # be more specific
+                    _beer   =&gt; 'out of beer',   # your private attribute(s)
+                );</pre>
+<p>The constructor must be called as a class method; there is no mutator 
+returning a new object based on an old one. You do have some freedom in how 
+you call, though.</p>
+<p>Called with an even number of args, they are all considered key/value pairs. 
+Keys with leading dash (<code>'-'</code>) are reserved for use by Error::Base; 
+all others are free to use as you see fit. Error message text is constructed 
+as a single string.</p>
+<p>Called with an odd number of args, the first arg is shifted off and appended
+to the error message text. This shorthand may be offensive to some; in which 
+case, don't do that. Instead, pass -base, -type, or both.</p>
+<p>You may stash any arbitrary data inside the returned object (during 
+construction or later) and do whatever you like with it. You might choose to 
+supply additional optional texts for later access.</p>
+<p>See <a href="#parameters">PARAMETERS</a>.</p>
+<p>
+</p>
+<h2><a name="crash__"><code>crash()</code></a></h2>
+<pre>
+    Error::Base-&gt;crash('Sanity check failed');  # as class method
+    $err-&gt;crash;                                # as object method
+    $err-&gt;crash(        # all the same args are okay in crash() as in new()
+                'bartender: '
+            -base   =&gt; 'Bar error:',
+        );
+    eval{ $err-&gt;crash };                        # trap...
+    my $err     = $@ if $@;                     # ... and examine the object</pre>
+<p><code>crash()</code> and other public methods may be called as class or object methods. 
+If called as a class method, then <code>new()</code> is called internally. Call <code>new()</code>
+yourself first if you want to call <code>crash()</code> as an object method.</p>
+<p><code>crash()</code> is a very thin wrapper, easy to subclass. It differs from similar 
+methods in that instead of returning its object, it <code>die()</code>-s with it. 
+If uncaught, the error will stringify; if caught, the entire object is yours.</p>
+<p>
+</p>
+<h2><a name="crank__"><code>crank()</code></a></h2>
+<pre>
+    Error::Base-&gt;crank('More gruel!');          # as class method
+    $err-&gt;crank;                                # as object method
+    my $err = Error::Base-&gt;crank('Me!');        # also a constructor</pre>
+<p>This is exactly like <code>crash()</code> except that it <code>warn()</code>s instead of 
+<code>die()</code>-ing. Therefore it can also usefully be used as a constructor of an 
+object for later use.</p>
+<p><code>crank()</code> is also a very thin wrapper. You may subclass it; you may trap 
+the entire object or let it stringify to STDERR.</p>
+<p>
+</p>
+<h2><a name="cuss__"><code>cuss()</code></a></h2>
+<pre>
+    my $err = Error::Base-&gt;cuss('x%@#*!');      # also a constructor</pre>
+<p>Again, exactly like <code>crash()</code> or <code>crank()</code> except that it neither 
+<code>die()</code>-s nor <code>warn()</code>s; it <em>only</em> returns the object.</p>
+<p>The difference between <code>new()</code> and the other methods is that <code>new()</code> returns 
+the constructed object containing only what was passed in as arguments. 
+<code>crash()</code>, <code>crank()</code>, and <code>cuss()</code> perform a full stack backtrace 
+(if not passed -quiet) and format the result for stringified display.</p>
+<p>You may find <code>cuss()</code> useful in testing your subclass or to see how your 
+error will be thrown without the bother of actually catching <code>crash()</code>.</p>
+<p>
+</p>
+<h2><a name="init__"><code>init()</code></a></h2>
+<pre>
+    $err-&gt;init(@args);</pre>
+<p>Probably, it is not useful to call this object method directly. Perhaps you 
+might subclass it or call it from within your subclass constructor. 
+The calling conventions are exactly the same as for the other public methods.</p>
+<p><code>init()</code>, is called on a newly constructed object, as is conventional. 
+If you call it a second time on an existing object, new <code>@args</code> will 
+overwrite previous values. Internally, when called on an existing object,
+<code>crash()</code>, <code>crank()</code>, and <code>cuss()</code> each call <code>init()</code>.</p>
+<p>Therefore, the chief distinction between calling as class or object method is 
+that if you call <code>new()</code> first then you can separate the definition of your 
+error text from the actual throw.</p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<p>All public methods accept the same arguments, with the same conventions. 
+All parameter names begin with a leading dash (<code>'-'</code>); please choose other 
+names for your private keys.</p>
+<p>If the same parameter is set multiple times, the most recent argument 
+completely overwrites the previous:</p>
+<pre>
+    my $err     = Error::Base-&gt;new( -top    =&gt; 3, );
+        # -top is now 3
+    $err-&gt;cuss(  -top    =&gt; 0, );
+        # -top is now 0
+    $err-&gt;crank( -top    =&gt; 1, );
+        # -top is now 1</pre>
+<p>You are cautioned that deleting keys may be unwise.</p>
+<p>
+</p>
+<h2><a name="_base">-base</a></h2>
+<p><em>scalar string</em></p>
+<pre>
+    $err-&gt;crash;                        # emits 'Undefined error'
+    $err-&gt;crash( -base =&gt; 'Bar');       # emits 'Bar'</pre>
+<p>The value of <code>-base</code> is printed in the first line of the stringified 
+error object after a call to <code>crash()</code>, <code>crank()</code>, or <code>cuss()</code>.</p>
+<p>
+</p>
+<h2><a name="_type">-type</a></h2>
+<p><em>scalar string</em></p>
+<pre>
+    $err-&gt;crash( 
+            -type   =&gt; 'last call'
+        );                              # emits 'last call'
+    $err-&gt;crash(
+            -base   =&gt; 'Bar',
+            -type   =&gt; 'last call',
+        );                              # emits 'Bar last call'</pre>
+<p>This parameter is provided as a way to express a subtype of error.</p>
+<p>
+</p>
+<h2><a name="_pronto">-pronto</a></h2>
+<p><em>scalar string</em></p>
+<pre>
+    $err-&gt;crash( 'Pronto!' );           # emits 'Pronto!'
+    $err-&gt;crash(
+                'Pronto!',
+            -base   =&gt; 'Bar',
+            -type   =&gt; 'last call',
+        );                              # emits 'Bar last call Pronto!'
+    $err-&gt;crash(
+            -base   =&gt; 'Bar',
+            -type   =&gt; 'last call',
+            -pronto =&gt; 'Pronto!',
+        );                              # same thing</pre>
+<p>As a convenience, if the number of arguments passed in is odd, then the first 
+arg is shifted off and appnended to the error message. This is done to 
+simplify writing one-off, one-line sanity checks:</p>
+<pre>
+    open( my $in_fh, '&lt;', $filename )
+        or Error::Base-&gt;crash(&quot;Couldn't open $filename for reading.&quot;);</pre>
+<p>It is expected that each message argument be a single scalar. If you need 
+to pass a multi-line string then please embed escaped newlines (<code>'\n'</code>).</p>
+<p>
+</p>
+<h2><a name="_key">-key</a></h2>
+<p>This feature has been replaced by <a href="#late_interpolation">LATE INTERPOLATION</a>.</p>
+<p>
+</p>
+<h2><a name="_quiet">-quiet</a></h2>
+<p><em>scalar boolean</em> default: undef</p>
+<pre>
+    $err-&gt;crash( -quiet         =&gt; 1, );        # no backtrace</pre>
+<p>By default, you get a full stack backtrace. If you want none, set this 
+parameter. Only <code>-msg</code> will be emitted.</p>
+<p>
+</p>
+<h2><a name="_top">-top</a></h2>
+<p><em>scalar unsigned integer</em> default: 2</p>
+<pre>
+    $err-&gt;crash( -top           =&gt; 0, );        # really full backtrace</pre>
+<p>
+</p>
+<h2><a name="_prepend">-prepend</a></h2>
+<p><em>scalar string</em> default: undef</p>
+<p>
+</p>
+<h2><a name="_indent">-indent</a></h2>
+<p><em>scalar string</em> default: first char of -prepend, padded with spaces to length</p>
+<p>
+</p>
+<h2><a name="_prepend_all">-prepend_all</a></h2>
+<p><em>scalar string</em> default: undef</p>
+<p>This is a highly useful feature that improves readability in the middle of a 
+dense dump. So in future releases, the default may be changed to form 
+<code>-prepend</code> in some way for you if not defined. If you are certain you 
+want no prepending or indentation, pass the empty string, <code>q{}</code>.</p>
+<p>
+</p>
+<h2><a name="__">-$&quot;</a></h2>
+<p><em>scalar string</em> default: q{ }</p>
+<pre>
+    my $err     = Error::Base-&gt;new(
+                    -base   =&gt; 'Bar',
+                    -type   =&gt; 'last call',
+                );
+    $err-&gt;crash(
+                'Pronto!',
+        );                              # emits 'Bar last call Pronto!'
+    $err-&gt;crash(
+                'Pronto!',
+            '-$&quot;'   =&gt; '=',
+        );                              # emits 'Bar=last call=Pronto!'</pre>
+<p>If you interpolate an array into a double-quoted literal string, perl will 
+join the elements with <code>$&quot;</code>. Similarly, if you late interpolate an array into
+an error message part, Error::Base will join the elements with the value of 
+<code>$self-&gt;{'-$&quot;'}</code>. This does not have any effect on the Perlish <code>$&quot;</code>. 
+Similarly, <code>$&quot;</code> is ignored when Error::Base stirs the pot.</p>
+<p>Also, message parts themselves are joined with <code>$self-&gt;{'-$&quot;'}</code>. 
+The default is a single space. This helps to avoid the unsightly appearance of 
+words stuck together because you did not include enough space in your args. 
+Empty elements are spliced out to avoid multiple consecutive spaces.</p>
+<p>Note that <code>'-$&quot;'</code> is a perfectly acceptable hash key but it must be 
+quoted, lest trains derail in Vermont. The fat comma does not help.</p>
+<p>
+</p>
+<hr />
+<h1><a name="late_interpolation">LATE INTERPOLATION</a></h1>
+<p>Recall that all methods, on <code>init()</code>, pass through all arguments as key/value 
+pairs in the error object. Except for those parameters reserved by the class 
+API (by convention of leading dash), these are preserved unaltered.</p>
+<pre>
+    my $err     = Error::Base-&gt;new(
+                    -base   =&gt; 'Panic:',
+                    -type   =&gt; 'lost my $foo.',
+                );
+    $err-&gt;crash(
+                'Help!',
+            '$foo'  =&gt; 'hat',
+        );      # emits 'Panic: lost my hat. Help!'
+    
+    my $err     = Error::Base-&gt;new(
+                    -base   =&gt; 'Sing:',
+                    '@favs' =&gt; [qw/ schnitzel with noodles /],
+                );
+    $err-&gt;crash(
+            -type   =&gt; 'My favorite things are @favs.',
+        );      # emits 'Sing: My favorite things are schnitzel with noodles.'</pre>
+<p>If we want to emit an error including information only available within a 
+given scope we can interpolate it then and there with a double-quoted literal:</p>
+<pre>
+    open( my $in_fh, '&lt;', $filename )
+        or Error::Base-&gt;crash(&quot;Couldn't open $filename for reading.&quot;);</pre>
+<p>This doesn't work if we want to declare lengthy error text well ahead of time:</p>
+<pre>
+    my $err     = Error::Base-&gt;new(
+                    -base   =&gt; 'Up, Up and Away:',
+                    -type   =&gt; &quot;FCC wardrobe malfunction of $jackson&quot;,
+                );
+    sub call_ethel {
+        my $jackson     = 'Janet';
+        $err-&gt;crank;
+    };                  # won't work; $jackson out of scope for -type</pre>
+<p>What we need is <strong>late interpolation</strong>, which Error::Base provides.</p>
+<p>When we have the desired value in scope, we simply pass it as the value 
+to a key matching the <em>placeholder</em> <code>$jackson</code>:</p>
+<pre>
+    my $err     = Error::Base-&gt;new(
+                    -base   =&gt; 'Up, Up and Away:',
+                    -type   =&gt; 'FCC wardrobe malfunction of $jackson',
+                );
+    sub call_ethel {
+        my $jackson     = 'Janet';
+        $err-&gt;crank( '$jackson' =&gt; \$jackson );
+    };                  # 'Up, Up and Away: FCC wardrobe malfunction of Janet'</pre>
+<p><strong>Note</strong> that the string passed to <code>new()</code> as the value of <code>-type</code> is now 
+single quoted, which avoids a futile attempt to interpolate immediately. Also, 
+a reference to the <em>variable</em> <code>$jackson</code> is passed as the value of the 
+<em>key</em> <code>'$jackson'</code>. The key is quoted to avoid it being parsed as a variable.</p>
+<pre>
+    my $err     = Error::Base-&gt;new(
+                        'right here in $cities[$i].',
+                    -base   =&gt; 'Our $children{'who'} gonna have',
+                    -type   =&gt; q/$self-&gt;{'_what'}/,
+                );
+    $err-&gt;crash(
+            _what       =&gt; 'trouble:'
+            '%children' =&gt; { who =&gt; 'children\'s children' },
+            '@cities'   =&gt; [ 'Metropolis', 'River City', 'Gotham City' ],
+            '$i'        =&gt; 1,
+        );          # you're the Music Man</pre>
+<p>You may use scalar or array placeholders, signifying them with the usual 
+sigils. Although you pass a reference, use the appropriate 
+<code>$</code>, <code>@</code> or <code>%</code> sigil to lead the corresponding key. As a convenience, you 
+may pass simple scalars directly. (It's syntactically ugly to pass a 
+reference to a literal scalar.) Any value that is <em>not</em> a 
+reference will be late-interpolated directly; anything else will be 
+deferenced (once).</p>
+<p>This is Perlish interpolation, only delayed. You can interpolate escape 
+sequences and anything else you would in a double-quoted string. You can pass 
+a reference to a package variable; but do so against a simple key such as 
+<code>'$aryref'</code>.</p>
+<p>As a further convenience, you may interpolate a value from the error object 
+itself. In the previous example, 
+<code>-type</code> is defined as <code>'$self-&gt;{_what}'</code> 
+(please note the single quotes). And also, 
+<code>_what</code> is defined as <code>'trouble:'</code>. 
+When late-interpolated, <code>-type</code> expands to <code>'trouble:'</code>. 
+Note that Error::Base has no idea what you have called your error object 
+(perhaps '$err'); use the placeholder <code>'$self'</code> 
+in the string to be expanded.</p>
+<p>Don't forget to store your value against the appropriate key! 
+This implementation of this feature does not peek into your pad. 
+You may not receive an 'uninitialized' warning if a value is missing. 
+However, no late interpolation will be attempted if <em>no</em> keys are stored, 
+prefixed with <code>$</code>, <code>@</code> or <code>%</code>. The literal sigil will be printed. 
+So if you don't like this feature, don't use it.</p>
+<p>
+</p>
+<hr />
+<h1><a name="results">RESULTS</a></h1>
+<p>Soon, I'll write accessor methods for all of these. For now, rough it.</p>
+<p>
+</p>
+<h2><a name="_msg">-msg</a></h2>
+<p><em>scalar string</em> default: 'Undefined error'</p>
+<p>The error message, expanded, without -prepend or backtrace. An empty message 
+is not allowed; if none is provided by any means, 'Undefined error' emits.</p>
+<p>
+</p>
+<h2><a name="_lines">-lines</a></h2>
+<p><em>array of strings</em></p>
+<p>The formatted error message, fully expanded, including backtrace.</p>
+<p>
+</p>
+<h2><a name="_frames">-frames</a></h2>
+<p><em>array of hashrefs</em></p>
+<p>The raw stack frames used to compose the backtrace.</p>
+<p>
+</p>
+<hr />
+<h1><a name="subclassing">SUBCLASSING</a></h1>
+<pre>
+    use base 'Error::Base';
+    sub init{
+        my $self    = shift;
+        _munge_my_args(@_);
+        $self-&gt;SUPER::init(@_);
+        return $self;
+    };
+
+</pre>
+<p>While useful standing alone, <a href="/Error/Base.html">the Error::Base manpage</a> is written to be subclassed, 
+if you so desire. Perhaps the most useful method to subclass may be <code>init()</code>.
+You might also subclass <code>crash()</code>, <code>crank()</code>, or <code>cuss()</code> if you want to 
+do something first:</p>
+<pre>
+    use base 'Error::Base';
+    sub crash{
+        my $self    = _fuss(@_);
+        $self-&gt;a_kiss_before_dying();
+        die $self;
+    };
+
+</pre>
+<p>The author hopes that most users will not be driven to subclassing but if you
+do so, successfully or not, please be so kind as to notify.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p>Many error-related modules are available on CPAN. Some do bizarre things.</p>
+<p><em>Error</em> is self-deprecated in its own POD as &quot;black magic&quot;; 
+which recommends <a href="/Exception/Class.html">the Exception::Class manpage</a> instead.</p>
+<p><em>Exception</em> installs a <code>$SIG{__DIE__}</code> handler that converts text 
+passed to <code>die</code> into an exception object. It permits environment variables 
+and setting global state; and implements a <code>try</code> syntax. This module may be 
+closest in spirit to Error::Base. 
+For some reason, I can't persuade <code>cpan</code> to find it.</p>
+<p><em>Carp</em> is well-known and indeed, does a full backtrace with <code>confess()</code>. 
+The better-known <code>carp()</code> may be a bit too clever and in any case, the dump 
+is not formatted to my taste. The module is full of global variable settings. 
+It's not object-oriented and an error object can't easily be pre-created.</p>
+<p>The pack leader seems to be <a href="/Exception/Class.html">the Exception::Class manpage</a>. Error::Base differs most 
+strongly in that it has a shorter learning curve (since it does much less); 
+confines itself to error message emission (catching errors is another job); 
+and does a full stack backtrace dump by default. Less code may also be 
+required for simple tasks.</p>
+<p>To really catch errors, I like <a href="/Test/Trap.html">the Test::Trap manpage</a> ('block eval on steroids'). 
+It has a few shortcomings but is extremely powerful. I don't see why its use 
+should be confined to testing.</p>
+<p>The line between emitting a message and catching it is blurred in many 
+related modules. I did not want a jack-in-the-box object that phoned home if 
+it was thrown under a full moon. The only clever part of an Error::Base 
+object is that it stringifies.</p>
+<p>It may be true to say that many error modules seem to <em>expect</em> to be caught. 
+I usually expect my errors to cause all execution to come to a fatal, 
+non-recoverable crash. Oh, yes; I agree it's sometimes needful to catch such 
+errors, especially during testing. But if you're regularly throwing and 
+catching, the term 'exception' may be appropriate but perhaps not 'error'.</p>
+<p>
+</p>
+<hr />
+<h1><a name="installation">INSTALLATION</a></h1>
+<p>This module is installed using <a href="/Module/Build.html">the Module::Build manpage</a>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<p>This module emits error messages <em>for</em> you; it is hoped you won't encounter 
+any from within itself. If you do see one of these errors, kindly report to RT 
+so maintainer can take action. Thank you for helping.</p>
+<dl>
+<dt><strong><a name="error_base_internal_error_excessive_backtrace" class="item"><code>Error::Base internal error: excessive backtrace:</code></a></strong></dt>
+
+<dd>
+<p>Attempted to capture too many frames of backtrace. 
+You probably mis-set <code>-top</code>, rational values of which are perhaps <code>0..9</code>.</p>
+</dd>
+<dt><strong><a name="error_base_internal_error_unpaired_args" class="item"><code>Error::Base internal error: unpaired args:</code></a></strong></dt>
+
+<dd>
+<p>You do <em>not</em> have to pass paired arguments to most public methods. 
+Perhaps you passed an odd number of args to a private method.</p>
+</dd>
+<dt><strong><a name="error_base_internal_error_undefined_local_list_separator" class="item"><code>Error::Base internal error: undefined local list separator:</code></a></strong></dt>
+
+<dd>
+<p><code>init()</code> sets <code>$self-&gt;{'-$&quot;'} = q{ }</code> by default; you may also set it 
+to another value. If you want your message substrings tightly joined, 
+set <code>$self-&gt;{'-$&quot;'} = q{}</code>; don't undefine it.</p>
+</dd>
+<dt><strong><a name="error_base_internal_error_bad_reftype" class="item"><code>Error::Base internal error: bad reftype:</code></a></strong></dt>
+
+<dd>
+<p>You attempted to late-interpolate a reference other than to a scalar, array, or hash. Don't pass such references as values to any key with the wrong sigil.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="configuration_and_environment">CONFIGURATION AND ENVIRONMENT</a></h1>
+<p>Error::Base requires no configuration files or environment variables.</p>
+<p>
+</p>
+<hr />
+<h1><a name="dependencies">DEPENDENCIES</a></h1>
+<p>There are no non-core dependencies.</p>
+<p><a href="#version">the version manpage</a> 0.94                 # Perl extension for Version Objects</p>
+<p><em>overload</em>                     # Overload Perl operations</p>
+<p><a href="/Scalar/Util.html">the Scalar::Util manpage</a>                 # General-utility scalar subroutines</p>
+<p>This module should work with any version of perl 5.8.8 and up.</p>
+<p>
+</p>
+<hr />
+<h1><a name="incompatibilities">INCOMPATIBILITIES</a></h1>
+<p>None known.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs_and_limitations">BUGS AND LIMITATIONS</a></h1>
+<p>This is a very early release. Reports will be warmly welcomed.</p>
+<p>Please report any bugs or feature requests to
+<code>bug-error-base@rt.cpan.org</code>, or through the web interface at
+<a href="http://rt.cpan.org">http://rt.cpan.org</a>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="thanks">THANKS</a></h1>
+<p>Grateful acknowledgement deserved by AMBRUS for coherent API suggestions. 
+Any failure to grasp them is mine.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Xiong Changnian  <code>&lt;xiong@cpan.org&gt;</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="license">LICENSE</a></h1>
+<p>Copyright (C) 2011 Xiong Changnian <code>&lt;xiong@cpan.org&gt;</code></p>
+<p>This library and its contents are released under Artistic License 2.0:</p>
+<p><a href="http://www.opensource.org/licenses/artistic-license-2.0.php">http://www.opensource.org/licenses/artistic-license-2.0.php</a></p>
+
+</body>
+
+</html>

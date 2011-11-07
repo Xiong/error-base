@@ -639,7 +639,7 @@ This document describes Error::Base version v0.1.1
     $err->crash;                                # as object method
     
     my $err     = Error::Base->new(
-                    'Foo error',                # odd arg is error text
+                        'Foo error',            # odd arg is error text
                     -quiet    => 1,             # no backtrace
                     grink     => 'grunt',       # store somethings
                     puppy     => 'dog',         # your keys, no leading dash 
@@ -731,14 +731,13 @@ See L</PARAMETERS>.
 =head2 crash()
 
     Error::Base->crash('Sanity check failed');  # as class method
-    my $err = Error::Base->crash('Flat tire:'); # also a constructor
     $err->crash;                                # as object method
     $err->crash(        # all the same args are okay in crash() as in new()
                 'bartender: '
             -base   => 'Bar error:',
         );
-    eval{ $err->crash }; 
-    my $err     = $@ if $@;         # catch and examine the object
+    eval{ $err->crash };                        # trap...
+    my $err     = $@ if $@;                     # ... and examine the object
 
 C<crash()> and other public methods may be called as class or object methods. 
 If called as a class method, then C<new()> is called internally. Call C<new()>
@@ -750,9 +749,6 @@ If uncaught, the error will stringify; if caught, the entire object is yours.
 
 =head2 crank()
 
-    Error::Base->crank('More gruel!');          # as class method
-    $err->crank;                                # as object method
-    my $err = Error::Base->crank('Me!');        # also a constructor
 
 This is exactly like C<crash()> except that it C<warn()>s instead of 
 C<die()>-ing. Therefore it can also usefully be used as a constructor of an 
@@ -815,8 +811,6 @@ You are cautioned that deleting keys may be unwise.
 
 I<scalar string>
 
-    $err->crash;                        # emits 'Undefined error'
-    $err->crash( -base => 'Bar');       # emits 'Bar'
 
 The value of C<< -base >> is printed in the first line of the stringified 
 error object after a call to C<crash()>, C<crank()>, or C<cuss()>. 
@@ -825,13 +819,6 @@ error object after a call to C<crash()>, C<crank()>, or C<cuss()>.
 
 I<scalar string>
 
-    $err->crash( 
-            -type   => 'last call'
-        );                              # emits 'last call'
-    $err->crash(
-            -base   => 'Bar',
-            -type   => 'last call',
-        );                              # emits 'Bar last call'
 
 This parameter is provided as a way to express a subtype of error. 
 
@@ -858,7 +845,7 @@ simplify writing one-off, one-line sanity checks:
     open( my $in_fh, '<', $filename )
         or Error::Base->crash("Couldn't open $filename for reading.");
 
-It is expected that each message argument be a single scalar. If you need 
+TODO: It is expected that each message argument be a single scalar. If you need 
 to pass a multi-line string then please embed escaped newlines (C<'\n'>). 
 
 =head2 -key
@@ -880,21 +867,6 @@ I<scalar unsigned integer> default: 2
 
     $err->crash( -top           => 0, );        # really full backtrace
 
-By default, you get a full stack backtrace: "full" meaning, from the point of
-invocation. Some stack frames are added by the process of crash()-ing itself; 
-by default, these are not seen. If you want more or fewer frames you may set 
-this parameter. 
-
-Beware that future implementations may change the number of stack frames 
-added internally by Error::Base; and also you may see a different number of 
-frames if you subclass, depending on how you do that. The safe way: 
-
-    my $err     = Error::Base->new('Foo');      # construct object
-    $err->{ -top => ($err->{-top})++ };         # drop the first frame
-    $err->crash();
-
-This is ugly and you may get a convenience method in future. 
-
 =head2 -prepend
 
 I<scalar string> default: undef
@@ -906,20 +878,6 @@ I<scalar string> default: first char of -prepend, padded with spaces to length
 =head2 -prepend_all
 
 I<scalar string> default: undef
-
-    my $err     = Error::Base->new(
-                    -prepend    => '#! Globalcorpcoapp:',
-                );
-    $err->crash ('Boy Howdy!');
-        # emits '@! Globalcorpcoapp: Boy Howdy!
-        #        @                   in main::fubar at line 42    [test.pl]'
-
-Any string passed to C<< -prepend >> will be prepended to the first line only 
-of the formatted error message. If C<< -indent >> is defined then that will be
-prepended to all following lines. If C<< -indent >> is undefined then it will 
-be formed from the first character only of C<< -prepend >>, padded with spaces
-to the length of C<< -prepend >>. 
-C<< -prepend_all >> will be prepended to all lines. 
 
 This is a highly useful feature that improves readability in the middle of a 
 dense dump. So in future releases, the default may be changed to form 

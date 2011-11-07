@@ -4,19 +4,195 @@ __DATA__
 
 Error::Base::Cookbook - Examples of Error::Base usage
 
+=head1 VERSION
+
+This document describes Error::Base version v0.1.1
+
 =head1 DESCRIPTION
 
-Basic use of L<Error::Base> is extremely easy; and advanced usage is not hard. 
+Basic use of L<Error::Base|Error::Base> is quite simple; 
+and advanced usage is not hard. 
 The author hopes that nobody is forced to consult this Cookbook. But I am 
 myself quite fond of cookbook-style documentation; I get more from seeing it 
 all work together than from cut-and-dried reference manuals. I like those too, 
-though; and comprehensive reference documentation is found in L<Error::Base>.
+though; and comprehensive reference documentation is found in 
+L<Error::Base|Error::Base>.
 
 If you make use of Error::Base and don't find a similar example here in its 
 Cookbook, please be so kind as to send your use case to me for future 
 inclusion. Thank you very much.
 
 =head1 EXAMPLES
+
+=head2 Sanity Check
+
+    my $obviously_true  = 0
+        or Error::Base->crash('Unexpected zero');
+
+You are certain that this will never happen but you decide to check it anyway. 
+No need to plan ahead; just drop in a sanity check. 
+
+    if    ( $case1 ) { $pointer++ } 
+    elsif ( $case2 ) { $pointer-- } 
+    elsif ( $case3 ) {  } 
+    else             { Error::Base->crash('Unimplemented case') };
+
+In constructs like this, it's tempting to think you've covered every possible 
+case. Avoid this fallacy by checking explicitly for each implemented case. 
+
+    Error::Base->crash;         # emits 'Unimplemented error' with backtrace.
+    
+Don't forget to pass some error message text. Unless you're in real big foo.
+
+=head2 Construct First
+
+    my $err     = Error::Base->new('Foo');
+    $err->crash;
+    
+    my $err     = Error::Base->new(
+                        'Third',
+                    -base     => 'First',
+                    -type     => 'Second',
+                );
+    $err->crash;
+
+If you like to plan your error ahead of time, invoke 
+L<new()|Error::Base/new()> with any set of arguments you please. 
+This will help keep your code uncluttered. 
+
+=head2 Construct and Throw in One Go
+
+    Error::Base->crash(
+            'Third',
+        -base     => 'First',
+        -type     => 'Second',
+    );
+
+You aren't I<required> to construct first, though. Each of the public methods 
+L<crash()|Error::Base/crash()>, L<crank()|Error::Base/crank()>, 
+and L<cuss()|Error::Base/cuss()> function as constructors and may be called 
+either as a class or object method. Each method accepts all the same 
+parameters as L<new()|Error::Base/new()>. 
+
+=head2 Avoiding Death
+
+    Error::Base->crank('More gruel!');          # as class method
+    $err->crank;                                # as object method
+    my $err = Error::Base->crank('Misindented code');
+    $err->cuss('Frightening disaster!');
+    my $err = Error::Base->cuss('x%@#*!');      # also a constructor
+
+L<crank()|Error::Base/crank()> B<warn>s of your error condition. Perhaps it's 
+not that serious. The current fashion is to make almost all errors fatal but 
+it's your call. 
+
+L<cuss()|Error::Base/cuss()> neither B<die>s nor B<warn>s but it does perform 
+a full backtrace from the point of call. You might find it most useful when 
+debugging your error handling itself; substitute 'crash' or 'crank' later. 
+
+=head2 Trapping the Fatal Error Object
+
+    eval{ Error::Base->crash('Houston...') };   # trap...
+    my $err     = $@ if $@;                     # ... and examine the object
+
+L<crash()|Error::Base/crash()> does, internally, construct an object if called 
+as a class method. If you trap the error you can capture the object and look 
+inside it. 
+
+=head2 Backtrace Control
+
+    $err->crash( -quiet         => 1, );        # no backtrace
+    $err->crash( -top           => 0, );        # really full backtrace
+    $err->crash( -top           => 5, );        # skip top five frames
+
+Set L<-quiet|Error::Base/-quiet> to any TRUE value to silence stack 
+backtrace entirely. 
+
+By default, you get a full stack backtrace: "full" meaning, from the point of
+invocation. Some stack frames are added by the process of crash()-ing itself; 
+by default, these are not seen. If you want more or fewer frames you may set 
+L<-top|Error::Base/-top> to a different value. 
+
+Beware that future implementations may change the number of stack frames 
+added internally by Error::Base; and also you may see a different number of 
+frames if you subclass, depending on how you do that. The safer way: 
+
+    my $err         = Error::Base->new('Foo');      # construct object
+    $err->{-top}   += 1;                            # ignore one frame
+    $err->crash();
+
+This is ugly and you may get a convenience method in future. 
+
+=head2 Wrapper Routine
+
+    sub _crash { Error::Base->crash( @_, -top => 3 ) }; 
+    # ... later...
+    my $obviously_true  = 0
+        or _crash('Unexpected zero');
+
+Write a wrapper routine when trying to wedge sanity checks into dense code. 
+Error::Base is purely object-oriented and exports nothing. 
+
+=head2 Dress Left
+
+    my $err     = Error::Base->new(
+                    -prepend    => '@! Black Tie Lunch:',
+                );
+    $err->crash ( 'Let\'s eat!' );
+        # emits "@! Black Tie Lunch: Let's eat!
+        #        @                   in main::fubar at line 42    [test.pl]"
+
+    $err->crash ( 'Let\'s eat!', -indent        => '%--' );
+        # emits "@! Black Tie Lunch: Let's eat!
+        #        %-- in main::fubar at line 42    [test.pl]"
+
+    $err->crash ( 'Let\'s eat!', -prepend_all   => '%--' );
+        # emits "%-- Let's eat!
+        #        %-- in main::fubar at line 42    [test.pl]"
+
+Any string passed to L<-prepend|Error::Base/-prepend> will be prepended to 
+the first line only 
+of the formatted error message. If L<-indent|Error::Base/-indent> is defined 
+then that will be
+prepended to all following lines. If -indent is undefined then it will 
+be formed (from the first character only of -prepend) padded with spaces
+to the length of -prepend. 
+L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines. 
+
+=head2 Message Composition
+
+    $err->crash;                        # 'Undefined error'
+    $err->crash( 'Pronto!' );           # 'Pronto!'
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+        );                              # 'Bar last call'
+    $err->crash(
+                'Pronto!',
+            -base   => 'Bar',
+            -type   => 'last call',
+        );                              # 'Bar last call Pronto!'
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+            -pronto => 'Pronto!',
+        );                              # 'Bar last call Pronto!'
+
+As a convenience, if the number of arguments passed in is odd, then the first 
+arg is shifted off and appnended to the error message. This is done to 
+simplify writing one-off, one-line 
+L<sanity checks|Error::Base::Cookbook/Sanity Check>.
+
+For a little more structure, yau may pass values to L<-base|Error::Base/-base> 
+and L<-type|Error::Base/-type> also. All values supplied will be joined; by 
+default, with a single space. 
+
+
+
+
+
+
+
 
 
 =head1 PHILOSOPHY

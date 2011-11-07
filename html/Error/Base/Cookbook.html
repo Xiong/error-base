@@ -1,0 +1,236 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Error::Base::Cookbook - Examples of Error::Base usage</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:xiong-cpan@xuefang.com" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<ul>
+
+		<li><a href="#sanity_check">Sanity Check</a></li>
+		<li><a href="#construct_first">Construct First</a></li>
+		<li><a href="#construct_and_throw_in_one_go">Construct and Throw in One Go</a></li>
+		<li><a href="#avoiding_death">Avoiding Death</a></li>
+		<li><a href="#trapping_the_fatal_error_object">Trapping the Fatal Error Object</a></li>
+		<li><a href="#backtrace_control">Backtrace Control</a></li>
+		<li><a href="#wrapper_routine">Wrapper Routine</a></li>
+		<li><a href="#dressing_up">Dressing Up</a></li>
+		<li><a href="#message_composition">Message Composition</a></li>
+	</ul>
+
+	<li><a href="#philosophy">PHILOSOPHY</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#license">LICENSE</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Error::Base::Cookbook - Examples of Error::Base usage</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Basic use of <a href="/Error/Base.html">Error::Base</a> is quite simple; 
+and advanced usage is not hard. 
+The author hopes that nobody is forced to consult this Cookbook. But I am 
+myself quite fond of cookbook-style documentation; I get more from seeing it 
+all work together than from cut-and-dried reference manuals. I like those too, 
+though; and comprehensive reference documentation is found in 
+<a href="/Error/Base.html">Error::Base</a>.</p>
+<p>If you make use of Error::Base and don't find a similar example here in its 
+Cookbook, please be so kind as to send your use case to me for future 
+inclusion. Thank you very much.</p>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p>
+</p>
+<h2><a name="sanity_check">Sanity Check</a></h2>
+<pre>
+    my $obviously_true  = 0
+        or Error::Base-&gt;crash('Unexpected zero');</pre>
+<p>You are certain that this will never happen but you decide to check it anyway. 
+No need to plan ahead; just drop in a sanity check.</p>
+<pre>
+    if    ( $case1 ) { $pointer++ } 
+    elsif ( $case2 ) { $pointer-- } 
+    elsif ( $case3 ) {  } 
+    else             { Error::Base-&gt;crash('Unimplemented case') };</pre>
+<p>In constructs like this, it's tempting to think you've covered every possible 
+case. Avoid this fallacy by checking explicitly for each implemented case.</p>
+<pre>
+    Error::Base-&gt;crash;         # emits 'Unimplemented error' with backtrace.
+    
+Don't forget to pass some error message text. Unless you're in real big foo.</pre>
+<p>
+</p>
+<h2><a name="construct_first">Construct First</a></h2>
+<pre>
+    my $err     = Error::Base-&gt;new('Foo');
+    $err-&gt;crash;
+    
+    my $err     = Error::Base-&gt;new(
+                        'Third',
+                    -base     =&gt; 'First',
+                    -type     =&gt; 'Second',
+                );
+    $err-&gt;crash;</pre>
+<p>If you like to plan your error ahead of time, invoke 
+<a href="/Error/Base.html#new__">new()</a> with any set of arguments you please. 
+This will help keep your code uncluttered.</p>
+<p>
+</p>
+<h2><a name="construct_and_throw_in_one_go">Construct and Throw in One Go</a></h2>
+<pre>
+    Error::Base-&gt;crash(
+            'Third',
+        -base     =&gt; 'First',
+        -type     =&gt; 'Second',
+    );</pre>
+<p>You aren't <em>required</em> to construct first, though. Each of the public methods 
+<a href="/Error/Base.html#crash__">crash()</a>, <a href="/Error/Base.html#crank__">crank()</a>, 
+and <a href="/Error/Base.html#cuss__">cuss()</a> function as constructors and may be called 
+either as a class or object method. Each method accepts all the same 
+parameters as <a href="/Error/Base.html#new__">new()</a>.</p>
+<p>
+</p>
+<h2><a name="avoiding_death">Avoiding Death</a></h2>
+<pre>
+    my $err = Error::Base-&gt;crank('Misindented code');
+    my $err = Error::Base-&gt;cuss ('Frightening disaster!');</pre>
+<p><a href="/Error/Base.html#crank__">crank()</a> <strong>warn</strong>s of your error condition. Perhaps it's 
+not that serious. The current fashion is to make almost all errors fatal but 
+it's your call.</p>
+<p><a href="/Error/Base.html#cuss__">cuss()</a> neither <strong>die</strong>s nor <strong>warn</strong>s but it does perform 
+a full backtrace from the point of call. You might find it most useful when 
+debugging your error handling itself; substitute 'crash' or 'crank' later.</p>
+<p>
+</p>
+<h2><a name="trapping_the_fatal_error_object">Trapping the Fatal Error Object</a></h2>
+<pre>
+    eval{ Error::Base-&gt;crash('Houston...') };   # trap...
+    my $err     = $@ if $@;                     # ... and examine the object</pre>
+<p><a href="/Error/Base.html#crash__">crash()</a> does, internally, construct an object if called 
+as a class method. If you trap the error you can capture the object and look 
+inside it.</p>
+<p>
+</p>
+<h2><a name="backtrace_control">Backtrace Control</a></h2>
+<pre>
+    $err-&gt;crash( -quiet         =&gt; 1, );        # no backtrace
+    $err-&gt;crash( -top           =&gt; 0, );        # really full backtrace
+    $err-&gt;crash( -top           =&gt; 5, );        # skip top five frames</pre>
+<p>Set <a href="/Error/Base.html#_quiet">-quiet</a> to any TRUE value to silence stack 
+backtrace entirely.</p>
+<p>By default, you get a full stack backtrace: &quot;full&quot; meaning, from the point of
+invocation. Some stack frames are added by the process of crash()-ing itself; 
+by default, these are not seen. If you want more or fewer frames you may set 
+<a href="/Error/Base.html#_top">-top</a> to a different value.</p>
+<p>Beware that future implementations may change the number of stack frames 
+added internally by Error::Base; and also you may see a different number of 
+frames if you subclass, depending on how you do that. The safer way:</p>
+<pre>
+    my $err         = Error::Base-&gt;new('Foo');      # construct object
+    $err-&gt;{-top}   += 1;                            # ignore one frame
+    $err-&gt;crash();</pre>
+<p>This is ugly and you may get a convenience method in future.</p>
+<p>
+</p>
+<h2><a name="wrapper_routine">Wrapper Routine</a></h2>
+<pre>
+    sub _crash { Error::Base-&gt;crash( @_, -top =&gt; 3 ) }; 
+    # ... later...
+    my $obviously_true  = 0
+        or _crash('Unexpected zero');</pre>
+<p>Write a wrapper routine when trying to wedge sanity checks into dense code. 
+Error::Base is purely object-oriented and exports nothing.</p>
+<p>
+</p>
+<h2><a name="dressing_up">Dressing Up</a></h2>
+<pre>
+    my $err     = Error::Base-&gt;new(
+                    -prepend    =&gt; '@! Black Tie Lunch:',
+                );
+    $err-&gt;crash ( 'Let\'s eat!' );
+        # emits &quot;@! Black Tie Lunch: Let's eat!
+        #        @                   in main::fubar at line 42    [test.pl]&quot;</pre>
+<pre>
+    $err-&gt;crash ( 'Let\'s eat!', -indent        =&gt; '%--' );
+        # emits &quot;@! Black Tie Lunch: Let's eat!
+        #        %-- in main::fubar at line 42    [test.pl]&quot;</pre>
+<pre>
+    $err-&gt;crash ( 'Let\'s eat!', -prepend_all   =&gt; '%--' );
+        # emits &quot;%-- Let's eat!
+        #        %-- in main::fubar at line 42    [test.pl]&quot;</pre>
+<p>Any string passed to <a href="/Error/Base.html#_prepend">-prepend</a> will be prepended to 
+the first line only 
+of the formatted error message. If <a href="/Error/Base.html#_indent">-indent</a> is defined 
+then that will be
+prepended to all following lines. If -indent is undefined then it will 
+be formed (from the first character only of -prepend) padded with spaces
+to the length of -prepend. 
+<a href="/Error/Base.html#_prepend_all">-prepend_all</a> will be prepended to all lines.</p>
+<p>
+</p>
+<h2><a name="message_composition">Message Composition</a></h2>
+<pre>
+    $err-&gt;crash( 'Pronto!' );           # emits 'Pronto!'
+    $err-&gt;crash(
+                'Pronto!',
+            -base   =&gt; 'Bar',
+            -type   =&gt; 'last call',
+        );                              # emits 'Bar last call Pronto!'
+    $err-&gt;crash(
+            -base   =&gt; 'Bar',
+            -type   =&gt; 'last call',
+            -pronto =&gt; 'Pronto!',
+        );                              # same thing</pre>
+<p>As a convenience, if the number of arguments passed in is odd, then the first 
+arg is shifted off and appnended to the error message. This is done to 
+simplify writing one-off, one-line <a href="/Error/Base/Cookbook.html#sanity_check">sanity checks</a>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="philosophy">PHILOSOPHY</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Xiong Changnian  <code>&lt;xiong@cpan.org&gt;</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="license">LICENSE</a></h1>
+<p>Copyright (C) 2011 Xiong Changnian <code>&lt;xiong@cpan.org&gt;</code></p>
+<p>This library and its contents are released under Artistic License 2.0:</p>
+<p><a href="http://www.opensource.org/licenses/artistic-license-2.0.php">http://www.opensource.org/licenses/artistic-license-2.0.php</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="/Error/Base.html">the Error::Base manpage</a>(3)</p>
+
+</body>
+
+</html>
