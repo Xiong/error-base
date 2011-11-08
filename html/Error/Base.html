@@ -194,10 +194,6 @@ If uncaught, the error will stringify; if caught, the entire object is yours.</p
 <p>
 </p>
 <h2><a name="crank__"><code>crank()</code></a></h2>
-<pre>
-    Error::Base-&gt;crank('More gruel!');          # as class method
-    $err-&gt;crank;                                # as object method
-    my $err = Error::Base-&gt;crank('Me!');        # also a constructor</pre>
 <p>This is exactly like <code>crash()</code> except that it <code>warn()</code>s instead of 
 <code>die()</code>-ing. Therefore it can also usefully be used as a constructor of an 
 object for later use.</p>
@@ -252,23 +248,12 @@ completely overwrites the previous:</p>
 </p>
 <h2><a name="_base">-base</a></h2>
 <p><em>scalar string</em></p>
-<pre>
-    $err-&gt;crash;                        # emits 'Undefined error'
-    $err-&gt;crash( -base =&gt; 'Bar');       # emits 'Bar'</pre>
 <p>The value of <code>-base</code> is printed in the first line of the stringified 
 error object after a call to <code>crash()</code>, <code>crank()</code>, or <code>cuss()</code>.</p>
 <p>
 </p>
 <h2><a name="_type">-type</a></h2>
 <p><em>scalar string</em></p>
-<pre>
-    $err-&gt;crash( 
-            -type   =&gt; 'last call'
-        );                              # emits 'last call'
-    $err-&gt;crash(
-            -base   =&gt; 'Bar',
-            -type   =&gt; 'last call',
-        );                              # emits 'Bar last call'</pre>
 <p>This parameter is provided as a way to express a subtype of error.</p>
 <p>
 </p>
@@ -292,7 +277,7 @@ simplify writing one-off, one-line sanity checks:</p>
 <pre>
     open( my $in_fh, '&lt;', $filename )
         or Error::Base-&gt;crash(&quot;Couldn't open $filename for reading.&quot;);</pre>
-<p>It is expected that each message argument be a single scalar. If you need 
+<p>TODO: It is expected that each message argument be a single scalar. If you need 
 to pass a multi-line string then please embed escaped newlines (<code>'\n'</code>).</p>
 <p>
 </p>
@@ -405,7 +390,9 @@ to a key matching the <em>placeholder</em> <code>$jackson</code>:</p>
     sub call_ethel {
         my $jackson     = 'Janet';
         $err-&gt;crank( '$jackson' =&gt; \$jackson );
-    };                  # 'Up, Up and Away: FCC wardrobe malfunction of Janet'</pre>
+    };                  # 'Up, Up and Away: FCC wardrobe malfunction of Janet'
+
+</pre>
 <p><strong>Note</strong> that the string passed to <code>new()</code> as the value of <code>-type</code> is now 
 single quoted, which avoids a futile attempt to interpolate immediately. Also, 
 a reference to the <em>variable</em> <code>$jackson</code> is passed as the value of the 
@@ -421,7 +408,9 @@ a reference to the <em>variable</em> <code>$jackson</code> is passed as the valu
             '%children' =&gt; { who =&gt; 'children\'s children' },
             '@cities'   =&gt; [ 'Metropolis', 'River City', 'Gotham City' ],
             '$i'        =&gt; 1,
-        );          # you're the Music Man</pre>
+        );          # you're the Music Man
+
+</pre>
 <p>You may use scalar or array placeholders, signifying them with the usual 
 sigils. Although you pass a reference, use the appropriate 
 <code>$</code>, <code>@</code> or <code>%</code> sigil to lead the corresponding key. As a convenience, you 
@@ -503,39 +492,12 @@ do so, successfully or not, please be so kind as to notify.</p>
 <hr />
 <h1><a name="see_also">SEE ALSO</a></h1>
 <p>Many error-related modules are available on CPAN. Some do bizarre things.</p>
-<p><em>Error</em> is self-deprecated in its own POD as &quot;black magic&quot;; 
-which recommends <a href="/Exception/Class.html">the Exception::Class manpage</a> instead.</p>
-<p><em>Exception</em> installs a <code>$SIG{__DIE__}</code> handler that converts text 
-passed to <code>die</code> into an exception object. It permits environment variables 
-and setting global state; and implements a <code>try</code> syntax. This module may be 
-closest in spirit to Error::Base. 
-For some reason, I can't persuade <code>cpan</code> to find it.</p>
-<p><em>Carp</em> is well-known and indeed, does a full backtrace with <code>confess()</code>. 
-The better-known <code>carp()</code> may be a bit too clever and in any case, the dump 
-is not formatted to my taste. The module is full of global variable settings. 
-It's not object-oriented and an error object can't easily be pre-created.</p>
-<p>The pack leader seems to be <a href="/Exception/Class.html">the Exception::Class manpage</a>. Error::Base differs most 
-strongly in that it has a shorter learning curve (since it does much less); 
-confines itself to error message emission (catching errors is another job); 
-and does a full stack backtrace dump by default. Less code may also be 
-required for simple tasks.</p>
-<p>To really catch errors, I like <a href="/Test/Trap.html">the Test::Trap manpage</a> ('block eval on steroids'). 
-It has a few shortcomings but is extremely powerful. I don't see why its use 
-should be confined to testing.</p>
-<p>The line between emitting a message and catching it is blurred in many 
-related modules. I did not want a jack-in-the-box object that phoned home if 
-it was thrown under a full moon. The only clever part of an Error::Base 
-object is that it stringifies.</p>
-<p>It may be true to say that many error modules seem to <em>expect</em> to be caught. 
-I usually expect my errors to cause all execution to come to a fatal, 
-non-recoverable crash. Oh, yes; I agree it's sometimes needful to catch such 
-errors, especially during testing. But if you're regularly throwing and 
-catching, the term 'exception' may be appropriate but perhaps not 'error'.</p>
+<p><a href="/Exception/Class.html">Exception::Class</a>, <em>Error</em>, <em>Exception</em>, <em>Carp</em>, <a href="/Test/Trap.html">Test::Trap</a>.</p>
 <p>
 </p>
 <hr />
 <h1><a name="installation">INSTALLATION</a></h1>
-<p>This module is installed using <a href="/Module/Build.html">the Module::Build manpage</a>.</p>
+<p>This module is installed using <a href="/Module/Build.html">Module::Build</a>.</p>
 <p>
 </p>
 <hr />
@@ -579,9 +541,9 @@ set <code>$self-&gt;{'-$&quot;'} = q{}</code>; don't undefine it.</p>
 <hr />
 <h1><a name="dependencies">DEPENDENCIES</a></h1>
 <p>There are no non-core dependencies.</p>
-<p><a href="#version">the version manpage</a> 0.94                 # Perl extension for Version Objects</p>
-<p><em>overload</em>                     # Overload Perl operations</p>
-<p><a href="/Scalar/Util.html">the Scalar::Util manpage</a>                 # General-utility scalar subroutines</p>
+<p><a href="#version">version</a> 0.94                 # Perl extension for Version Objects</p>
+<p><em>overload</em>                    # Overload Perl operations</p>
+<p><a href="/Scalar/Util.html">Scalar::Util</a>            # General-utility scalar subroutines</p>
 <p>This module should work with any version of perl 5.8.8 and up.</p>
 <p>
 </p>

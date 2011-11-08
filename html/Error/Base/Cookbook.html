@@ -17,6 +17,7 @@
 <ul>
 
 	<li><a href="#name">NAME</a></li>
+	<li><a href="#version">VERSION</a></li>
 	<li><a href="#description">DESCRIPTION</a></li>
 	<li><a href="#examples">EXAMPLES</a></li>
 	<ul>
@@ -25,10 +26,11 @@
 		<li><a href="#construct_first">Construct First</a></li>
 		<li><a href="#construct_and_throw_in_one_go">Construct and Throw in One Go</a></li>
 		<li><a href="#avoiding_death">Avoiding Death</a></li>
+		<li><a href="#escalation">Escalation</a></li>
 		<li><a href="#trapping_the_fatal_error_object">Trapping the Fatal Error Object</a></li>
 		<li><a href="#backtrace_control">Backtrace Control</a></li>
 		<li><a href="#wrapper_routine">Wrapper Routine</a></li>
-		<li><a href="#dressing_up">Dressing Up</a></li>
+		<li><a href="#dress_left">Dress Left</a></li>
 		<li><a href="#message_composition">Message Composition</a></li>
 	</ul>
 
@@ -46,6 +48,11 @@
 </p>
 <h1><a name="name">NAME</a></h1>
 <p>Error::Base::Cookbook - Examples of Error::Base usage</p>
+<p>
+</p>
+<hr />
+<h1><a name="version">VERSION</a></h1>
+<p>This document describes Error::Base version v0.1.1</p>
 <p>
 </p>
 <hr />
@@ -117,14 +124,37 @@ parameters as <a href="/Error/Base.html#new__">new()</a>.</p>
 </p>
 <h2><a name="avoiding_death">Avoiding Death</a></h2>
 <pre>
+    Error::Base-&gt;crank('More gruel!');          # as class method
+    $err-&gt;crank;                                # as object method
     my $err = Error::Base-&gt;crank('Misindented code');
-    my $err = Error::Base-&gt;cuss ('Frightening disaster!');</pre>
+    $err-&gt;cuss('Frightening disaster!');
+    my $err = Error::Base-&gt;cuss('x%@#*!');      # also a constructor</pre>
 <p><a href="/Error/Base.html#crank__">crank()</a> <strong>warn</strong>s of your error condition. Perhaps it's 
 not that serious. The current fashion is to make almost all errors fatal but 
 it's your call.</p>
 <p><a href="/Error/Base.html#cuss__">cuss()</a> neither <strong>die</strong>s nor <strong>warn</strong>s but it does perform 
 a full backtrace from the point of call. You might find it most useful when 
 debugging your error handling itself; substitute 'crash' or 'crank' later.</p>
+<p>
+</p>
+<h2><a name="escalation">Escalation</a></h2>
+<pre>
+    my $err     = Error::Base-&gt;new( -base =&gt; 'Odor detected:' );
+    cook_dinner;
+    $err-&gt;init( _cooked =&gt; 1 );
+    
+    serve_chili('mild');
+    $err-&gt;cuss ( -type =&gt; $fart )           if $fart;
+    $err-&gt;crank( -type =&gt; 'Air underflow' ) if $fart &gt; $room;
+    $log-&gt;store( $err );
+    
+    serve_chili('hot');
+    $err-&gt;crash( -type =&gt; 'Evacuate now' )  if $fire;</pre>
+<p>Once constructed, the same object may be thrown repeatedly, with multiple 
+methods. On each invocation, new arguments overwrite old ones but previously 
+declared attributes, public and private, remain in force if not overwritten. 
+Also on each invocation, the stack is traced afresh and the error message text 
+re-composed and re-formatted.</p>
 <p>
 </p>
 <h2><a name="trapping_the_fatal_error_object">Trapping the Fatal Error Object</a></h2>
@@ -167,7 +197,7 @@ frames if you subclass, depending on how you do that. The safer way:</p>
 Error::Base is purely object-oriented and exports nothing.</p>
 <p>
 </p>
-<h2><a name="dressing_up">Dressing Up</a></h2>
+<h2><a name="dress_left">Dress Left</a></h2>
 <pre>
     my $err     = Error::Base-&gt;new(
                     -prepend    =&gt; '@! Black Tie Lunch:',
@@ -195,24 +225,62 @@ to the length of -prepend.
 </p>
 <h2><a name="message_composition">Message Composition</a></h2>
 <pre>
-    $err-&gt;crash( 'Pronto!' );           # emits 'Pronto!'
+    $err-&gt;crash;                        # 'Undefined error'
+    $err-&gt;crash( 'Pronto!' );           # 'Pronto!'
+    $err-&gt;crash(
+            -base   =&gt; 'Bar',
+            -type   =&gt; 'last call',
+        );                              # 'Bar last call'
     $err-&gt;crash(
                 'Pronto!',
             -base   =&gt; 'Bar',
             -type   =&gt; 'last call',
-        );                              # emits 'Bar last call Pronto!'
+        );                              # 'Bar last call Pronto!'
     $err-&gt;crash(
             -base   =&gt; 'Bar',
             -type   =&gt; 'last call',
             -pronto =&gt; 'Pronto!',
-        );                              # same thing</pre>
+        );                              # 'Bar last call Pronto!'</pre>
 <p>As a convenience, if the number of arguments passed in is odd, then the first 
 arg is shifted off and appnended to the error message. This is done to 
-simplify writing one-off, one-line <a href="/Error/Base/Cookbook.html#sanity_check">sanity checks</a>.</p>
+simplify writing one-off, one-line 
+<a href="/Error/Base/Cookbook.html#sanity_check">sanity checks</a>.</p>
+<p>For a little more structure, yau may pass values to <a href="/Error/Base.html#_base">-base</a> 
+and <a href="/Error/Base.html#_type">-type</a> also. All values supplied will be joined; by 
+default, with a single space.</p>
 <p>
 </p>
 <hr />
 <h1><a name="philosophy">PHILOSOPHY</a></h1>
+<p>Many error-related modules are available on CPAN. Some do bizarre things.</p>
+<p><em>Error</em> is self-deprecated in its own POD as &quot;black magic&quot;; 
+which recommends <a href="/Exception/Class.html">the Exception::Class manpage</a> instead.</p>
+<p><em>Exception</em> installs a <code>$SIG{__DIE__}</code> handler that converts text 
+passed to <code>die</code> into an exception object. It permits environment variables 
+and setting global state; and implements a <code>try</code> syntax. This module may be 
+closest in spirit to Error::Base. 
+For some reason, I can't persuade <code>cpan</code> to find it.</p>
+<p><em>Carp</em> is well-known and indeed, does a full backtrace with <code>confess()</code>. 
+The better-known <code>carp()</code> may be a bit too clever and in any case, the dump 
+is not formatted to my taste. The module is full of global variable settings. 
+It's not object-oriented and an error object can't easily be pre-created.</p>
+<p>The pack leader seems to be <a href="/Exception/Class.html">the Exception::Class manpage</a>. Error::Base differs most 
+strongly in that it has a shorter learning curve (since it does much less); 
+confines itself to error message emission (catching errors is another job); 
+and does a full stack backtrace dump by default. Less code may also be 
+required for simple tasks.</p>
+<p>To really catch errors, I like <a href="/Test/Trap.html">the Test::Trap manpage</a> ('block eval on steroids'). 
+It has a few shortcomings but is extremely powerful. I don't see why its use 
+should be confined to testing.</p>
+<p>The line between emitting a message and catching it is blurred in many 
+related modules. I did not want a jack-in-the-box object that phoned home if 
+it was thrown under a full moon. The only clever part of an Error::Base 
+object is that it stringifies.</p>
+<p>It may be true to say that many error modules seem to <em>expect</em> to be caught. 
+I usually expect my errors to cause all execution to come to a fatal, 
+non-recoverable crash. Oh, yes; I agree it's sometimes needful to catch such 
+errors, especially during testing. But if you're regularly throwing and 
+catching, the term 'exception' may be appropriate but perhaps not 'error'.</p>
 <p>
 </p>
 <hr />
