@@ -181,6 +181,7 @@ L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines.
 
 =head2 Message Composition
 
+    my $err     = Error::Base->new;
     $err->crash;                        # 'Undefined error'
     $err->crash( 'Pronto!' );           # 'Pronto!'
     $err->crash(
@@ -207,10 +208,95 @@ For a little more structure, yau may pass values to L<-base|Error::Base/-base>
 and L<-type|Error::Base/-type> also. All values supplied will be joined; by 
 default, with a single space. 
 
+    my $err     = Error::Base->new(
+                        'Manny',
+                    -base       => 'Pep Boys:',
+                );
+    $err->init{'Moe'};
+    $err->crash{'Jack'};                # emits 'Pep Boys: Jack' and backtrace
+
+Remember, new arguments overwrite old values. The L<init()|Error::Base/init()>
+method can be called directly on an existing object to overwrite object 
+attributes without expanding the message or tracing the stack. If you I<mean>
+to expand and trace without throwing, invoke L<cuss()|Error::Base/cuss()>. 
+
+=head2 Interpolation in Scope
+
+    open( my $in_fh, '<', $filename )
+        or Error::Base->crash("Failed to open $filename for reading.");
+
+Nothing special here; as usual, double quotes interpolate a variable that is 
+in scope at the place where the error is thrown. 
+
+=head1 Late Interpolation
+
+    FOO:
+    {
+        my $err     = Error::Base->new(
+                            'Failed to open $filename for reading.',
+                        -base       => 'My::Module error:',
+                    );
+        }
+    BAR:
+    {
+        my $filename    = 'debug246.log';
+        open( my $in_fh, '<', $filename )
+            or $err->crash(
+                            '$filename' => \$filename,
+                        );      # emits 'Panic: lost my hat. Help!'
+    }
+
+If we want to declare lengthy error text well ahead of time, double-quotey 
+interpolation will serve us poorly. In the example, C<$filename> isn't in 
+scope when we constructed C<$err>; why, we don't even know what it will be. 
+
+Enclose the string to be late-interpolated in B<single quotes> (to avoid a 
+failed attempt to interpolate immediately) and pass the value when you have 
+it ready, in scope. For clarity, I suggest you pass a reference to the 
+I<variable> C<$foo> as the value of the I<key> C<'$foo'>. 
+The key is quoted to avoid it being parsed as a variable.
+
+As with normal, in-scope interpolation, you can late-interpolate scalars, 
+arrays, array slices, hash slices, or various escape sequences. There is the 
+same potential for ambiguity either way, since the actual interpolation is 
+eventually done by perl. 
+
+See L<perlop/Quote and Quote-like Operators>. 
+
+Late interpolation is performed I<after> the entire error message is composed 
+and I<before> any prepending, indentation, line-breaking, or stack tracing. 
 
 
 
+You may use scalar or array placeholders, signifying them with the usual 
+sigils. Although you pass a reference, use the appropriate 
+C<$>, C<@> or C<%> sigil to lead the corresponding key. As a convenience, you 
+may pass simple scalars directly. (It's syntactically ugly to pass a 
+reference to a literal scalar.) Any value that is I<not> a 
+reference will be late-interpolated directly; anything else will be 
+deferenced (once). 
 
+This is Perlish interpolation, only delayed. You can interpolate escape 
+sequences and anything else you would in a double-quoted string. You can pass 
+a reference to a package variable; but do so against a simple key such as 
+C<'$aryref'>. 
+
+As a further convenience, you may interpolate a value from the error object 
+itself. In the previous example, 
+C<< -type >> is defined as C<< '$self->{_what}' >> 
+(please note the single quotes). And also, 
+C<< _what >> is defined as C<< 'trouble:' >>. 
+When late-interpolated, C<< -type >> expands to C<< 'trouble:' >>. 
+Note that Error::Base has no idea what you have called your error object 
+(perhaps '$err'); use the placeholder C<< '$self' >> 
+in the string to be expanded. 
+
+Don't forget to store your value against the appropriate key! 
+This implementation of this feature does not peek into your pad. 
+You may not receive an 'uninitialized' warning if a value is missing. 
+However, no late interpolation will be attempted if I<no> keys are stored, 
+prefixed with C<$>, C<@> or C<%>. The literal sigil will be printed. 
+So if you don't like this feature, don't use it. 
 
 
 

@@ -776,8 +776,6 @@ error will be thrown without the bother of actually catching C<crash()>.
 
     $err->init(@args);
 
-Probably, it is not useful to call this object method directly. Perhaps you 
-might subclass it or call it from within your subclass constructor. 
 The calling conventions are exactly the same as for the other public methods. 
 
 C<init()>, is called on a newly constructed object, as is conventional. 
@@ -914,106 +912,8 @@ Empty elements are spliced out to avoid multiple consecutive spaces.
 Note that C<< '-$"' >> is a perfectly acceptable hash key but it must be 
 quoted, lest trains derail in Vermont. The fat comma does not help. 
 
-=head1 LATE INTERPOLATION
+=head2 LATE INTERPOLATION
 
-Recall that all methods, on init(), pass through all arguments as key/value 
-pairs in the error object. Except for those parameters reserved by the class 
-API (by convention of leading dash), these are preserved unaltered. 
-
-    my $err     = Error::Base->new(
-                    -base   => 'Panic:',
-                    -type   => 'lost my $foo.',
-                );
-    $err->crash(
-                'Help!',
-            '$foo'  => 'hat',
-        );      # emits 'Panic: lost my hat. Help!'
-    
-    my $err     = Error::Base->new(
-                    -base   => 'Sing:',
-                    '@favs' => [qw/ schnitzel with noodles /],
-                );
-    $err->crash(
-            -type   => 'My favorite things are @favs.',
-        );      # emits 'Sing: My favorite things are schnitzel with noodles.'
-
-If we want to emit an error including information only available within a 
-given scope we can interpolate it then and there with a double-quoted literal: 
-
-    open( my $in_fh, '<', $filename )
-        or Error::Base->crash("Couldn't open $filename for reading.");
-
-This doesn't work if we want to declare lengthy error text well ahead of time: 
-
-    my $err     = Error::Base->new(
-                    -base   => 'Up, Up and Away:',
-                    -type   => "FCC wardrobe malfunction of $jackson",
-                );
-    sub call_ethel {
-        my $jackson     = 'Janet';
-        $err->crank;
-    };                  # won't work; $jackson out of scope for -type
-
-What we need is B<late interpolation>, which Error::Base provides. 
-
-When we have the desired value in scope, we simply pass it as the value 
-to a key matching the I<placeholder> C<$jackson>: 
-
-    my $err     = Error::Base->new(
-                    -base   => 'Up, Up and Away:',
-                    -type   => 'FCC wardrobe malfunction of $jackson',
-                );
-    sub call_ethel {
-        my $jackson     = 'Janet';
-        $err->crank( '$jackson' => \$jackson );
-    };                  # 'Up, Up and Away: FCC wardrobe malfunction of Janet'
-
-B<Note> that the string passed to C<new()> as the value of C<< -type >> is now 
-single quoted, which avoids a futile attempt to interpolate immediately. Also, 
-a reference to the I<variable> C<$jackson> is passed as the value of the 
-I<key> C<'$jackson'>. The key is quoted to avoid it being parsed as a variable. 
-
-    my $err     = Error::Base->new(
-                        'right here in $cities[$i].',
-                    -base   => 'Our $children{'who'} gonna have',
-                    -type   => q/$self->{'_what'}/,
-                );
-    $err->crash(
-            _what       => 'trouble:'
-            '%children' => { who => 'children\'s children' },
-            '@cities'   => [ 'Metropolis', 'River City', 'Gotham City' ],
-            '$i'        => 1,
-        );          # you're the Music Man
-
-You may use scalar or array placeholders, signifying them with the usual 
-sigils. Although you pass a reference, use the appropriate 
-C<$>, C<@> or C<%> sigil to lead the corresponding key. As a convenience, you 
-may pass simple scalars directly. (It's syntactically ugly to pass a 
-reference to a literal scalar.) Any value that is I<not> a 
-reference will be late-interpolated directly; anything else will be 
-deferenced (once). 
-
-This is Perlish interpolation, only delayed. You can interpolate escape 
-sequences and anything else you would in a double-quoted string. You can pass 
-a reference to a package variable; but do so against a simple key such as 
-C<'$aryref'>. 
-
-As a further convenience, you may interpolate a value from the error object 
-itself. In the previous example, 
-C<< -type >> is defined as C<< '$self->{_what}' >> 
-(please note the single quotes). And also, 
-C<< _what >> is defined as C<< 'trouble:' >>. 
-When late-interpolated, C<< -type >> expands to C<< 'trouble:' >>. 
-Note that Error::Base has no idea what you have called your error object 
-(perhaps '$err'); use the placeholder C<< '$self' >> 
-in the string to be expanded. 
-
-Don't forget to store your value against the appropriate key! 
-This implementation of this feature does not peek into your pad. 
-You may not receive an 'uninitialized' warning if a value is missing. 
-However, no late interpolation will be attempted if I<no> keys are stored, 
-prefixed with C<$>, C<@> or C<%>. The literal sigil will be printed. 
-So if you don't like this feature, don't use it. 
 
 =head1 RESULTS
 
