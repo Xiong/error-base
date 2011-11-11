@@ -1,4 +1,16 @@
-__DATA__
+package Error::Base::Cookbook;
+
+use 5.008008;
+use strict;
+use warnings;
+use version 0.77; our $VERSION = qv('v0.1.1');
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                                                                           #
+#   Do not use this module directly. It only implements the POD snippets.   #
+#                                                                           #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 
 =head1 NAME
 
@@ -359,4 +371,6 @@ L<Error::Base>(3)
 
 =cut
 
+## END MODULE
+1;
 __END__
