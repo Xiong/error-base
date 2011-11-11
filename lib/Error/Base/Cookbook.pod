@@ -230,25 +230,23 @@ in scope at the place where the error is thrown.
 
 =head1 Late Interpolation
 
-    FOO:
-    {
-        my $err     = Error::Base->new(
-                            'Failed to open $filename for reading.',
-                        -base       => 'My::Module error:',
-                    );
-        }
-    BAR:
-    {
+    my $err     = Error::Base->new(
+                        'Failed to open $filename for reading.',
+                    -base       => 'My::Module error:',
+                );
+    bar();
+    sub bar {
         my $filename    = 'debug246.log';
         open( my $in_fh, '<', $filename )
             or $err->crash(
                             '$filename' => \$filename,
-                        );      # emits 'Panic: lost my hat. Help!'
-    }
+                        );      # 'Failed to open debug246.log for reading.'
+    };
 
 If we want to declare lengthy error text well ahead of time, double-quotey 
 interpolation will serve us poorly. In the example, C<$filename> isn't in 
-scope when we constructed C<$err>; why, we don't even know what it will be. 
+scope when we construct C<$err>; why, we don't even know what the filename 
+will be. 
 
 Enclose the string to be late-interpolated in B<single quotes> (to avoid a 
 failed attempt to interpolate immediately) and pass the value when you have 
@@ -265,6 +263,9 @@ See L<perlop/Quote and Quote-like Operators>.
 
 Late interpolation is performed I<after> the entire error message is composed 
 and I<before> any prepending, indentation, line-breaking, or stack tracing. 
+
+
+
 
 
 
@@ -295,8 +296,8 @@ Don't forget to store your value against the appropriate key!
 This implementation of this feature does not peek into your pad. 
 You may not receive an 'uninitialized' warning if a value is missing. 
 However, no late interpolation will be attempted if I<no> keys are stored, 
-prefixed with C<$>, C<@> or C<%>. The literal sigil will be printed. 
-So if you don't like this feature, don't use it. 
+prefixed with C<$>, C<@> or C<%>. Instead, any sigil in the message will be 
+printed. So if you don't like this feature, don't use it. 
 
 
 
