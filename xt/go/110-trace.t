@@ -1,1 +1,1 @@
-/home/xiong/projects/error-base/xt/main/110-trace.t
+../unit/110-trace.t

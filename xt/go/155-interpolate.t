@@ -1,1 +1,1 @@
-/home/xiong/projects/error-base/xt/main/155-interpolate.t
+../unit/155-interpolate.t

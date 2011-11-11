@@ -1,1 +1,1 @@
-/home/xiong/projects/error-base/xt/main/105-paired.t
+../unit/105-paired.t
