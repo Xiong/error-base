@@ -309,8 +309,9 @@ sub cook_dinner {};
 sub serve_chili {};
 sub add_recipie {};
 #~ my $err     = Error::Base->new( -base => 'Odor detected:', -quiet => 1 );
-my $err     = Error::Base->new( -base => 'Odor detected:' );
+#~ my $err     = Error::Base->new( -base => 'Odor detected:' );
 {   #
+my $err     = Error::Base->new( -base => 'Odor detected:' );
 my ( $fart, $room, $fire ) = ( 0, 0, 0 );
     push @td, {                         # no fart
         -case   => 'escalate-odor',
@@ -336,6 +337,7 @@ my ( $fart, $room, $fire ) = ( 0, 0, 0 );
 }   #
 
 {   #
+my $err     = Error::Base->new( -base => 'Odor detected:' );
 my ( $fart, $room, $fire ) = ( 1, 1, 0 );
     push @td, {                         # some fart
         -case   => 'escalate-fart',
@@ -361,6 +363,7 @@ my ( $fart, $room, $fire ) = ( 1, 1, 0 );
 }   #
 
 {   #
+my $err     = Error::Base->new( -base => 'Odor detected:' );
 my ( $fart, $room, $fire ) = ( 5, 1, 0 );
     push @td, {                         # too much fart
         -case   => 'escalate-room',
@@ -387,6 +390,7 @@ my ( $fart, $room, $fire ) = ( 5, 1, 0 );
 }   #
 
 {   #
+my $err     = Error::Base->new( -base => 'Odor detected:' );
 my ( $fart, $room, $fire ) = ( 0, 0, 1 );
     push @td, {                         # FIRE
         -case   => 'escalate-fire',
@@ -679,6 +683,12 @@ L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines.
 
 =head2 Message Composition
 
+=cut
+
+# too trivial to need testing -- exhausted elsewhere
+
+=pod
+
     my $err     = Error::Base->new;
     $err->crash;                        # 'Undefined error'
     $err->crash( 'Pronto!' );           # 'Pronto!'
@@ -706,12 +716,35 @@ For a little more structure, yau may pass values to L<-base|Error::Base/-base>
 and L<-type|Error::Base/-type> also. All values supplied will be joined; by 
 default, with a single space. 
 
+=cut
+
+{   #
+    push @td, {
+        -case   => 'pep-boys',
+        -do     => 1, 
+        -code   => sub{
+#
     my $err     = Error::Base->new(
                         'Manny',
                     -base       => 'Pep Boys:',
                 );
-    $err->init{'Moe'};
-    $err->crash{'Jack'};                # emits 'Pep Boys: Jack' and backtrace
+    $err->init('Moe');
+    $err->crash('Jack');                # emits 'Pep Boys: Jack' and backtrace
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Pep Boys: Jack/,
+    };
+}   #
+
+=pod
+
+    my $err     = Error::Base->new(
+                        'Manny',
+                    -base       => 'Pep Boys:',
+                );
+    $err->init('Moe');
+    $err->crash('Jack');                # emits 'Pep Boys: Jack' and backtrace
 
 Remember, new arguments overwrite old values. The L<init()|Error::Base/init()>
 method can be called directly on an existing object to overwrite object 
@@ -720,6 +753,27 @@ to expand and trace without throwing, invoke L<cuss()|Error::Base/cuss()>.
 
 =head2 Interpolation in Scope
 
+=cut
+
+{   #
+    push @td, {
+        -case   => 'interpolation-in-scope',
+        -do     => 1, 
+        -code   => sub{
+#
+    my $filename    = 'debug246.log';
+    open( my $in_fh, '<', $filename )
+        or Error::Base->crash("Failed to open $filename for reading.");
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Failed to open debug246\.log for reading\./,
+    };
+}   #
+
+=pod
+
+    my $filename    = 'debug246.log';
     open( my $in_fh, '<', $filename )
         or Error::Base->crash("Failed to open $filename for reading.");
 
@@ -728,18 +782,48 @@ in scope at the place where the error is thrown.
 
 =head1 Late Interpolation
 
+=cut
+
+{   #
+    push @td, {
+        -case   => 'late-interpolation',
+        -do     => 1, 
+        -code   => sub{
+#
     my $err     = Error::Base->new(
                         'Failed to open $filename for reading.',
                     -base       => 'My::Module error:',
                 );
-    bar();
+    bar($err);
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Failed to open debug246\.log for reading\./,
+    };
     sub bar {
+        my $err         = shift;
         my $filename    = 'debug246.log';
         open( my $in_fh, '<', $filename )
             or $err->crash(
                             '$filename' => \$filename,
                         );      # 'Failed to open debug246.log for reading.'
     };
+}   #
+
+=pod
+
+    my $err     = Error::Base->new(
+                        'Failed to open $filename for reading.',
+                    -base       => 'My::Module error:',
+                );
+    bar($err);
+    sub bar {
+        my $err         = shift;
+        my $filename    = 'debug246.log';
+        open( my $in_fh, '<', $filename )
+            or $err->crash(
+                            '$filename' => \$filename,
+                        );      # 'Failed to open debug246.log for reading.'
 
 If we want to declare lengthy error text well ahead of time, double-quotey 
 interpolation will serve us poorly. In the example, C<$filename> isn't in 
