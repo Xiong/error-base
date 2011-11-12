@@ -305,6 +305,7 @@ debugging your error handling itself; substitute 'crash' or 'crank' later.
 
 =cut
 
+# dummy subs
 sub cook_dinner {};
 sub serve_chili {};
 sub add_recipie {};
@@ -827,18 +828,18 @@ in scope at the place where the error is thrown.
 
 If we want to declare lengthy error text well ahead of time, double-quotey 
 interpolation will serve us poorly. In the example, C<$filename> isn't in 
-scope when we construct C<$err>; why, we don't even know what the filename 
+scope when we construct C<$err>. Hey, we don't even know what the filename 
 will be. 
 
 Enclose the string to be late-interpolated in B<single quotes> (to avoid a 
 failed attempt to interpolate immediately) and pass the value when you have 
 it ready, in scope. For clarity, I suggest you pass a reference to the 
 I<variable> C<$foo> as the value of the I<key> C<'$foo'>. 
-The key is quoted to avoid it being parsed as a variable.
+The key must be quoted to avoid it being parsed as a variable.
 
 As with normal, in-scope interpolation, you can late-interpolate scalars, 
 arrays, array slices, hash slices, or various escape sequences. There is the 
-same potential for ambiguity either way, since the actual interpolation is 
+same potential for ambiguity, since the actual interpolation is 
 eventually done by perl. 
 
 See L<perlop/Quote and Quote-like Operators>. 
@@ -846,10 +847,37 @@ See L<perlop/Quote and Quote-like Operators>.
 Late interpolation is performed I<after> the entire error message is composed 
 and I<before> any prepending, indentation, line-breaking, or stack tracing. 
 
+=cut
 
+{   #
+    push @td, {
+        -case   => 'late-interpolate-all',
+        -do     => 1, 
+        -code   => sub{
+#
+    my $err     = Error::Base->new(
+                    '$scalar'       => 'scalar',
+                    '@ary_ref'      => [ 'white', 'black' ],
+                    '%hash_ref'     => { hash => 'hog', toe => 'jam' },
+                );
+    $err->crash( '|$scalar|@ary_ref|$ary_ref[1]|@hash_ref{ hash, toe }|' );
+                                # emits '|one|white black|black|hog jam|'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/|one|white black|black|hog jam|/,
+    };
+}   #
 
+=pod
 
-
+    my $err     = Error::Base->new(
+                    '$scalar'       => 'one',
+                    '@ary_ref'      => [ 'white', 'black' ],
+                    '%hash_ref'     => { hash => 'hog', toe => 'jam' },
+                );
+    $err->crash( '|$scalar|@ary_ref|$ary_ref[1]|@hash_ref{ hash, toe }|' );
+                                # emits '|one|white black|black|hog jam|'
 
 You may use scalar or array placeholders, signifying them with the usual 
 sigils. Although you pass a reference, use the appropriate 
@@ -864,24 +892,88 @@ sequences and anything else you would in a double-quoted string. You can pass
 a reference to a package variable; but do so against a simple key such as 
 C<'$aryref'>. 
 
+=cut
+
+{   #
+    push @td, {
+        -case   => 'late-interpolate-self',
+        -do     => 1, 
+        -code   => sub{
+#
+    my $err     = Error::Base->new(
+                    -base       => 'Trouble:',
+                    -type       => 'Right here in $self->{_where}!',
+                );
+    $err->crash( _where => 'River City' );
+                                # emits 'Trouble: Right here in River City!'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Trouble: Right here in River City!/,
+    };
+}   #
+
+=pod
+
+    my $err     = Error::Base->new(
+                    -base       => 'Trouble:',
+                    -type       => 'Right here in $self->{_where}!',
+                );
+    $err->crash( _where => 'River City' );  
+                                # emits 'Trouble: Right here in River City!'
+
 As a further convenience, you may interpolate a value from the error object 
-itself. In the previous example, 
-C<< -type >> is defined as C<< '$self->{_what}' >> 
-(please note the single quotes). And also, 
-C<< _what >> is defined as C<< 'trouble:' >>. 
-When late-interpolated, C<< -type >> expands to C<< 'trouble:' >>. 
-Note that Error::Base has no idea what you have called your error object 
+itself. In the previous example, C<< '$self->{_where}' >> is late-interpolated 
+into C<< -type >> (please note the single quotes). And also, 
+C<< _where >> is defined as C<< 'River City' >>. 
+B<Note> that Error::Base has no idea what you have called your error object 
 (perhaps '$err'); use the placeholder C<< '$self' >> 
 in the string to be expanded. 
 
 Don't forget to store your value against the appropriate key! 
 This implementation of this feature does not peek into your pad. 
 You may not receive an 'uninitialized' warning if a value is missing. 
-However, no late interpolation will be attempted if I<no> keys are stored, 
-prefixed with C<$>, C<@> or C<%>. Instead, any sigil in the message will be 
-printed. So if you don't like this feature, don't use it. 
 
+If you don't like this feature, don't use it and it won't bug you. 
 
+=head2 Local List Separator
+
+=cut
+
+{   #
+    push @td, {
+        -case   => 'local-list-separator',
+        -do     => 1, 
+        -code   => sub{
+#
+    local $"    = '=';
+    Error::Base->crash(
+            'Third',
+        -base     => 'First',
+        -type     => 'Second',
+    );                                  # emits 'First=Second=Third'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/First=Second=Third/,
+    };
+}   #
+
+=pod
+
+    local $"    = '=';
+    Error::Base->crash(
+            'Third',
+        -base     => 'First',
+        -type     => 'Second',
+    );                                  # emits 'First=Second=Third'
+
+Rationally, I think, message parts should be joined by a single space. 
+Note that array elements are normally interpolated, separated by spaces. 
+Perl uses the value of C<$"> (C<$LIST_SEPARATOR>). 
+
+If, for some reason, you wish to see message parts and interpolated elements 
+joined by something else, localize C<$">. 
 
 
 =head1 PHILOSOPHY

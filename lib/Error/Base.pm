@@ -213,7 +213,6 @@ sub _trace {
 #           : -base     : string    : initial part of error message
 #           : -top      : integer   : starting backtrace frame
 #           : -quiet    : boolean   : TRUE for no backtrace at all
-#           : -$"       : string    : local list separator
 # Returns   : never
 # Throws    : $self     : die will stringify
 # See also  : _fuss(), crank(), cuss(), init()
@@ -342,20 +341,15 @@ sub cuss{
 #       
 # Purpose   : Like builtin join() but with local list separator.
 # Parms     : @_        : strings to join
-# Reads     : -$"       : like $"   : $self parm    : default q{ }
 # Returns   : $string   : joined strings
 # Throws    : ____
 # See also  : init()
 # 
 # Buitin join() does not take $" (or anything else) by default.
 # We splice out empty strings to avoid useless runs of spaces.  
-# Caller can set $self->{'-$"'} in any method that invokes init(). 
 # 
 sub _join_local {
     my $self        = shift;
-    local $"        = $self->{'-$"'};
-    die 'Error::Base internal error: undefined local list separator: ', $!
-        if not defined $";
     my @parts       = @_;
     
     # Splice out empty strings. 
@@ -442,9 +436,6 @@ sub init {
     }; 
     if    ( not defined $self->{-top}   ) {
         $self->{-top}   = 2;                # skip frames internal to E::B
-    }; 
-    if    ( not defined $self->{q'-$"'} ) {
-        $self->{q'-$"'} = q{ };             # local list separator
     }; 
         
     return $self;
@@ -603,7 +594,7 @@ $Error::Base::Late::out     = eval
 $Error::Base::Late::eval_code
 Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY
         
-        warn "Error::Base internal warning: in _late eval: '$@" if $@;
+        warn "Error::Base internal warning: in _late eval: $@" if $@;
         
 #~         ##### CASE
 #~         ##### $Error::Base::Late::self
@@ -889,36 +880,6 @@ dense dump. So in future releases, the default may be changed to form
 C<< -prepend >> in some way for you if not defined. If you are certain you 
 want no prepending or indentation, pass the empty string, C<q{}>.
 
-=head2 -$"
-
-I<scalar string> default: q{ }
-
-    my $err     = Error::Base->new(
-                    -base   => 'Bar',
-                    -type   => 'last call',
-                );
-    $err->crash(
-                'Pronto!',
-        );                              # emits 'Bar last call Pronto!'
-    $err->crash(
-                'Pronto!',
-            '-$"'   => '=',
-        );                              # emits 'Bar=last call=Pronto!'
-
-If you interpolate an array into a double-quoted literal string, perl will 
-join the elements with C<$">. Similarly, if you late interpolate an array into
-an error message part, Error::Base will join the elements with the value of 
-C<< $self->{'-$"'} >>. This does not have any effect on the Perlish C<$">. 
-Similarly, C<$"> is ignored when Error::Base stirs the pot. 
-
-Also, message parts themselves are joined with C<< $self->{'-$"'} >>. 
-The default is a single space. This helps to avoid the unsightly appearance of 
-words stuck together because you did not include enough space in your args. 
-Empty elements are spliced out to avoid multiple consecutive spaces. 
-
-Note that C<< '-$"' >> is a perfectly acceptable hash key but it must be 
-quoted, lest trains derail in Vermont. The fat comma does not help. 
-
 =head2 LATE INTERPOLATION
 
 
@@ -997,12 +958,6 @@ You probably mis-set C<< -top >>, rational values of which are perhaps C<0..9>.
 
 You do I<not> have to pass paired arguments to most public methods. 
 Perhaps you passed an odd number of args to a private method. 
-
-=item C<< Error::Base internal error: undefined local list separator: >>
-
-C<init()> sets C<< $self->{'-$"'} = q{ } >> by default; you may also set it 
-to another value. If you want your message substrings tightly joined, 
-set C<< $self->{'-$"'} = q{} >>; don't undefine it. 
 
 =item C<< Error::Base internal error: bad reftype: >>
 
