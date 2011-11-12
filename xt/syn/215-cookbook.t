@@ -53,8 +53,8 @@ my $Verbose     = 0;
 #~    $Verbose++;
 
 for (@td) {
-    last if $_->{-end};
-    next if $_->{-skip};
+    last if     $_->{-end};
+    next unless $_->{-do};
     $tc++;
     my $case        = $base . $_->{-case};   
     note( "---- $case" );

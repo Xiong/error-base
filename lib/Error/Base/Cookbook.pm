@@ -15,7 +15,7 @@ my @td          ;
 sub get_test_data { @td };
 
 #~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
-#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+#~         -do     => 1, 
 
 #----------------------------------------------------------------------------#
 
@@ -66,7 +66,7 @@ The examples shown here in POD are also present as executable code.
 {   #
     push @td, {
         -case   => 'sanity-zero',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     my $obviously_true  = 0;
@@ -94,7 +94,7 @@ No need to plan ahead; just drop in a sanity check.
     my ($case1, $case2, $case3, $pointer);
     push @td, {
         -case   => 'sanity-case',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     if    ( $case1 ) { $pointer++ } 
@@ -129,7 +129,7 @@ Don't forget to pass some error message text. Unless you're in real big foo.
 {   #
     push @td, {
         -case   => 'construct-first-foo',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     my $err     = Error::Base->new('Foo');
@@ -144,7 +144,7 @@ Don't forget to pass some error message text. Unless you're in real big foo.
 {   #
     push @td, {
         -case   => 'construct-first-123',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     my $err     = Error::Base->new(
@@ -183,7 +183,7 @@ This will help keep your code uncluttered.
 {   #
     push @td, {
         -case   => 'one-go',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     Error::Base->crash(
@@ -219,7 +219,7 @@ parameters as L<new()|Error::Base/new()>.
 {   #
     push @td, {
         -case   => 'avoid-death-crank-gruel',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     Error::Base->crank('More gruel!');          # as class method
@@ -233,7 +233,7 @@ parameters as L<new()|Error::Base/new()>.
 {   #
     push @td, {
         -case   => 'avoid-death-un-err',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     my $err = Error::Base->new;
@@ -248,7 +248,7 @@ parameters as L<new()|Error::Base/new()>.
 {   #
     push @td, {
         -case   => 'avoid-death-tommy',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     my $err = Error::Base->new('See me');
@@ -263,7 +263,7 @@ parameters as L<new()|Error::Base/new()>.
 {   #
     push @td, {
         -case   => 'avoid-death-cusswords',
-        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     my $err = Error::Base->cuss('x%@#*!');      # also a constructor
@@ -314,7 +314,7 @@ my $err     = Error::Base->new( -base => 'Odor detected:' );
 my ( $fart, $room, $fire ) = ( 0, 0, 0 );
     push @td, {                         # no fart
         -case   => 'escalate-odor',
-#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     cook_dinner;
@@ -340,7 +340,7 @@ my ( $fart, $room, $fire ) = ( 1, 1, 0 );
 #~ my $err     = Error::Base->new( -base => 'Odor detected:' );
     push @td, {                         # some fart
         -case   => 'escalate-fart',
-#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     cook_dinner;
@@ -366,7 +366,7 @@ my ( $fart, $room, $fire ) = ( 5, 1, 0 );
 #~ my $err     = Error::Base->new( -base => 'Odor detected:' );
     push @td, {                         # too much fart
         -case   => 'escalate-room',
-#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     cook_dinner;
@@ -393,7 +393,7 @@ my ( $fart, $room, $fire ) = ( 0, 0, 1 );
 #~ my $err     = Error::Base->new( -base => 'Odor detected:' );
     push @td, {                         # FIRE
         -case   => 'escalate-fire',
-#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -do     => 1, 
         -code   => sub{
 #
     cook_dinner;
