@@ -11,6 +11,27 @@ use version 0.77; our $VERSION = qv('v0.1.1');
 #                                                                           #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+my @td          ;
+sub get_test_data { @td };
+
+#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
+#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+
+#----------------------------------------------------------------------------#
+
+sub words {                         # sloppy match these strings
+    my @words   = @_;
+    my $regex   = q{};
+    
+    for (@words) {
+        $_      = lc $_;
+        $regex  = $regex . $_ . '.*';
+    };
+    
+    return qr/$regex/is;
+};
+
+#----------------------------------------------------------------------------#
 
 =head1 NAME
 
@@ -36,13 +57,58 @@ inclusion. Thank you very much.
 
 =head1 EXAMPLES
 
+The examples shown here in POD are also present as executable code. 
+
 =head2 Sanity Check
 
-    my $obviously_true  = 0
-        or Error::Base->crash('Unexpected zero');
+=cut
+
+{   #
+    push @td, {
+        -case   => 'sanity-zero',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    my $obviously_true  = 0;
+    Error::Base->crash('Unexpected zero')
+        unless $obviously_true;
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Unexpected zero/,
+    };
+}   #
+
+=pod
+
+    my $obviously_true  = 0;
+    Error::Base->crash('Unexpected zero')
+        unless $obviously_true;
 
 You are certain that this will never happen but you decide to check it anyway. 
 No need to plan ahead; just drop in a sanity check. 
+
+=cut
+
+{   #
+    my ($case1, $case2, $case3, $pointer);
+    push @td, {
+        -case   => 'sanity-case',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    if    ( $case1 ) { $pointer++ } 
+    elsif ( $case2 ) { $pointer-- } 
+    elsif ( $case3 ) {  } 
+    else             { Error::Base->crash('Unimplemented case') };
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Unimplemented case/,
+    };
+}   #
+
+=pod
 
     if    ( $case1 ) { $pointer++ } 
     elsif ( $case2 ) { $pointer-- } 
@@ -57,6 +123,44 @@ case. Avoid this fallacy by checking explicitly for each implemented case.
 Don't forget to pass some error message text. Unless you're in real big foo.
 
 =head2 Construct First
+
+=cut
+
+{   #
+    push @td, {
+        -case   => 'construct-first-foo',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    my $err     = Error::Base->new('Foo');
+    $err->crash;
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Foo/,
+    };
+}   #
+
+{   #
+    push @td, {
+        -case   => 'construct-first-123',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    my $err     = Error::Base->new(
+                        'Third',
+                    -base     => 'First',
+                    -type     => 'Second',
+                );
+    $err->crash;
+#
+            },
+        -lby    => 'die',
+        -want   => qr/First Second Third/,
+    };
+}   #
+
+=pod
 
     my $err     = Error::Base->new('Foo');
     $err->crash;
@@ -74,6 +178,28 @@ This will help keep your code uncluttered.
 
 =head2 Construct and Throw in One Go
 
+=cut
+
+{   #
+    push @td, {
+        -case   => 'one-go',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    Error::Base->crash(
+            'Third',
+        -base     => 'First',
+        -type     => 'Second',
+    );
+#
+            },
+        -lby    => 'die',
+        -want   => qr/First Second Third/,
+    };
+}   #
+
+=pod
+
     Error::Base->crash(
             'Third',
         -base     => 'First',
@@ -88,10 +214,83 @@ parameters as L<new()|Error::Base/new()>.
 
 =head2 Avoiding Death
 
+=cut
+
+{   #
+    push @td, {
+        -case   => 'avoid-death-crank-gruel',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
     Error::Base->crank('More gruel!');          # as class method
+#
+            },
+        -lby    => 'warn',
+        -want   => qr/More gruel!/,
+    };
+}   #
+
+{   #
+    push @td, {
+        -case   => 'avoid-death-un-err',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    my $err = Error::Base->new;
     $err->crank;                                # as object method
-    my $err = Error::Base->crank('Misindented code');
-    $err->cuss('Frightening disaster!');
+#
+            },
+        -lby    => 'warn',
+        -want   => qr/Undefined error/,
+    };
+}   #
+
+{   #
+    push @td, {
+        -case   => 'avoid-death-tommy',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    my $err = Error::Base->new('See me');
+    $err->cuss('Feel me');
+#
+            },
+        -lby    => 'return-scalar',
+        -want   => qr/Feel me/,
+    };
+}   #
+
+{   #
+    push @td, {
+        -case   => 'avoid-death-cusswords',
+        -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    my $err = Error::Base->cuss('x%@#*!');      # also a constructor
+#
+            },
+        -lby    => 'return-object',
+        -want   => words(qw/
+            bless frames eval file line package sub
+            lines
+                line at
+                line at
+                ____ at
+            error base
+            /),
+    };
+}   #
+
+=pod
+
+    Error::Base->crank('More gruel!');          # as class method
+    
+    my $err = Error::Base->new;
+    $err->crank;                                # as object method
+    
+    my $err = Error::Base->new('See me');
+    $err->cuss('Feel me');
+    
     my $err = Error::Base->cuss('x%@#*!');      # also a constructor
 
 L<crank()|Error::Base/crank()> B<warn>s of your error condition. Perhaps it's 
@@ -104,6 +303,119 @@ debugging your error handling itself; substitute 'crash' or 'crank' later.
 
 =head2 Escalation
 
+=cut
+
+sub cook_dinner {};
+sub serve_chili {};
+sub add_recipie {};
+#~ my $err     = Error::Base->new( -base => 'Odor detected:', -quiet => 1 );
+my $err     = Error::Base->new( -base => 'Odor detected:' );
+{   #
+my ( $fart, $room, $fire ) = ( 0, 0, 0 );
+    push @td, {                         # no fart
+        -case   => 'escalate-odor',
+#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    cook_dinner;
+    $err->init( _cooked => 1 );
+    
+    serve_chili('mild');
+    $err->cuss ( -type => $fart )           if $fart;
+    $err->crank( -type => 'Air underflow' ) if $fart > $room;
+    add_recipie( $err );
+    
+    serve_chili('hot');
+    $err->crash( -type => 'Evacuate now' )  if $fire;
+#
+    $err;
+            },
+        -lby    => 'return-object',
+        -want   => qr/Odor detected:/,
+    };
+}   #
+
+{   #
+my ( $fart, $room, $fire ) = ( 1, 1, 0 );
+#~ my $err     = Error::Base->new( -base => 'Odor detected:' );
+    push @td, {                         # some fart
+        -case   => 'escalate-fart',
+#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    cook_dinner;
+    $err->init( _cooked => 1 );
+    
+    serve_chili('mild');
+    $err->cuss ( -type => $fart )           if $fart;
+    $err->crank( -type => 'Air underflow' ) if $fart > $room;
+    add_recipie( $err );
+    
+    serve_chili('hot');
+    $err->crash( -type => 'Evacuate now' )  if $fire;
+#
+    $err;
+            },
+        -lby    => 'return-object',
+        -want   => qr/Odor detected: 1/,
+    };
+}   #
+
+{   #
+my ( $fart, $room, $fire ) = ( 5, 1, 0 );
+#~ my $err     = Error::Base->new( -base => 'Odor detected:' );
+    push @td, {                         # too much fart
+        -case   => 'escalate-room',
+#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    cook_dinner;
+    $err->init( _cooked => 1 );
+    
+    serve_chili('mild');
+    $err->cuss ( -type => $fart )           if $fart;
+    $err->crank( -type => 'Air underflow' ) if $fart > $room;
+    add_recipie( $err );
+    
+    serve_chili('hot');
+    $err->crash( -type => 'Evacuate now' )  if $fire;
+#
+    $err;
+            },
+        -lby    => 'return-object',
+        -want   => qr/Odor detected: Air underflow/,
+        -cranky => 1,
+    };
+}   #
+
+{   #
+my ( $fart, $room, $fire ) = ( 0, 0, 1 );
+#~ my $err     = Error::Base->new( -base => 'Odor detected:' );
+    push @td, {                         # FIRE
+        -case   => 'escalate-fire',
+#~         -skip   => 1,   # ========= #  SKIP THIS TEST  # ============= # 
+        -code   => sub{
+#
+    cook_dinner;
+    $err->init( _cooked => 1 );
+    
+    serve_chili('mild');
+    $err->cuss ( -type => $fart )           if $fart;
+    $err->crank( -type => 'Air underflow' ) if $fart > $room;
+    add_recipie( $err );
+    
+    serve_chili('hot');
+    $err->crash( -type => 'Evacuate now' )  if $fire;
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Odor detected: Evacuate now/,
+        -cranky => 1,
+    };
+}   #
+
+=pod
+
     my $err     = Error::Base->new( -base => 'Odor detected:' );
     cook_dinner;
     $err->init( _cooked => 1 );
@@ -111,7 +423,7 @@ debugging your error handling itself; substitute 'crash' or 'crank' later.
     serve_chili('mild');
     $err->cuss ( -type => $fart )           if $fart;
     $err->crank( -type => 'Air underflow' ) if $fart > $room;
-    $log->store( $err );
+    add_recipie( $err );
     
     serve_chili('hot');
     $err->crash( -type => 'Evacuate now' )  if $fire;
