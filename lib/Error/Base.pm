@@ -242,26 +242,35 @@ sub _fuss {
     else {                                      # called as class method
         $self       = $self->new(@_);
     };
+    
     my $max         = 78;                       # maximum line length
+    my $message     ;                           # user-defined error message
+    my @lines       ;                           # to stringify $self
         
     # Collect all the texts into one message.
-    $self->{-msg}   = $self->_join_local(
+    $message        = $self->_join_local(
                         $self->{-base},
                         $self->{-type},
                         $self->{-pronto},
                     );
     
     # Late interpolate.    
-#~     ##### _fuss before:
-#~     ##### $self
-    $self->{-msg}   = $self->_late( $self->{-msg} );
-#~     ##### _fuss after:
-#~     ##### $self
+    $message        = $self->_late( $message );
     
     # If still no text in there, finally default.
-    if    ( not $self->{-msg}   ) {
-        $self->{-msg}   = 'Undefined error.';
+    if    ( not $message ) {
+        $message        = 'Undefined error.';
     }; 
+    $self->{-msg}   = $message;                 # keep for possible inspection
+
+    # Accumulate.
+    @lines          = ( $message );
+        
+    # Stack backtrace by default.
+    if ( not $self->{-quiet} ) {
+        my @trace       = $self->_trace( -top => $self->{-top} );
+        push @lines, @trace;
+    };
     
     # Optionally prepend some stuff.
     my $prepend     = q{};                      # prepended to first line
@@ -283,11 +292,19 @@ sub _fuss {
                         ;
     }; 
     
-    # First line is basic error text.
-    my $msg         = $self->_join_local(
-                        $prepend,
-                        $self->{-msg},
-                    );
+    @{ $self->{-lines} }    = $self->_join_local(
+                                $prepend,
+                                shift @lines
+                            );
+    push @{ $self->{-lines} }, map {
+                                    $self->_join_local(
+                                        $indent,
+                                        $_
+                                    )
+                                } @lines;
+    
+#~     ##### $self
+    return $self;
     
 #~     # Do something to control line length and deal with multi-line $msg.
 #~     my @temp        = split /\n/, $msg;         # in case it's multi-line
@@ -297,16 +314,6 @@ sub _fuss {
 #~     my $infix       = qq{\n} . $indent;
 #~        $msg         = join $infix, @temp;
     
-    $self->{-lines} = [ $msg ];                 # don't push; clear old @lines
-    
-    # Stack backtrace by default.
-    if ( not $self->{-quiet} ) {
-        my @trace       = $self->_trace( -top => $self->{-top} );
-        push @{ $self->{-lines} }, map { $indent . $_ } @trace;
-    };
-    
-#~     ##### $self
-    return $self;
 }; ## _fuss
 
 #=========# CLASS OR OBJECT METHOD
@@ -340,8 +347,8 @@ sub cuss{
 # Throws    : ____
 # See also  : init()
 # 
-# Buitin join() does not take $" (or anything else) by default; 
-#   and in any case $" eq q{} by default. 
+# Buitin join() does not take $" (or anything else) by default.
+# We splice out empty strings to avoid useless runs of spaces.  
 # Caller can set $self->{'-$"'} in any method that invokes init(). 
 # 
 sub _join_local {
