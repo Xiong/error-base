@@ -273,9 +273,9 @@ parameters as L<new()|Error::Base/new()>.
         -want   => words(qw/
             bless frames eval file line package sub
             lines
-                line at
-                line at
-                ____ at
+                     at line
+                     at line
+                ____ at line
             error base
             /),
     };
@@ -337,7 +337,6 @@ my ( $fart, $room, $fire ) = ( 0, 0, 0 );
 
 {   #
 my ( $fart, $room, $fire ) = ( 1, 1, 0 );
-#~ my $err     = Error::Base->new( -base => 'Odor detected:' );
     push @td, {                         # some fart
         -case   => 'escalate-fart',
         -do     => 1, 
@@ -363,7 +362,6 @@ my ( $fart, $room, $fire ) = ( 1, 1, 0 );
 
 {   #
 my ( $fart, $room, $fire ) = ( 5, 1, 0 );
-#~ my $err     = Error::Base->new( -base => 'Odor detected:' );
     push @td, {                         # too much fart
         -case   => 'escalate-room',
         -do     => 1, 
@@ -390,7 +388,6 @@ my ( $fart, $room, $fire ) = ( 5, 1, 0 );
 
 {   #
 my ( $fart, $room, $fire ) = ( 0, 0, 1 );
-#~ my $err     = Error::Base->new( -base => 'Odor detected:' );
     push @td, {                         # FIRE
         -case   => 'escalate-fire',
         -do     => 1, 
@@ -436,6 +433,33 @@ re-composed and re-formatted.
 
 =head2 Trapping the Fatal Error Object
 
+=cut
+
+{   #
+    push @td, {
+        -case   => 'eval',
+        -do     => 1, 
+        -code   => sub{
+#
+    eval{ Error::Base->crash('Houston...') };   # trap...
+    my $err     = $@ if $@;                     # ... and examine the object
+#
+            },
+        -lby    => 'return-object',
+        -want   => words(qw/
+            bless frames eval file line package sub
+            lines
+                houston
+                     at line
+                     at line
+                ____ at line
+            error base
+            /),
+    };
+}   #
+
+=pod
+
     eval{ Error::Base->crash('Houston...') };   # trap...
     my $err     = $@ if $@;                     # ... and examine the object
 
@@ -444,6 +468,67 @@ as a class method. If you trap the error you can capture the object and look
 inside it. 
 
 =head2 Backtrace Control
+
+=cut
+
+{   #
+my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'backtrace-quiet',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash( -quiet         => 1, );        # no backtrace
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Undefined error\.$/,
+    };
+}   #
+
+{   #
+my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'backtrace-top-0',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash( -top           => 0, );        # really full backtrace
+#
+            },
+        -lby    => 'die',
+        -want   => words(qw/
+            undefined error
+            error base fuss     at line
+            error base crash    at line
+                     at line
+                     at line
+                ____ at line
+            /),
+    };
+}   #
+
+{   #           # this test could be better: but implementation will change
+my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'backtrace-top-5',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash( -top           => 5, );        # skip top five frames
+#
+            },
+        -lby    => 'die',
+        -want   => words(qw/
+            undefined error
+                     at line
+                     at line
+                ____ at line
+            /),
+    };
+}   #
+
+=pod
 
     $err->crash( -quiet         => 1, );        # no backtrace
     $err->crash( -top           => 0, );        # really full backtrace
@@ -461,6 +546,12 @@ Beware that future implementations may change the number of stack frames
 added internally by Error::Base; and also you may see a different number of 
 frames if you subclass, depending on how you do that. The safer way: 
 
+=cut
+
+# wait for implementation change to test
+
+=pod
+
     my $err         = Error::Base->new('Foo');      # construct object
     $err->{-top}   += 1;                            # ignore one frame
     $err->crash();
@@ -469,19 +560,103 @@ This is ugly and you may get a convenience method in future.
 
 =head2 Wrapper Routine
 
+=cut
+
+{   #
+    sub _crash { Error::Base->crash( @_, -top => 3 ) };
+    my $obviously_true; 
+    push @td, {
+        -case   => 'wrapper',
+        -do     => 1, 
+        -code   => sub{
+#
+    # ... later...
+    _crash('Unexpected zero')
+        unless $obviously_true;
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Unexpected zero/,
+    };
+}   #
+
+=pod
+
     sub _crash { Error::Base->crash( @_, -top => 3 ) }; 
     # ... later...
-    my $obviously_true  = 0
-        or _crash('Unexpected zero');
+    _crash('Unexpected zero')
+        unless $obviously_true;
 
 Write a wrapper routine when trying to wedge sanity checks into dense code. 
 Error::Base is purely object-oriented and exports nothing. 
 
 =head2 Dress Left
 
+=cut
+
+{   #
     my $err     = Error::Base->new(
                     -prepend    => '@! Black Tie Lunch:',
                 );
+    push @td, {
+        -case   => 'prepend-only',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash ( 'Let\'s eat!' );
+        # emits "@! Black Tie Lunch: Let's eat!
+        #        @                   in main::fubar at line 42    [test.pl]"
+#
+            },
+        -lby    => 'die',
+        -want   => qr/\@! Black Tie Lunch: Let's eat!.\@                   in/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new(
+                    -prepend    => '@! Black Tie Lunch:',
+                );
+    push @td, {
+        -case   => 'prepend-indent',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash ( 'Let\'s eat!', -indent        => '%--' );
+        # emits "@! Black Tie Lunch: Let's eat!
+        #        %-- in main::fubar at line 42    [test.pl]"
+#
+            },
+        -lby    => 'die',
+        -want   => qr/\@! Black Tie Lunch: Let's eat!.%-- in/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new(
+                    -prepend    => '@! Black Tie Lunch:',
+                );
+    push @td, {
+        -case   => 'prepend-all',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash ( 'Let\'s eat!', -prepend_all   => '%--' );
+        # emits "%-- Let's eat!
+        #        %-- in main::fubar at line 42    [test.pl]"
+#
+            },
+        -lby    => 'die',
+        -want   => qr/%-- Let's eat!.%-- in/s,
+    };
+}   #
+
+=pod
+
+    my $err     = Error::Base->new(
+                    -prepend    => '@! Black Tie Lunch:',
+                );
+
     $err->crash ( 'Let\'s eat!' );
         # emits "@! Black Tie Lunch: Let's eat!
         #        @                   in main::fubar at line 42    [test.pl]"
@@ -495,12 +670,11 @@ Error::Base is purely object-oriented and exports nothing.
         #        %-- in main::fubar at line 42    [test.pl]"
 
 Any string passed to L<-prepend|Error::Base/-prepend> will be prepended to 
-the first line only 
-of the formatted error message. If L<-indent|Error::Base/-indent> is defined 
-then that will be
+the first line only of the formatted error message. 
+If L<-indent|Error::Base/-indent> is defined then that will be
 prepended to all following lines. If -indent is undefined then it will 
-be formed (from the first character only of -prepend) padded with spaces
-to the length of -prepend. 
+be formed (from the first character only of -prepend) 
+and (padded with spaces to the length of -prepend). 
 L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines. 
 
 =head2 Message Composition
