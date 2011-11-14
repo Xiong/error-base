@@ -116,7 +116,7 @@ my @td  = (
         -case   => 'the-whole-farm',
         -args   => [ 
                     '$farmboy'      => 'Hank',
-                    '$farmhand'      => \$yokel,
+                    '$farmhand'     => \$yokel,
                     '@farmgirls'    => [qw/ Ann Betty Cindy /],
                     '%livestock'    => {qw/ dog Spot cow Bessie horse Stud/},
                 ],
