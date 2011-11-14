@@ -975,6 +975,85 @@ Perl uses the value of C<$"> (C<$LIST_SEPARATOR>).
 If, for some reason, you wish to see message parts and interpolated elements 
 joined by something else, localize C<$">. 
 
+=head1 Demo
+
+Included in this distribution is a script, C<error-base-demo.pl>; output here. 
+You see a warning and a fatal error, each with stack backtrace from the 
+viewpoint of the error thrown. The invocation of C<cuss()> is silent. 
+
+The fatal error is trapped and printed, then dumped using 
+L<Devel::Comments|Devel::Comments>. Note that when printed, the object 
+stringifies to the intended error message and backtrace. Note also that 
+the private key C<_private> is retained in the object; while the message text 
+and backtrace is re-created at each invocation. 
+
+    Demo: cranking in eluder
+    in Spathi::eluder at line 37    [demo/error-base-demo.pl]
+    in Pkunk::fury    at line 30    [demo/error-base-demo.pl]
+    _________________ at line 18    [demo/error-base-demo.pl]
+    
+    Demo: crashing in scout
+    in (eval)          at line 48    [demo/error-base-demo.pl]
+    in Shofixti::scout at line 48    [demo/error-base-demo.pl]
+    in Spathi::eluder  at line 41    [demo/error-base-demo.pl]
+    in Pkunk::fury     at line 30    [demo/error-base-demo.pl]
+    __________________ at line 18    [demo/error-base-demo.pl]
+    
+    ### $trap: bless( {
+    ###                 '-base' => 'Demo:',
+    ###                 '-frames' => [
+    ###                                {
+    ###                                  '-eval' => undef,
+    ###                                  '-file' => 'demo/error-base-demo.pl',
+    ###                                  '-line' => '48',
+    ###                                  '-package' => 'Shofixti',
+    ###                                  '-sub' => '(eval)         '
+    ###                                },
+    ###                                {
+    ###                                  '-eval' => undef,
+    ###                                  '-file' => 'demo/error-base-demo.pl',
+    ###                                  '-line' => '48',
+    ###                                  '-package' => 'Shofixti',
+    ###                                  '-sub' => 'Shofixti::scout'
+    ###                                },
+    ###                                {
+    ###                                  '-eval' => undef,
+    ###                                  '-file' => 'demo/error-base-demo.pl',
+    ###                                  '-line' => '41',
+    ###                                  '-package' => 'Spathi',
+    ###                                  '-sub' => 'Spathi::eluder '
+    ###                                },
+    ###                                {
+    ###                                  '-eval' => undef,
+    ###                                  '-file' => 'demo/error-base-demo.pl',
+    ###                                  '-line' => '30',
+    ###                                  '-package' => 'Pkunk',
+    ###                                  '-sub' => 'Pkunk::fury    '
+    ###                                },
+    ###                                {
+    ###                                  '-bottom' => 1,
+    ###                                  '-eval' => undef,
+    ###                                  '-file' => 'demo/error-base-demo.pl',
+    ###                                  '-line' => '18',
+    ###                                  '-package' => 'main',
+    ###                                  '-sub' => '_______________'
+    ###                                }
+    ###                              ],
+    ###                 '-lines' => [
+    ###                               'Demo: crashing in scout',
+    ###                               'in (eval)          at line 48    [demo/error-base-demo.pl]',
+    ###                               'in Shofixti::scout at line 48    [demo/error-base-demo.pl]',
+    ###                               'in Spathi::eluder  at line 41    [demo/error-base-demo.pl]',
+    ###                               'in Pkunk::fury     at line 30    [demo/error-base-demo.pl]',
+    ###                               '__________________ at line 18    [demo/error-base-demo.pl]'
+    ###                             ],
+    ###                 '-msg' => 'Demo: crashing in scout',
+    ###                 '-pronto' => '',
+    ###                 '-top' => 2,
+    ###                 '-type' => 'crashing in scout',
+    ###                 _private => 'foo'
+    ###               }, 'Error::Base' )
+
 
 =head1 PHILOSOPHY
 
