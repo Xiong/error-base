@@ -1,1 +1,1 @@
-/home/xiong/projects/error-base/xt/main/125-new.t
+../unit/125-new.t

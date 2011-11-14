@@ -1,5 +1,10 @@
 Revision history for Error-Base
 
+v0.1.1  2011-11-05 10:37:02
+    - New Error::Base::Cookbook (with integration tests).
+    - Massive POD rewrite. 
+    - Allow late interpolation of $self (by that name).
+
 v0.1.0  2011-11-04 23:04:40
     - Add late interpolation feature.
     - Change process of error message composition. ( -base, -type, -pronto )

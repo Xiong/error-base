@@ -1,1 +1,1 @@
-/home/xiong/projects/error-base/xt/main/160-crash-late.t
+../unit/160-crash-late.t

@@ -1,1 +1,1 @@
-/home/xiong/projects/error-base/xt/main/115-cuss.t
+../unit/115-cuss.t
