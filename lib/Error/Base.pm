@@ -700,12 +700,6 @@ You are not required to subclass it.
                     -top        => 3,
                     -prepend    => '@! Black Tie Lunch:',
                     -indent     => '@!                 ',
-                    _foo         => bar,
-                );
-    my $err     = Error::Base->new(             # okay to pass both
-                        'bartender:'            # lone string...
-                    -base   => 'Bar error:',    # ... and named args
-                    -type   => 'last call',     # be more specific
                     _beer   => 'out of beer',   # your private attribute(s)
                 );
 
@@ -714,17 +708,26 @@ returning a new object based on an old one. You do have some freedom in how
 you call, though. 
 
 Called with an even number of args, they are all considered key/value pairs. 
-Keys with leading dash (C<'-'>) are reserved for use by Error::Base; 
-all others are free to use as you see fit. Error message text is constructed 
-as a single string.
+Keys with leading dash (C<'-'>) are reserved for use by Error::Base;
+keys led by a Perlish sigil (C<=~ /^[\$\@%]/>) trigger 
+L<late interpolation|/LATE INTERPOLATION>;
+all other keys are free to use as you see fit. 
+Error message text is constructed as a single string.
 
 Called with an odd number of args, the first arg is shifted off and appended
 to the error message text. This shorthand may be offensive to some; in which 
-case, don't do that. Instead, pass -base, -type, or both. 
+case, don't do that. Instead, pass C<< -base >>, C<< -type >>, or both. 
 
 You may stash any arbitrary data inside the returned object (during 
 construction or later) and do whatever you like with it. You might choose to 
 supply additional optional texts for later access. 
+
+Stringification is overridden on objects of this class. So, if you attempt to 
+print the object, or perform an operation that causes perl to want to treat 
+it as a string, you will get the printable error message. If you prefer to 
+examine the object internally, access its hash values; or dump it using 
+L<Data::Dumper|Data::Dumper>, L<Devel::Comments|Devel::Comments>, or 
+L<Test::More|Test::More>::explain().
 
 See L</PARAMETERS>.
 
@@ -732,16 +735,13 @@ See L</PARAMETERS>.
 
     Error::Base->crash('Sanity check failed');  # as class method
     $err->crash;                                # as object method
-    $err->crash(        # all the same args are okay in crash() as in new()
-                'bartender: '
-            -base   => 'Bar error:',
-        );
+        # all the same args are okay in crash() as in new()
     eval{ $err->crash };                        # trap...
-    my $err     = $@ if $@;                     # ... and examine the object
+    print STDERR $@ if $@;                      # ... and examine the object
 
 C<crash()> and other public methods may be called as class or object methods. 
 If called as a class method, then C<new()> is called internally. Call C<new()>
-yourself first if you want to call C<crash()> as an object method. 
+first if you want to call C<crash()> as an object method. 
 
 C<crash()> is a very thin wrapper, easy to subclass. It differs from similar 
 methods in that instead of returning its object, it C<die()>-s with it. 
@@ -749,13 +749,11 @@ If uncaught, the error will stringify; if caught, the entire object is yours.
 
 =head2 crank()
 
+    $err->crank( -type => 'Excessive boxes' ) if $box > $max;
+
 
 This is exactly like C<crash()> except that it C<warn()>s instead of 
-C<die()>-ing. Therefore it can also usefully be used as a constructor of an 
-object for later use. 
-
-C<crank()> is also a very thin wrapper. You may subclass it; you may trap 
-the entire object or let it stringify to STDERR.
+C<die()>-ing. Therefore you may easily recover the object for later use. 
 
 =head2 cuss()
 
@@ -778,10 +776,11 @@ error will be thrown without the bother of actually catching C<crash()>.
 
 The calling conventions are exactly the same as for the other public methods. 
 
-C<init()>, is called on a newly constructed object, as is conventional. 
+C<init()> is called on a newly constructed object, as is conventional. 
 If you call it a second time on an existing object, new C<@args> will 
 overwrite previous values. Internally, when called on an existing object,
-C<crash()>, C<crank()>, and C<cuss()> each call C<init()>. 
+C<crash()>, C<crank()>, and C<cuss()> each call C<init()>. When these are 
+called as class methods, they call C<new()>, which calls C<init()>.
 
 Therefore, the chief distinction between calling as class or object method is 
 that if you call new() first then you can separate the definition of your 
@@ -794,21 +793,13 @@ All parameter names begin with a leading dash (C<'-'>); please choose other
 names for your private keys. 
 
 If the same parameter is set multiple times, the most recent argument 
-completely overwrites the previous: 
-
-    my $err     = Error::Base->new( -top    => 3, );
-        # -top is now 3
-    $err->cuss(  -top    => 0, );
-        # -top is now 0
-    $err->crank( -top    => 1, );
-        # -top is now 1
+completely overwrites the previous value. 
 
 You are cautioned that deleting keys may be unwise. 
 
 =head2 -base
 
 I<scalar string>
-
 
 The value of C<< -base >> is printed in the first line of the stringified 
 error object after a call to C<crash()>, C<crank()>, or C<cuss()>. 
@@ -817,8 +808,8 @@ error object after a call to C<crash()>, C<crank()>, or C<cuss()>.
 
 I<scalar string>
 
-
 This parameter is provided as a way to express a subtype of error. 
+It is appended to C<< -base >>. 
 
 =head2 -pronto
 
@@ -826,29 +817,19 @@ I<scalar string>
 
     $err->crash( 'Pronto!' );           # emits 'Pronto!'
     $err->crash(
-                'Pronto!',
-            -base   => 'Bar',
-            -type   => 'last call',
-        );                              # emits 'Bar last call Pronto!'
-    $err->crash(
-            -base   => 'Bar',
-            -type   => 'last call',
             -pronto => 'Pronto!',
-        );                              # same thing
+    );                                  # same thing
 
 As a convenience, if the number of arguments passed in is odd, then the first 
-arg is shifted off and appnended to the error message. This is done to 
-simplify writing one-off, one-line sanity checks:
+arg is shifted off and appended to the error message 
+after C<< -base >> and C<< -type >>. 
+This is done to simplify writing one-off, one-line sanity checks:
 
     open( my $in_fh, '<', $filename )
         or Error::Base->crash("Couldn't open $filename for reading.");
 
 TODO: It is expected that each message argument be a single scalar. If you need 
 to pass a multi-line string then please embed escaped newlines (C<'\n'>). 
-
-=head2 -key
-
-This feature has been replaced by L</LATE INTERPOLATION>.
 
 =head2 -quiet
 
@@ -857,13 +838,16 @@ I<scalar boolean> default: undef
     $err->crash( -quiet         => 1, );        # no backtrace
 
 By default, you get a full stack backtrace. If you want none, set this 
-parameter. Only C<< -msg >> will be emitted. 
+parameter. Only error text will be emitted. 
 
 =head2 -top
 
 I<scalar unsigned integer> default: 2
 
-    $err->crash( -top           => 0, );        # really full backtrace
+By default, stack frames internal to Error::Base are not traced. 
+Set this parameter to adjust how many frames to discard. 
+
+TODO: A more elegant interface. 
 
 =head2 -prepend
 
@@ -877,6 +861,10 @@ I<scalar string> default: first char of -prepend, padded with spaces to length
 
 I<scalar string> default: undef
 
+The value of C<< -prepend >> is prepended to the first line of error text; 
+C<< -indent >> to all others. If given, C<< -prepend_all >> overrides the 
+other parameters and is prepended to all lines. 
+
 This is a highly useful feature that improves readability in the middle of a 
 dense dump. So in future releases, the default may be changed to form 
 C<< -prepend >> in some way for you if not defined. If you are certain you 
@@ -884,6 +872,12 @@ want no prepending or indentation, pass the empty string, C<q{}>.
 
 =head2 LATE INTERPOLATION
 
+It is possible to interpolate a variable that is I<not in scope> 
+into error message text. This is triggered by passing the value against a 
+key whose leading character is a Perlish sigil, one of C<$@%>. 
+Enclose the text (including placeholders) in single quotes. 
+For a detailed explanation, 
+see the L<Cookbook|Error::Base::Cookbook/Late Interpolation>.
 
 =head1 RESULTS
 
@@ -891,10 +885,11 @@ Soon, I'll write accessor methods for all of these. For now, rough it.
 
 =head2 -msg
 
-I<scalar string> default: 'Undefined error'
+I<scalar string> default: 'Undefined error.'
 
-The error message, expanded, without -prepend or backtrace. An empty message 
-is not allowed; if none is provided by any means, 'Undefined error' emits. 
+The error message, expanded, without C<< -prepend >> or backtrace. 
+An empty message is not allowed; if none is provided by any means, 
+'Undefined error.' emits. 
 
 =head2 -lines
 
@@ -989,7 +984,7 @@ None known.
 
 =head1 BUGS AND LIMITATIONS
 
-This is a very early release. Reports will be warmly welcomed. 
+This is an early release. Reports and suggestions will be warmly welcomed. 
 
 Please report any bugs or feature requests to
 C<bug-error-base@rt.cpan.org>, or through the web interface at
