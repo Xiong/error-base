@@ -935,6 +935,7 @@ This implementation of this feature does not peek into your pad.
 You may not receive an 'uninitialized' warning if a value is missing. 
 
 If you don't like this feature, don't use it and it won't bug you. 
+B<Currently> you must pass a sigiled key to trigger late interpolation. 
 
 =head2 Local List Separator
 

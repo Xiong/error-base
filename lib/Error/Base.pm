@@ -521,7 +521,8 @@ sub _late {
         # Each key includes leading sigil.
         my @keys    = grep { /^[\$\@%]/ } keys %$Error::Base::Late::self;
         return $Error::Base::Late::in   # abort if not interpolating today
-            unless ( @keys or $Error::Base::Late::in =~ /\$self/ );
+#~             unless ( @keys or $Error::Base::Late::in =~ /\$self/ );
+            unless ( @keys );
         my $key     ;  # placeholder includes sigil!
         my $val     ;  # value to be interpolated
         my $rt      ;  # builtin 'ref' returns (unwanted) class of blessed ref
@@ -691,14 +692,15 @@ You are not required to subclass it.
 
 =head2 new()
 
-    my $err     = Error::Base->new('Foo');      # constructor
-    my $err     = Error::Base->new(             # with named args
+    my $err     = Error::Base->new;             # constructor
+    my $err     = Error::Base->new(
+                        'bartender:',           # lone string first okay
                     -base       => 'Bar error:',
                     -quiet      => 1,
                     -top        => 3,
-                    -prepend    => '@! Globalcorpcoapp:',
+                    -prepend    => '@! Black Tie Lunch:',
                     -indent     => '@!                 ',
-                    foo         => bar,
+                    _foo         => bar,
                 );
     my $err     = Error::Base->new(             # okay to pass both
                         'bartender:'            # lone string...
