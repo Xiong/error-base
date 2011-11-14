@@ -901,6 +901,7 @@ C<'$aryref'>.
         -code   => sub{
 #
     my $err     = Error::Base->new(
+                    '$trigger'      => 1,
                     -base       => 'Trouble:',
                     -type       => 'Right here in $self->{_where}!',
                 );
@@ -916,6 +917,7 @@ C<'$aryref'>.
 =pod
 
     my $err     = Error::Base->new(
+                    '$trigger'      => 1,       # unused key triggers "late"
                     -base       => 'Trouble:',
                     -type       => 'Right here in $self->{_where}!',
                 );

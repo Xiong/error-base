@@ -16,6 +16,7 @@ my @td  = (
     {
         -case   => 'array-ref',
         -args   => [ 
+                    '$trigger'      => 1,
                     '_farmgirls'    => [qw/ Ann Betty Cindy /],
                 ],
         -istr   => q*yabba(@{ $self->{_farmgirls} })dabba*,
@@ -25,6 +26,7 @@ my @td  = (
     {
         -case   => 'array-slice',
         -args   => [ 
+                    '$trigger'      => 1,
                     '_farmgirls'    => [qw/ Ann Betty Cindy /],
                 ],
         -istr   => q*yabba(@{ $self->{_farmgirls} }[0,2])dabba*,
@@ -34,6 +36,7 @@ my @td  = (
     {
         -case   => 'the-whole-farm',
         -args   => [ 
+                    '$trigger'      => 1,
                     '_farmboy'      => 'Hank',
                     '_farmhand'     => \$yokel,
                     '_farmgirls'    => [qw/ Ann Betty Cindy /],
