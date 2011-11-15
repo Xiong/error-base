@@ -688,14 +688,17 @@ modules (and few of those), exports no symbols, and is purely object-oriented.
 I hope you will be able to use it commonly instead of a simple C<die()>. 
 You are not required to subclass it. 
 
+See the L<Error::Base::Cookbook|Error::Base::Cookbook> for examples. 
+
 =head1 METHODS 
 
 =head2 new()
 
     my $err     = Error::Base->new;             # constructor
     my $err     = Error::Base->new(
-                        'bartender:',           # lone string first okay
+                        'bartender',            # lone string first okay
                     -base       => 'Bar error:',
+                    -type       => 'last call',
                     -quiet      => 1,
                     -top        => 3,
                     -prepend    => '@! Black Tie Lunch:',
@@ -870,7 +873,7 @@ dense dump. So in future releases, the default may be changed to form
 C<< -prepend >> in some way for you if not defined. If you are certain you 
 want no prepending or indentation, pass the empty string, C<q{}>.
 
-=head2 LATE INTERPOLATION
+=head1 LATE INTERPOLATION
 
 It is possible to interpolate a variable that is I<not in scope> 
 into error message text. This is triggered by passing the value against a 
@@ -930,6 +933,8 @@ do so, successfully or not, please be so kind as to notify.
 
 =head1 SEE ALSO
 
+L<Error::Base::Cookbook|Error::Base::Cookbook>
+
 Many error-related modules are available on CPAN. Some do bizarre things. 
 
 L<Exception::Class|Exception::Class>, L<Error|Error>, L<Exception|Exception>, L<Carp|Carp>, L<Test::Trap|Test::Trap>.
@@ -958,7 +963,12 @@ Perhaps you passed an odd number of args to a private method.
 
 =item C<< Error::Base internal error: bad reftype: >>
 
-You attempted to late-interpolate a reference other than to a scalar, array, or hash. Don't pass such references as values to any key with the wrong sigil. 
+You attempted to late-interpolate a reference other than to a scalar, array, 
+or hash. Don't pass such references as values to any key with the wrong sigil. 
+
+=item C<< Error::Base internal error: no $self: >>
+
+Called a method without class or object. Did you call as function?
 
 =back
 

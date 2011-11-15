@@ -118,7 +118,7 @@ No need to plan ahead; just drop in a sanity check.
 In constructs like this, it's tempting to think you've covered every possible 
 case. Avoid this fallacy by checking explicitly for each implemented case. 
 
-    Error::Base->crash;         # emits 'Unimplemented error' with backtrace.
+    Error::Base->crash;         # emits 'Undefined error.' with backtrace.
     
 Don't forget to pass some error message text. Unless you're in real big foo.
 
@@ -252,7 +252,7 @@ parameters as L<new()|Error::Base/new()>.
         -code   => sub{
 #
     my $err = Error::Base->new('See me');
-    $err->cuss('Feel me');
+    $err->cuss('Feel me');                      # trace stored in object
 #
             },
         -lby    => 'return-scalar',
@@ -289,7 +289,7 @@ parameters as L<new()|Error::Base/new()>.
     $err->crank;                                # as object method
     
     my $err = Error::Base->new('See me');
-    $err->cuss('Feel me');
+    $err->cuss('Feel me');                      # trace stored in object
     
     my $err = Error::Base->cuss('x%@#*!');      # also a constructor
 
@@ -781,7 +781,7 @@ to expand and trace without throwing, invoke L<cuss()|Error::Base/cuss()>.
 Nothing special here; as usual, double quotes interpolate a variable that is 
 in scope at the place where the error is thrown. 
 
-=head1 Late Interpolation
+=head2 Late Interpolation
 
 =cut
 
@@ -978,7 +978,7 @@ Perl uses the value of C<$"> (C<$LIST_SEPARATOR>).
 If, for some reason, you wish to see message parts and interpolated elements 
 joined by something else, localize C<$">. 
 
-=head1 Demo
+=head1 DEMO
 
 Included in this distribution is a script, C<error-base-demo.pl>; output here. 
 You see a warning and a fatal error, each with stack backtrace from the 
