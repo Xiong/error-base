@@ -1,5 +1,9 @@
 Revision history for Error-Base
 
+v0.1.2  2011-11-18 14:27:10
+    - Minor POD fixes.
+    - Correct version.pm use-line.
+
 v0.1.1  2011-11-05 10:37:02
     - New Error::Base::Cookbook (with integration tests).
     - Massive POD rewrite. 
