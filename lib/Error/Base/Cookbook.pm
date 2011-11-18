@@ -3,7 +3,7 @@ package Error::Base::Cookbook;
 use 5.008008;
 use strict;
 use warnings;
-use version 0.77; our $VERSION = qv('v0.1.2');
+use version; our $VERSION = qv('v0.1.2');
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                           #
