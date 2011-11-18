@@ -104,7 +104,7 @@ then
 fi
 
 # Copy xt/ to hold/pack/                # 2011-11-18 14:32:49
-if [ -d inc ]
+if [ -d xt ]
 then
     cp --recursive --no-dereference --preserve=mode,ownership,timestamps \
     $verbose \
@@ -122,7 +122,7 @@ then
 fi
 
 # Copy demo/ to hold/pack/              # 2011-11-18 14:32:49
-if [ -d inc ]
+if [ -d demo ]
 then
     cp --recursive --no-dereference --preserve=mode,ownership,timestamps \
     $verbose \
@@ -140,7 +140,7 @@ then
 fi
 
 # Copy setup/ to hold/pack/             # 2011-10-25 02:13:17
-if [ -d inc ]
+if [ -d setup ]
 then
     cp --recursive --no-dereference --preserve=mode,ownership,timestamps \
     $verbose \
