@@ -1,0 +1,1 @@
+/home/xiong/projects/error-base/xt/err/320-bad-reftype.t
