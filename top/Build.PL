@@ -8,7 +8,6 @@ my $builder = Module::Build->new(
     license             => 'artistic_2',
     dist_author         => 'Xiong Changnian <xiong@cpan.org>',
     dist_version_from   => 'lib/Error/Base.pm',
-    use_tap_harness     => 1,
     configure_requires  => { 
         'Module::Build'             => 0.38, 
     },
@@ -21,6 +20,7 @@ my $builder = Module::Build->new(
     },
     recommends          => {
         'Devel::Comments'           => '1.1.4',
+        'Test::Trap'                => '0.2.1',
     },
     build_requires      => {
         'Test::More'                => 0.94,

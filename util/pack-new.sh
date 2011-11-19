@@ -103,8 +103,44 @@ then
     exit 1
 fi
 
+# Copy xt/ to hold/pack/                # 2011-11-18 14:32:49
+if [ -d xt ]
+then
+    cp --recursive --no-dereference --preserve=mode,ownership,timestamps \
+    $verbose \
+    xt/ \
+    hold/pack/
+else
+    echo "& No xt/ found."
+fi
+
+if (( $? ))
+then
+    echo "& Error copying xt/ to hold/pack/."
+    echo "& ...Aborting."
+    exit 1
+fi
+
+# Copy demo/ to hold/pack/              # 2011-11-18 14:32:49
+if [ -d demo ]
+then
+    cp --recursive --no-dereference --preserve=mode,ownership,timestamps \
+    $verbose \
+    demo/ \
+    hold/pack/
+else
+    echo "& No demo/ found."
+fi
+
+if (( $? ))
+then
+    echo "& Error copying demo/ to hold/pack/."
+    echo "& ...Aborting."
+    exit 1
+fi
+
 # Copy setup/ to hold/pack/             # 2011-10-25 02:13:17
-if [ -d inc ]
+if [ -d setup ]
 then
     cp --recursive --no-dereference --preserve=mode,ownership,timestamps \
     $verbose \
