@@ -495,8 +495,10 @@ sub _late {
 #~ ##### CASE:
 #~ ##### @_    
     # No lexical variables loose in the outer block of the subroutine.
-    $Error::Base::Late::self    = shift 
-        or die 'Error::Base internal error: no $self: ', $!;
+    $Error::Base::Late::self    = shift;
+    if ( not ref $Error::Base::Late::self ) {
+        die 'Error::Base internal error: no $self';
+    };
     $Error::Base::Late::in      = shift || undef;
     return $Error::Base::Late::in 
         unless $Error::Base::Late::in =~ /[\$\@%]/; # no sigil, don't bother
@@ -976,7 +978,7 @@ Perhaps you passed an odd number of args to a private method.
 You attempted to late-interpolate a reference other than to a scalar, array, 
 or hash. Don't pass such references as values to any key with the wrong sigil. 
 
-=item C<< no $self: >>
+=item C<< no $self >>
 
 Called a method without class or object. Did you call as function?
 
