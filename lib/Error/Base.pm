@@ -562,7 +562,7 @@ sub _late {
                 $sigil      = q{%};
             } 
             else {
-                die 'Error::Base internal error: bad reftype: ', $!;
+                die 'Error::Base internal error: bad reftype';
             };
             
             #        my $key = $sigil?$Error::Base::Late::self->{'$key'}?;
@@ -973,7 +973,7 @@ You probably mis-set C<< -top >>, rational values of which are perhaps C<0..9>.
 You do I<not> have to pass paired arguments to most public methods. 
 Perhaps you passed an odd number of args to a private method. 
 
-=item C<< bad reftype: >>
+=item C<< bad reftype >>
 
 You attempted to late-interpolate a reference other than to a scalar, array, 
 or hash. Don't pass such references as values to any key with the wrong sigil. 
