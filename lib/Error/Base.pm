@@ -56,7 +56,7 @@ sub _stringify {
         return join qq{\n}, @{ $self->{-lines} }, q{};
     }
     else {
-        return 'Error::Base internal error: failed to stringify $self';
+        return 'Error::Base internal error: stringifing unthrown object';
     };
         
 }; ## _stringify
@@ -981,6 +981,13 @@ or hash. Don't pass such references as values to any key with the wrong sigil.
 =item C<< no $self >>
 
 Called a method without class or object. Did you call as function?
+
+=item C<< stringifing unthrown object >>
+
+An object of this class will stringify to its printable error message 
+(including backtrace if any) when thrown. There is nothing to see (yet) if 
+you try to print an object that has been constructed but not (yet) thrown. 
+This error is not fatal; it is returned as the stringification. 
 
 =item C<< in _late eval: >>
 
