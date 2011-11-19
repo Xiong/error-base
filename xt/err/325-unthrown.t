@@ -53,18 +53,18 @@ my $Verbose     = 0;
     
     my $t           ;
     my $code        ;
-    my $leaveby     = 'die';
-    my $want        = qr/bad reftype/;
+    my $leaveby     = 'return-loudly';
+    my $want        = qr/unthrown object/;
     my $cranky      ;
     my $xtra        ;
-    my @args        = ( '$in' => sub{return} );
+    my @args        = 'Yepper.';
     my $istr        = 'flim($in)flam';
     
     $tc++;
     $diag           = 'execute';
     @rv             = trap{ 
         my $err = Error::Base->new(@args); 
-           $err->cuss($istr); 
+           print $err; 
         
     };
     pass( $diag );          # test didn't blow up
@@ -91,6 +91,14 @@ my $Verbose     = 0;
         $trap->return_like  ( 0, $want, $diag );    # always returns aryref
         $diag           = 'return-quietly';
         $trap->quiet        ( $diag ) unless $cranky;
+    } 
+    elsif ( $leaveby eq 'return-loudly' and defined $want ) {
+    $tc++;
+        $diag           = 'should-return';
+        $trap->did_return   ( $diag );
+    $tc++;
+        $diag           = 'stdout-like';
+        $trap->stdout_like  ( $want, $diag );
     } 
     elsif ( $leaveby eq 'return-object' and defined $want ) {
         $diag           = 'should-return';
