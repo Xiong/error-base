@@ -20,6 +20,7 @@ my $builder = Module::Build->new(
     },
     recommends          => {
         'Devel::Comments'           => '1.1.4',
+        'Test::Trap'                => '0.2.1',
     },
     build_requires      => {
         'Test::More'                => 0.94,

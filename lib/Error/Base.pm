@@ -149,7 +149,7 @@ sub _trace {
         
         # Safety exit from while loop.
         $i++;
-        die 'Error::Base internal error: excessive backtrace: ', $!
+        die 'Error::Base internal error: excessive backtrace'
             if $i > 99;
 #~ last if $i > 9;                                             # DEBUG ONLY #~
         
@@ -961,7 +961,7 @@ All errors internal to this module are prefixed C<< Error::Base internal... >>
 
 =over
 
-=item C<< excessive backtrace: >>
+=item C<< excessive backtrace >>
 
 Attempted to capture too many frames of backtrace. 
 You probably mis-set C<< -top >>, rational values of which are perhaps C<0..9>.
