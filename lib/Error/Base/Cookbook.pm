@@ -856,11 +856,11 @@ and I<before> any prepending, indentation, line-breaking, or stack tracing.
         -code   => sub{
 #
     my $err     = Error::Base->new(
-                    '$scalar'       => 'scalar',
+                    '$sca'          => 'one',
                     '@ary_ref'      => [ 'white', 'black' ],
                     '%hash_ref'     => { hash => 'hog', toe => 'jam' },
                 );
-    $err->crash( '|$scalar|@ary_ref|$ary_ref[1]|@hash_ref{ hash, toe }|' );
+    $err->crash( '|$sca|@ary_ref|$ary_ref[1]|@hash_ref{ qw/ hash toe / }|' );
                                 # emits '|one|white black|black|hog jam|'
 #
             },
@@ -872,11 +872,11 @@ and I<before> any prepending, indentation, line-breaking, or stack tracing.
 =pod
 
     my $err     = Error::Base->new(
-                    '$scalar'       => 'one',
+                    '$sca'          => 'one',
                     '@ary_ref'      => [ 'white', 'black' ],
                     '%hash_ref'     => { hash => 'hog', toe => 'jam' },
                 );
-    $err->crash( '|$scalar|@ary_ref|$ary_ref[1]|@hash_ref{ hash, toe }|' );
+    $err->crash( '|$sca|@ary_ref|$ary_ref[1]|@hash_ref{ qw/ hash toe / }|' );
                                 # emits '|one|white black|black|hog jam|'
 
 You may use scalar or array placeholders, signifying them with the usual 
@@ -977,6 +977,26 @@ Perl uses the value of C<$"> (C<$LIST_SEPARATOR>).
 
 If, for some reason, you wish to see message parts and interpolated elements 
 joined by something else, localize C<$">. 
+
+=head1 EXAMPLE CODE
+
+=head2 get_test_data
+
+=head2 words
+
+=head2 cook_dinner
+
+=head2 serve_chili
+
+=head2 add_recipie
+
+=head2 _crash
+
+=head2 bar
+
+This module contains executable code matching each snippet you see in POD; 
+this code is exercised by the Error::Base test suite. You're welcome to look. 
+Please, don't try to C<use> the ::Cookbook!
 
 =head1 DEMO
 

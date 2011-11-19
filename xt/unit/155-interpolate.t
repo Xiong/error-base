@@ -107,9 +107,9 @@ my @td  = (
                     '@farmgirls'    => [qw/ Ann Betty Cindy /],
                 ],
         -istr   => q*yabba($farmboy)($farmgirls[1])dabba*,
-        -want   => q*yabba()(Betty)dabba*,
-        # interpolates empty string for undefined placeholder
-        #   uninitialized warnings suppressed
+        -want   => q*yabba($farmboy)($farmgirls[1])dabba*,
+        -warns  => 1,
+        # raises internal warning and emits ::in
     },
     
     {
@@ -157,6 +157,10 @@ for (@td) {
     my $case        = $base . $_->{-case};
     
     note( "---- $case" );
+    if ($_->{-warns}) { 
+        diag("$case: This case should emit a warning.");
+    };
+    
     subtest $case => sub { exck($_) };
 }; ## for
     

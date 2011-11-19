@@ -489,8 +489,11 @@ package Error::Base::Late;   # switch package to avoid pseudo-global lexicals
 #       I chose heredocs and three long, arbitrary strings. 
 # 
 sub _late {
+    use strict;
+    use warnings;
     no warnings 'uninitialized';          # too many to count
-    
+#~ ##### CASE:
+#~ ##### @_    
     # No lexical variables loose in the outer block of the subroutine.
     $Error::Base::Late::self    = shift 
         or die 'Error::Base internal error: no $self: ', $!;
@@ -561,7 +564,7 @@ sub _late {
             };
             
             #        my $key = $sigil?$Error::Base::Late::self->{'$key'}?;
-            push @code, 
+            push @Error::Base::Late::code, 
                 ( join q{}, 
                     $ch1, $key, $ch2, 
                     $sigil, $lbc, $ch3, $key, $ch4, $rbc, $ch5,
@@ -571,7 +574,7 @@ sub _late {
     # ... done unpacking.
     
     # Do the late interpolation phase. 
-    push @code, 
+    push @Error::Base::Late::code, 
         q**,
         q*<<Heredoc01_Y0uMaYFiReWHeNReaDYGRiDLeY;*,
 <<Heredoc02_Y0uMaYFiReWHeNReaDYGRiDLeY,
@@ -595,7 +598,10 @@ $Error::Base::Late::out     = eval
 $Error::Base::Late::eval_code
 Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY
         
-        warn "Error::Base internal warning: in _late eval: $@" if $@;
+        if ($@) {
+            warn "Error::Base internal warning: in _late eval: $@";
+            return $Error::Base::Late::in;           # best we can do
+        };
         
 #~         ##### CASE
 #~         ##### $Error::Base::Late::self
@@ -610,6 +616,8 @@ Heredoc03_Y0uMaYFiReWHeNReaDYGRiDLeY
     # Heredocs add spurious newlines.
     chomp  $Error::Base::Late::out;
     chomp  $Error::Base::Late::out;
+#~ my $out =  $Error::Base::Late::out;
+#~ ##### $out;
     return $Error::Base::Late::out;
 }; ## _late
 
@@ -949,26 +957,35 @@ This module emits error messages I<for> you; it is hoped you won't encounter
 any from within itself. If you do see one of these errors, kindly report to RT 
 so maintainer can take action. Thank you for helping. 
 
+All errors internal to this module are prefixed C<< Error::Base internal... >>
+
 =over
 
-=item C<< Error::Base internal error: excessive backtrace: >>
+=item C<< excessive backtrace: >>
 
 Attempted to capture too many frames of backtrace. 
 You probably mis-set C<< -top >>, rational values of which are perhaps C<0..9>.
 
-=item C<< Error::Base internal error: unpaired args: >>
+=item C<< unpaired args: >>
 
 You do I<not> have to pass paired arguments to most public methods. 
 Perhaps you passed an odd number of args to a private method. 
 
-=item C<< Error::Base internal error: bad reftype: >>
+=item C<< bad reftype: >>
 
 You attempted to late-interpolate a reference other than to a scalar, array, 
 or hash. Don't pass such references as values to any key with the wrong sigil. 
 
-=item C<< Error::Base internal error: no $self: >>
+=item C<< no $self: >>
 
 Called a method without class or object. Did you call as function?
+
+=item C<< in _late eval: >>
+
+Attempted to late-interpolate badly. Check your code. The interpolation 
+failed so you cannot expect to see the correct error message text. 
+On the offchance that you would like to see the stack backtrace anyway, 
+this error is not fatal. 
 
 =back
 
