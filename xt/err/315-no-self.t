@@ -48,7 +48,7 @@ if ( not $::module_loaded ) {
 
 # Extra-verbose dump optional for test script debug.
 my $Verbose     = 0;
-   $Verbose++;
+#~    $Verbose++;
 
     
     my $t           ;
