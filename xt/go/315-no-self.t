@@ -1,0 +1,1 @@
+/home/xiong/projects/error-base/xt/err/315-no-self.t
