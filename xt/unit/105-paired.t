@@ -69,7 +69,7 @@ for (@td) {
         $diag           = 'execute';
         @rv             = eval{ Error::Base::_paired(@args) };
         pass( $diag );          # test didn't blow up
-        note($@) if $@;         # did code under test blow up?
+#~         note($@) if $@;         # did code under test blow up?
         
         if    ($die) {
             $diag           = 'should throw';
