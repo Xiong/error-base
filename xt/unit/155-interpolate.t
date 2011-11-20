@@ -150,7 +150,7 @@ my $want        ;
 
 # Extra-verbose dump optional for test script debug.
 my $Verbose     = 0;
-   $Verbose++;
+#~    $Verbose++;
 
 for (@td) {
     $tc++;
