@@ -10,7 +10,7 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: synopsis-intro: ';
+my $base        = 'Error-Base: load-optional: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;

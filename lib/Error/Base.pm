@@ -9,7 +9,7 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v0.1.3');
+use version; our $VERSION = qv('v0.1.4');
 
 # Core modules
 use overload                    # Overload Perl operations
@@ -374,7 +374,7 @@ sub _join_local {
 #   
 sub _paired {
     if ( scalar @_ % 2 ) {  # an odd number modulo 2 is one: true
-        die 'Error::Base internal error: unpaired args: ', $!;
+        die 'Error::Base internal error: unpaired args';
     };
     return @_;
 }; ## _paired
@@ -636,7 +636,7 @@ Error::Base - Simple structured errors with full backtrace
 
 =head1 VERSION
 
-This document describes Error::Base version v0.1.3
+This document describes Error::Base version v0.1.4
 
 =head1 SYNOPSIS
 
