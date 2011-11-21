@@ -56,7 +56,7 @@ sub _stringify {
         return join qq{\n}, @{ $self->{-lines} }, q{};
     }
     else {
-        return 'Error::Base internal error: stringifing unthrown object';
+        return 'Error::Base internal error: stringifying unthrown object';
     };
         
 }; ## _stringify
@@ -982,7 +982,7 @@ or hash. Don't pass such references as values to any key with the wrong sigil.
 
 Called a method without class or object. Did you call as function?
 
-=item C<< stringifing unthrown object >>
+=item C<< stringifying unthrown object >>
 
 An object of this class will stringify to its printable error message 
 (including backtrace if any) when thrown. There is nothing to see (yet) if 

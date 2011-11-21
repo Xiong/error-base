@@ -9,7 +9,8 @@ BEGIN {
 }   
 
 BEGIN {
-use Error::Base;               # Find, install property-support-config files
+use Error::Base;                # Simple structured errors with full backtrace
+use Error::Base::Cookbook;      # Examples of Error::Base usage
     
 }
 
