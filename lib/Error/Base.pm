@@ -1006,13 +1006,14 @@ Error::Base requires no configuration files or environment variables.
 
 There are no non-core dependencies. 
 
-L<version|version> 0.94                 # Perl extension for Version Objects
+L<version|version> 0.94    # Perl extension for Version Objects
 
-L<overload|overload>                    # Overload Perl operations
+L<overload|overload>    # Overload Perl operations
 
-L<Scalar::Util|Scalar::Util>            # General-utility scalar subroutines
+L<Scalar::Util|Scalar::Util>    # General-utility scalar subroutines
 
 This module should work with any version of perl 5.8.8 and up. 
+However, you may need to upgrade some core modules. 
 
 =head1 INCOMPATIBILITIES
 

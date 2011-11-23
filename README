@@ -30,7 +30,8 @@ DEPENDENCIES
 
 perl 5.8.8 or better. 
 For Perl module dependencies, please see Build.PL.
-This module has no non-core dependencies. 
+This module has no non-core dependencies; however you may need to upgrade 
+some core modules if your perl is old. 
 
 LICENSE
 
