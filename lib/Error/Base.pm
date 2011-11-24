@@ -1,6 +1,6 @@
 package Error::Base;
 #=========# MODULE USAGE
-#~ use Error::Base;               # Simple structured errors with full backtrace
+#~ use Error::Base;                # Simple structured errors with full backtrace
 #~ 
 
 #=========# PACKAGE BLOCK
