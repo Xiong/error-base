@@ -1,0 +1,1 @@
+/home/xiong/projects/error-base/xt/000/020-strict.t
