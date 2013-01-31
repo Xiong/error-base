@@ -21,22 +21,25 @@ my $want        ;
 
 # Load non-core modules conditionally
 BEGIN{
+    my $diag   = 'load-test-trap';
     eval{
         require Test::Trap;         # Block eval on steroids
         Test::Trap->import (qw/ :default /);
     };
-    $::module_loaded    = !$@;          # loaded if no error
+    my $module_loaded    = !$@;          # loaded if no error
                                             #   must be package variable
                                             #       to escape BEGIN block
-}; ## BEGIN
+    if ( $module_loaded ) {
+        note($diag);
+    }
+    else {
+        diag('Test::Trap required to execute this test script; skipping.');
+        pass;
+        done_testing(1);
+        exit 0;
+    };
 
-$tc++;
-$diag   = $base . 'load-test-trap';
-pass($diag);
-if ( not $::module_loaded ) {
-    note('Test::Trap (recommended) required to execute this test script.');
-    exit 0;
-};
+}; ## BEGIN
 
 #----------------------------------------------------------------------------#
 

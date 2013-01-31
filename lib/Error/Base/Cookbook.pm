@@ -3,7 +3,7 @@ package Error::Base::Cookbook;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v0.1.3');
+use version; our $VERSION = qv('v0.1.4');
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                           #
@@ -39,7 +39,7 @@ Error::Base::Cookbook - Examples of Error::Base usage
 
 =head1 VERSION
 
-This document describes Error::Base version v0.1.3
+This document describes Error::Base version v0.1.4
 
 =head1 DESCRIPTION
 
