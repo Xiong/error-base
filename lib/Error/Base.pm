@@ -638,6 +638,24 @@ Error::Base - Simple structured errors with full backtrace
 
 This document describes Error::Base version v0.1.4
 
+=head1 WHAT'S NEW
+
+=over
+
+=item *
+
+Stuff here. 
+
+=item *
+
+More stuff here. 
+
+=item *
+
+Still more stuff.
+
+=back
+
 =head1 SYNOPSIS
 
     use Error::Base;
@@ -1036,7 +1054,7 @@ Any failure to grasp them is mine.
 
 Xiong Changnian  C<< <xiong@cpan.org> >>
 
-=head1 LICENSE
+=head1 LICENCE
 
 Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
 
