@@ -638,6 +638,24 @@ Error::Base - Simple structured errors with full backtrace
 
 This document describes Error::Base version v0.1.4
 
+=head1 WHAT'S NEW
+
+=over
+
+=item *
+
+Stuff here. 
+
+=item *
+
+More stuff here. 
+
+=item *
+
+Still more stuff.
+
+=back
+
 =head1 SYNOPSIS
 
     use Error::Base;

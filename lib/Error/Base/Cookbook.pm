@@ -41,6 +41,24 @@ Error::Base::Cookbook - Examples of Error::Base usage
 
 This document describes Error::Base version v0.1.4
 
+=head1 WHAT'S NEW
+
+=over
+
+=item *
+
+Stuff here. 
+
+=item *
+
+More stuff here. 
+
+=item *
+
+Still more stuff.
+
+=back
+
 =head1 DESCRIPTION
 
 Basic use of L<Error::Base|Error::Base> is quite simple; 
