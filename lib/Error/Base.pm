@@ -1,6 +1,6 @@
 package Error::Base;
 #=========# MODULE USAGE
-#~ use Error::Base;               # Simple structured errors with full backtrace
+#~ use Error::Base;                # Simple structured errors with full backtrace
 #~ 
 
 #=========# PACKAGE BLOCK
@@ -56,7 +56,7 @@ sub _stringify {
         return join qq{\n}, @{ $self->{-lines} }, q{};
     }
     else {
-        return 'Error::Base internal error: stringifing unthrown object';
+        return 'Error::Base internal error: stringifying unthrown object';
     };
         
 }; ## _stringify
@@ -982,7 +982,7 @@ or hash. Don't pass such references as values to any key with the wrong sigil.
 
 Called a method without class or object. Did you call as function?
 
-=item C<< stringifing unthrown object >>
+=item C<< stringifying unthrown object >>
 
 An object of this class will stringify to its printable error message 
 (including backtrace if any) when thrown. There is nothing to see (yet) if 
@@ -1006,13 +1006,14 @@ Error::Base requires no configuration files or environment variables.
 
 There are no non-core dependencies. 
 
-L<version|version> 0.94                 # Perl extension for Version Objects
+L<version|version> 0.94    # Perl extension for Version Objects
 
-L<overload|overload>                    # Overload Perl operations
+L<overload|overload>    # Overload Perl operations
 
-L<Scalar::Util|Scalar::Util>            # General-utility scalar subroutines
+L<Scalar::Util|Scalar::Util>    # General-utility scalar subroutines
 
 This module should work with any version of perl 5.8.8 and up. 
+However, you may need to upgrade some core modules. 
 
 =head1 INCOMPATIBILITIES
 
