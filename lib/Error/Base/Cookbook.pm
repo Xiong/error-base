@@ -1139,7 +1139,7 @@ catching, the term 'exception' may be appropriate but perhaps not 'error'.
 
 Xiong Changnian  C<< <xiong@cpan.org> >>
 
-=head1 LICENSE
+=head1 LICENCE
 
 Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
 

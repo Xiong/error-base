@@ -1054,7 +1054,7 @@ Any failure to grasp them is mine.
 
 Xiong Changnian  C<< <xiong@cpan.org> >>
 
-=head1 LICENSE
+=head1 LICENCE
 
 Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
 
