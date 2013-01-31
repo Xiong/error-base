@@ -1045,6 +1045,10 @@ Please report any bugs or feature requests to
 C<bug-error-base@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
+=head1 DEVELOPMENT
+
+This project is hosted on GitHub at: L<https://github.com/Xiong/error-base>. 
+
 =head1 THANKS
 
 Grateful acknowledgement deserved by AMBRUS for coherent API suggestions. 
