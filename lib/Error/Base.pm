@@ -679,9 +679,10 @@ Still more stuff.
     eval{ Error::Base->crash( 'car', -foo => 'bar' ) }; 
     my $err     = $@ if $@;         # catch and examine the full object
     
+    # late interpolation
     my $err     = Error::Base->new(
                     -base       => 'File handler error:',
-                    _openerr    => 'Couldn\t open $file for $op',
+                    _openerr    => 'Could not open $file for $op',
                 );
     {
         my $file = 'z00bie.xxx';    # uh-oh, variable out of scope for new()
