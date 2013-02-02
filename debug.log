@@ -1,0 +1,115 @@
+
+### Yo
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => '',
+###                 '-mesg' => '',
+###                 '-top' => 2,
+###                 '-type' => ''
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => '',
+###                 '-mesg' => '',
+###                 '-top' => 2,
+###                 '-type' => ''
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => '',
+###                 '-mesg' => '',
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => '',
+###                 '-mesg' => 'Foobar error',
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => 'Foobar error ',
+###                 '-mesg' => '',
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => 'Foobar error ',
+###                 '-mesg' => 'Bazfaz: ',
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => 'Foobar error ',
+###                 '-mesg' => 'Bazfaz: ',
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => 'Foobar error ',
+###                 '-mesg' => 'Bazfaz: ',
+###                 '-top' => 4,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => 'Foobar error ',
+###                 '-mesg' => 'Bazfaz: ',
+###                 '-quiet' => 1,
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => 'Foobar error ',
+###                 '-mesg' => 'Bazfaz: ',
+###                 '-quiet' => 1,
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => '',
+###                 '-mesg' => 'Foobar error',
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => '',
+###                 '-mesg' => [
+###                              'The rain',
+###                              'in Spain',
+###                              'stays mainly',
+###                              'in the plain.'
+###                            ],
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )

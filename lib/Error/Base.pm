@@ -20,7 +20,8 @@ use Scalar::Util;               # General-utility scalar subroutines
 # CPAN modules
 
 # Alternate uses
-#~ use Devel::Comments '#####', ({ -file => 'debug.log' });                 #~
+use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
+### Yo
 
 ## use
 #============================================================================#
@@ -252,6 +253,7 @@ sub _fuss {
                         $self->{-type},
                         $self->{-mesg},
                     );
+    ### $self
     
     # Late interpolate.    
     $message        = $self->_late( $message );
