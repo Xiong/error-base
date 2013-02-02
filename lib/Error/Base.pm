@@ -20,8 +20,8 @@ use Scalar::Util;               # General-utility scalar subroutines
 # CPAN modules
 
 # Alternate uses
-use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
-### Yo
+#~ use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
+#~ ### Yo
 
 ## use
 #============================================================================#

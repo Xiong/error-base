@@ -38,104 +38,7 @@ my @td  = (
     },
     
     {
-        -case   => 'foo-fuzz',          # preserve private attribute
-        -args   => [ foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        foo bar
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-fuzz',         # emit error text
-        -args   => [ 'Foobar error', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-fuzz',         # emit error text, named arg
-        -args   => [ -base => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both-fuzz',    # emit error text, both ways
-        -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error bazfaz in
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both',         # emit error text, stringified normal
-        -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
-        -want   => words(qw/ 
-                    foobar error bazfaz
-                    main throw line aryref
-                    exck line aryref
-                        string eval throw
-                /),
-    },
-    
-    {
-        -case   => 'top-4-fuzz',        # mess with -top
-        -args   => [ 
-                    'Bazfaz: ',
-                    -top    => 4, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                        exck line aryref
-                            string eval throw
-                        ____ line
-                    top 4
-                    foo bar
-                /),
-    },
-    
-    {
-        -case   => 'quiet',             # emit error text, no backtrace
-        -args   => [ 
-                    'Bazfaz: ',
-                    -quiet  => 1, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -want   => words(qw/
-                    foobar error bazfaz
-                /),
-    },
-    
-    {
-        -case   => 'quiet-fuzz',        # verify no backtrace
-        -args   => [ 
-                    'Bazfaz: ',
-                    -quiet  => 1, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                    quiet
-                /),
-    },
-    
-    {
+#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'mesg-string',           # emit -mesg string
         -args   => [ -mesg => 'Foobar error', foo => 'bar' ],
         -want   => words(qw/ 
@@ -144,7 +47,6 @@ my @td  = (
     },
     
     {
-#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'mesg-aryref',           # emit -mesg array
         -args   => [ 
             -mesg   => [
@@ -160,21 +62,16 @@ my @td  = (
                 /),
     },
     
-    {
-        -case   => 'mesg-hashref',          # emit -mesg HASHREF
-        -args   => [ 
-            -mesg   => {
-                    'The rain',
-                    'in Spain', 
-                    'stays mainly',
-                    'in the plain.',
-                }, 
-            foo     => 'bar' 
-            ],
-        -want   => words(qw/ 
-                        rain spain mainly plain
-                /),
-    },
+#~     {
+#~         -case   => 'mesg-hashref',          # emit -mesg HASHREF
+#~         -args   => [ 
+#~             -mesg   => {
+#~                     
+#~                 }, 
+#~             foo     => 'bar' 
+#~             ],
+#~         -want   => '-',
+#~     },
     
 );
 
