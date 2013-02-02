@@ -735,7 +735,7 @@ L<sanity checks|Error::Base::Cookbook/Sanity Check>.
 For a little more structure, yau may pass values to 
 L<-base|Error::Base/-base>, 
 L<-type|Error::Base/-type>, and
-L<-type|Error::Base/-mesg>. 
+L<-mesg|Error::Base/-mesg>. 
 All values supplied will be joined; by default, with a single space. 
 
 =cut
