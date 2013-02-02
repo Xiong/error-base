@@ -250,7 +250,7 @@ sub _fuss {
     $message        = $self->_join_local(
                         $self->{-base},
                         $self->{-type},
-                        $self->{-pronto},
+                        $self->{-mesg},
                     );
     
     # Late interpolate.    
@@ -260,7 +260,7 @@ sub _fuss {
     if    ( not $message ) {
         $message        = 'Undefined error.';
     }; 
-    $self->{-msg}   = $message;                 # keep for possible inspection
+    $self->{-all}   = $message;                 # keep for possible inspection
 
     # Accumulate.
     @lines          = ( $message );
@@ -305,13 +305,13 @@ sub _fuss {
 #~     ##### $self
     return $self;
     
-#~     # Do something to control line length and deal with multi-line $msg.
-#~     my @temp        = split /\n/, $msg;         # in case it's multi-line
+#~     # Do something to control line length and deal with multi-line $all.
+#~     my @temp        = split /\n/, $all;         # in case it's multi-line
 #~     my $limit       = $max - length $prepend;
 #~        @temp        = map { s//\n/ if length > $limit } 
 #~                         @temp; # avoid excessive line length
 #~     my $infix       = qq{\n} . $indent;
-#~        $msg         = join $infix, @temp;
+#~        $all         = join $infix, @temp;
     
 }; ## _fuss
 
@@ -415,7 +415,7 @@ sub new {
 sub init {
     my $self        = shift;
     if ( scalar @_ % 2 ) {              # an odd number modulo 2 is one: true
-        $self->{-pronto}    = shift;    # and now it's even
+        $self->{-mesg}  = shift;        # and now it's even
     };
     
     # Merge all values. Newer values always overwrite. 
@@ -428,11 +428,11 @@ sub init {
     if    ( not defined $self->{-type}  ) {
         $self->{-type}  = q{};
     }; 
-    if    ( not defined $self->{-pronto}  ) {
-        $self->{-pronto}  = q{};
+    if    ( not defined $self->{-mesg}  ) {
+        $self->{-mesg}  = q{};
     }; 
-    if    ( not defined $self->{-msg}   ) {
-        $self->{-msg}   = q{};
+    if    ( not defined $self->{-all}   ) {
+        $self->{-all}   = q{};
     }; 
     if    ( not defined $self->{-top}   ) {
         $self->{-top}   = 2;                # skip frames internal to E::B
@@ -734,6 +734,12 @@ See the L<Error::Base::Cookbook|Error::Base::Cookbook> for examples.
                     -indent     => '@!                 ',
                     _beer   => 'out of beer',   # your private attribute(s)
                 );
+    my $err     = Error::Base->new(
+                        'Fourth',
+                    -base       => 'First',
+                    -type       => 'Second',
+                    -mesg       => 'Third',
+                );
 
 The constructor must be called as a class method; there is no mutator 
 returning a new object based on an old one. You do have some freedom in how 
@@ -748,7 +754,8 @@ Error message text is constructed as a single string.
 
 Called with an odd number of args, the first arg is shifted off and appended
 to the error message text. This shorthand may be offensive to some; in which 
-case, don't do that. Instead, pass C<< -base >>, C<< -type >>, or both. 
+case, don't do that. 
+Instead, pass C<< -base >>, C<< -type >>, and/or C<< -mesg >>. 
 
 You may stash any arbitrary data inside the returned object (during 
 construction or later) and do whatever you like with it. You might choose to 
@@ -821,7 +828,7 @@ error text from the actual throw.
 =head1 PARAMETERS
 
 All public methods accept the same arguments, with the same conventions. 
-All parameter names begin with a leading dash (C<'-'>); please choose other 
+Parameter names begin with a leading dash (C<'-'>); please choose other 
 names for your private keys. 
 
 If the same parameter is set multiple times, the most recent argument 
@@ -843,13 +850,13 @@ I<scalar string>
 This parameter is provided as a way to express a subtype of error. 
 It is appended to C<< -base >>. 
 
-=head2 -pronto
+=head2 -mesg
 
 I<scalar string>
 
     $err->crash( 'Pronto!' );           # emits 'Pronto!'
     $err->crash(
-            -pronto => 'Pronto!',
+            -mesg => 'Pronto!',
     );                                  # same thing
 
 As a convenience, if the number of arguments passed in is odd, then the first 
@@ -915,7 +922,7 @@ see the L<Cookbook|Error::Base::Cookbook/Late Interpolation>.
 
 Soon, I'll write accessor methods for all of these. For now, rough it. 
 
-=head2 -msg
+=head2 -all
 
 I<scalar string> default: 'Undefined error.'
 

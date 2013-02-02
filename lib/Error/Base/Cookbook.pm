@@ -205,9 +205,9 @@ This will help keep your code uncluttered.
         -code   => sub{
 #
     Error::Base->crash(
-            'Third',
         -base     => 'First',
         -type     => 'Second',
+        -mesg     => 'Third',
     );
 #
             },
@@ -219,9 +219,9 @@ This will help keep your code uncluttered.
 =pod
 
     Error::Base->crash(
-            'Third',
         -base     => 'First',
         -type     => 'Second',
+        -mesg     => 'Third',
     );
 
 You aren't I<required> to construct first, though. Each of the public methods 
@@ -705,6 +705,7 @@ L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines.
 =cut
 
 # too trivial to need testing -- exhausted elsewhere
+# TODO: test this, too
 
 =pod
 
@@ -723,7 +724,7 @@ L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines.
     $err->crash(
             -base   => 'Bar',
             -type   => 'last call',
-            -pronto => 'Pronto!',
+            -mesg   => 'Pronto!',
         );                              # 'Bar last call Pronto!'
 
 As a convenience, if the number of arguments passed in is odd, then the first 
@@ -731,9 +732,11 @@ arg is shifted off and appnended to the error message. This is done to
 simplify writing one-off, one-line 
 L<sanity checks|Error::Base::Cookbook/Sanity Check>.
 
-For a little more structure, yau may pass values to L<-base|Error::Base/-base> 
-and L<-type|Error::Base/-type> also. All values supplied will be joined; by 
-default, with a single space. 
+For a little more structure, yau may pass values to 
+L<-base|Error::Base/-base>, 
+L<-type|Error::Base/-type>, and
+L<-type|Error::Base/-mesg>. 
+All values supplied will be joined; by default, with a single space. 
 
 =cut
 
@@ -998,76 +1001,65 @@ joined by something else, localize C<$">.
 
 =head1 EXAMPLE CODE
 
-=head2 get_test_data
-
-=head2 words
-
-=head2 cook_dinner
-
-=head2 serve_chili
-
-=head2 add_recipie
-
-=head2 _crash
-
-=head2 bar
-
 This module contains executable code matching each snippet you see in POD; 
 this code is exercised by the Error::Base test suite. You're welcome to look. 
 Please, don't try to C<use> the ::Cookbook!
 
 =head1 DEMO
 
-Included in this distribution is a script, C<error-base-demo.pl>; output here. 
-You see a warning and a fatal error, each with stack backtrace from the 
-viewpoint of the error thrown. The invocation of C<cuss()> is silent. 
+Included in this distribution is a script, C<error-base-demo.pl>; 
+output shown here. A single error object is constructed and used throughout. 
+First there is a silent invocation of C<cuss()>; then you see a warning with 
+C<crank()>; then a fatal error is thrown with C<crash()>, trapped, printed, 
+and finally dumped using L<Devel::Comments|Devel::Comments>. 
+Each invocation generates a stack backtrace from the point of throw.  
 
-The fatal error is trapped and printed, then dumped using 
-L<Devel::Comments|Devel::Comments>. Note that when printed, the object 
-stringifies to the intended error message and backtrace. Note also that 
-the private key C<_private> is retained in the object; while the message text 
-and backtrace is re-created at each invocation. 
+Note that when printed, the error object stringifies to the intended 
+error message and backtrace. The dump shows the true contents of the object. 
+Note also that the private key C<_private> is retained in the object; 
+while the message text and backtrace is re-created at each invocation. 
 
     Demo: cranking in eluder
-    in Spathi::eluder at line 37    [demo/error-base-demo.pl]
-    in Pkunk::fury    at line 30    [demo/error-base-demo.pl]
-    _________________ at line 18    [demo/error-base-demo.pl]
+    in Spathi::eluder at line 38    [demo/error-base-demo.pl]
+    in Pkunk::fury    at line 31    [demo/error-base-demo.pl]
+    _________________ at line 19    [demo/error-base-demo.pl]
     
     Demo: crashing in scout
-    in (eval)          at line 48    [demo/error-base-demo.pl]
-    in Shofixti::scout at line 48    [demo/error-base-demo.pl]
-    in Spathi::eluder  at line 41    [demo/error-base-demo.pl]
-    in Pkunk::fury     at line 30    [demo/error-base-demo.pl]
-    __________________ at line 18    [demo/error-base-demo.pl]
+    in (eval)          at line 50    [demo/error-base-demo.pl]
+    in Shofixti::scout at line 50    [demo/error-base-demo.pl]
+    in Spathi::eluder  at line 42    [demo/error-base-demo.pl]
+    in Pkunk::fury     at line 31    [demo/error-base-demo.pl]
+    __________________ at line 19    [demo/error-base-demo.pl]
     
     ### $trap: bless( {
+    ###                 '-all' => 'Demo: crashing in scout',
     ###                 '-base' => 'Demo:',
     ###                 '-frames' => [
     ###                                {
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '48',
+    ###                                  '-line' => '50',
     ###                                  '-package' => 'Shofixti',
     ###                                  '-sub' => '(eval)         '
     ###                                },
     ###                                {
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '48',
+    ###                                  '-line' => '50',
     ###                                  '-package' => 'Shofixti',
     ###                                  '-sub' => 'Shofixti::scout'
     ###                                },
     ###                                {
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '41',
+    ###                                  '-line' => '42',
     ###                                  '-package' => 'Spathi',
     ###                                  '-sub' => 'Spathi::eluder '
     ###                                },
     ###                                {
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '30',
+    ###                                  '-line' => '31',
     ###                                  '-package' => 'Pkunk',
     ###                                  '-sub' => 'Pkunk::fury    '
     ###                                },
@@ -1075,26 +1067,24 @@ and backtrace is re-created at each invocation.
     ###                                  '-bottom' => 1,
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '18',
+    ###                                  '-line' => '19',
     ###                                  '-package' => 'main',
     ###                                  '-sub' => '_______________'
     ###                                }
     ###                              ],
     ###                 '-lines' => [
     ###                               'Demo: crashing in scout',
-    ###                               'in (eval)          at line 48    [demo/error-base-demo.pl]',
-    ###                               'in Shofixti::scout at line 48    [demo/error-base-demo.pl]',
-    ###                               'in Spathi::eluder  at line 41    [demo/error-base-demo.pl]',
-    ###                               'in Pkunk::fury     at line 30    [demo/error-base-demo.pl]',
-    ###                               '__________________ at line 18    [demo/error-base-demo.pl]'
+    ###                               'in (eval)          at line 50    [demo/error-base-demo.pl]',
+    ###                               'in Shofixti::scout at line 50    [demo/error-base-demo.pl]',
+    ###                               'in Spathi::eluder  at line 42    [demo/error-base-demo.pl]',
+    ###                               'in Pkunk::fury     at line 31    [demo/error-base-demo.pl]',
+    ###                               '__________________ at line 19    [demo/error-base-demo.pl]'
     ###                             ],
-    ###                 '-msg' => 'Demo: crashing in scout',
-    ###                 '-pronto' => '',
+    ###                 '-mesg' => '',
     ###                 '-top' => 2,
     ###                 '-type' => 'crashing in scout',
     ###                 _private => 'foo'
     ###               }, 'Error::Base' )
-
 
 =head1 PHILOSOPHY
 
