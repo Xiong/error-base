@@ -103,12 +103,16 @@
 ### $self: bless( {
 ###                 '-all' => '',
 ###                 '-base' => '',
-###                 '-mesg' => [
-###                              'The rain',
-###                              'in Spain',
-###                              'stays mainly',
-###                              'in the plain.'
-###                            ],
+###                 '-mesg' => 'The rain in Spain stays mainly in the plain.',
+###                 '-top' => 2,
+###                 '-type' => '',
+###                 foo => 'bar'
+###               }, 'Error::Base' )
+
+### $self: bless( {
+###                 '-all' => '',
+###                 '-base' => '',
+###                 '-mesg' => 'The rain in Spain stays mainly in the plain.',
 ###                 '-top' => 2,
 ###                 '-type' => '',
 ###                 foo => 'bar'

@@ -136,7 +136,7 @@ my @td  = (
     },
     
     {
-        -case   => 'mesg-string',         # emit -mesg string
+        -case   => 'mesg-string',           # emit -mesg string
         -args   => [ -mesg => 'Foobar error', foo => 'bar' ],
         -want   => words(qw/ 
                         foobar error
@@ -145,7 +145,7 @@ my @td  = (
     
     {
 #~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
-        -case   => 'mesg-aryref',         # emit -mesg array
+        -case   => 'mesg-aryref',           # emit -mesg array
         -args   => [ 
             -mesg   => [
                     'The rain',
@@ -156,7 +156,23 @@ my @td  = (
             foo     => 'bar' 
             ],
         -want   => words(qw/ 
-                        lines rain spain mainly plain
+                        rain spain mainly plain
+                /),
+    },
+    
+    {
+        -case   => 'mesg-hashref',          # emit -mesg HASHREF
+        -args   => [ 
+            -mesg   => {
+                    'The rain',
+                    'in Spain', 
+                    'stays mainly',
+                    'in the plain.',
+                }, 
+            foo     => 'bar' 
+            ],
+        -want   => words(qw/ 
+                        rain spain mainly plain
                 /),
     },
     
