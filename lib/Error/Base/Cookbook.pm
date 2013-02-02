@@ -704,8 +704,110 @@ L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines.
 
 =cut
 
-# too trivial to need testing -- exhausted elsewhere
-# TODO: test this, too
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'null',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash;                        # 'Undefined error'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Undefined error/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'pronto-only',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash( 'Pronto!' );           # 'Pronto!'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Pronto!/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'base-and-type',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+        );                              # 'Bar last call'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Bar last call/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'base-type-pronto',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash(
+                'Pronto!',
+            -base   => 'Bar',
+            -type   => 'last call',
+        );                              # 'Bar last call Pronto!'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Bar last call Pronto!/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'base-type-mesg',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+            -mesg   => 'Pronto!',
+        );                              # 'Bar last call Pronto!'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Bar last call Pronto!/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'mesg-aryref',
+        -do     => 1, 
+        -code   => sub{
+#
+    my ( $n1, $n2, $n3 ) = ( 'Huey', 'Dewey', 'Louie' );
+    $err->crash(
+            -mesg   => [ 'Meet', $n1, $n2, $n3, 'tonight!' ],
+        );                              # 'Meet Huey Dewey Louie tonight!'
+#
+
+            },
+        -lby    => 'die',
+        -want   => qr/Meet Huey Dewey Louie tonight!/s,
+    };
+}   #
 
 =pod
 
@@ -727,16 +829,25 @@ L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines.
             -mesg   => 'Pronto!',
         );                              # 'Bar last call Pronto!'
 
+    my $err     = Error::Base->new;
+    my ( $n1, $n2, $n3 ) = ( 'Huey', 'Dewey', 'Louie' );
+    $err->crash(
+            -mesg   => [ 'Meet', $n1, $n2, $n3, 'tonight!' ],
+        );                              # 'Meet Huey Dewey Louie tonight!'
+
 As a convenience, if the number of arguments passed in is odd, then the first 
 arg is shifted off and appnended to the error message. This is done to 
 simplify writing one-off, one-line 
 L<sanity checks|Error::Base::Cookbook/Sanity Check>.
 
-For a little more structure, yau may pass values to 
+For a little more structure, you may pass values to 
 L<-base|Error::Base/-base>, 
 L<-type|Error::Base/-type>, and
-L<-type|Error::Base/-mesg>. 
-All values supplied will be joined; by default, with a single space. 
+L<-mesg|Error::Base/-mesg>. 
+All values supplied will be joined; by default, with a single space.
+
+If you pass an array reference to C<-mesg> then you can print out 
+any number of strings, one after the other. 
 
 =cut
 

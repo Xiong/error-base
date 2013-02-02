@@ -20,7 +20,8 @@ use Scalar::Util;               # General-utility scalar subroutines
 # CPAN modules
 
 # Alternate uses
-#~ use Devel::Comments '#####', ({ -file => 'debug.log' });                 #~
+#~ use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
+#~ ### Yo
 
 ## use
 #============================================================================#
@@ -245,13 +246,17 @@ sub _fuss {
     my $max         = 78;                       # maximum line length
     my $message     ;                           # user-defined error message
     my @lines       ;                           # to stringify $self
-        
+    
+    # Deal with array values.
+    $self->{-mesg}  = _expand_ref( $self->{-mesg} );
+    
     # Collect all the texts into one message.
-    $message        = $self->_join_local(
+    $message        = _join_local(
                         $self->{-base},
                         $self->{-type},
                         $self->{-mesg},
                     );
+    ### $self
     
     # Late interpolate.    
     $message        = $self->_late( $message );
@@ -291,12 +296,12 @@ sub _fuss {
                         ;
     }; 
     
-    @{ $self->{-lines} }    = $self->_join_local(
+    @{ $self->{-lines} }    = _join_local(
                                 $prepend,
                                 shift @lines
                             );
     push @{ $self->{-lines} }, map {
-                                    $self->_join_local(
+                                    _join_local(
                                         $indent,
                                         $_
                                     )
@@ -335,9 +340,48 @@ sub cuss{
     return $self;
 }; ## crank
 
-#=========# INTERNAL OBJECT METHOD
+#=========# INTERNAL FUNCTION
 #
-#   $string = $self->_join_local(@_);     # short
+#   $string =_expand_ref( $var );     # expand reference if any
+#       
+# Purpose   : ____
+# Parms     : ____
+# Reads     : ____
+# Returns   : ____
+# Invokes   : ____
+# Writes    : ____
+# Throws    : ____
+# See also  : ____
+# 
+# ____
+#   
+sub _expand_ref {
+    my $in          = shift;
+    my $rt          = Scalar::Util::reftype $in;    # returns no class
+        
+    if    ( not $rt ) {                             # simple scalar...
+        # ... don't deref
+        return $in                                  # unchanged
+    }
+    elsif ( $rt eq 'SCALAR' ) {                     # scalar ref
+        return $$in                                 # dereference
+    } 
+    elsif ( $rt eq 'ARRAY'  ) {                     # array ref
+        return _join_local(@$in);                   # deref and join
+    } 
+#~     elsif ( $rt eq 'HASH'   ) {                     # hash ref
+#~     my @sorted  = map { $_, $in->{$_} } sort keys %$in;
+#~         return _join_local(@sorted);                # deref, sort, and join
+#~     } 
+    else {
+        die 'Error::Base internal error: bad reftype';
+    };
+    
+}; ## _expand_ref
+
+#=========# INTERNAL FUNCTION
+#
+#   $string = _join_local(@_);     # short
 #       
 # Purpose   : Like builtin join() but with local list separator.
 # Parms     : @_        : strings to join
@@ -349,7 +393,6 @@ sub cuss{
 # We splice out empty strings to avoid useless runs of spaces.  
 # 
 sub _join_local {
-    my $self        = shift;
     my @parts       = @_;
     
     # Splice out empty strings. 
@@ -852,12 +895,16 @@ It is appended to C<< -base >>.
 
 =head2 -mesg
 
-I<scalar string>
+I<scalar string> or I<array reference>
 
     $err->crash( 'Pronto!' );           # emits 'Pronto!'
     $err->crash(
             -mesg => 'Pronto!',
     );                                  # same thing
+    my $foo     = 'bar';
+    $err->crash(
+            -mesg => [ 'Cannot find', $foo, q{.} ],
+    );                                  # emits 'Cannot find bar .'
 
 As a convenience, if the number of arguments passed in is odd, then the first 
 arg is shifted off and appended to the error message 
@@ -867,7 +914,9 @@ This is done to simplify writing one-off, one-line sanity checks:
     open( my $in_fh, '<', $filename )
         or Error::Base->crash("Couldn't open $filename for reading.");
 
-TODO: It is expected that each message argument be a single scalar. If you need 
+You may pass into C<-mesg> a reference to an array of simple scalars; 
+these will all be joined together and appened to the error message. 
+If you need 
 to pass a multi-line string then please embed escaped newlines (C<'\n'>). 
 
 =head2 -quiet
@@ -1001,8 +1050,10 @@ Perhaps you passed an odd number of args to a private method.
 
 =item C<< bad reftype >>
 
-You attempted to late-interpolate a reference other than to a scalar, array, 
-or hash. Don't pass such references as values to any key with the wrong sigil. 
+Perhaps you attempted to late-interpolate a reference other than to 
+a scalar, array, or hash. 
+Don't pass such references as values to any key with the wrong sigil. 
+Or you passed a hashref or coderef to C<-mesg>.
 
 =item C<< no $self >>
 

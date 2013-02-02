@@ -1,0 +1,22 @@
+
+### $err: bless( {
+###                '-all' => 'Cannot find bar .',
+###                '-base' => '',
+###                '-frames' => [
+###                               {
+###                                 '-bottom' => 1,
+###                                 '-eval' => undef,
+###                                 '-file' => 't/211-mesg-aryref.t',
+###                                 '-line' => '21',
+###                                 '-package' => 'main',
+###                                 '-sub' => '_'
+###                               }
+###                             ],
+###                '-lines' => [
+###                              'Cannot find bar .',
+###                              '____ at line 21    [t/211-mesg-aryref.t]'
+###                            ],
+###                '-mesg' => 'Cannot find bar .',
+###                '-top' => 2,
+###                '-type' => ''
+###              }, 'Error::Base' )
