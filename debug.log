@@ -1,36 +1,22 @@
 
-### Yo
-
-### $self: bless( {
-###                 '-all' => '',
-###                 '-base' => '',
-###                 '-mesg' => '',
-###                 '-top' => 2,
-###                 '-type' => ''
-###               }, 'Error::Base' )
-
-### $self: bless( {
-###                 '-all' => '',
-###                 '-base' => '',
-###                 '-mesg' => '',
-###                 '-top' => 2,
-###                 '-type' => ''
-###               }, 'Error::Base' )
-
-### $self: bless( {
-###                 '-all' => '',
-###                 '-base' => '',
-###                 '-mesg' => 'Foobar error',
-###                 '-top' => 2,
-###                 '-type' => '',
-###                 foo => 'bar'
-###               }, 'Error::Base' )
-
-### $self: bless( {
-###                 '-all' => '',
-###                 '-base' => '',
-###                 '-mesg' => 'The rain in Spain stays mainly in the plain.',
-###                 '-top' => 2,
-###                 '-type' => '',
-###                 foo => 'bar'
-###               }, 'Error::Base' )
+### $err: bless( {
+###                '-all' => 'Cannot find bar .',
+###                '-base' => '',
+###                '-frames' => [
+###                               {
+###                                 '-bottom' => 1,
+###                                 '-eval' => undef,
+###                                 '-file' => 'xt/syn/211-mesg-aryref.t',
+###                                 '-line' => '21',
+###                                 '-package' => 'main',
+###                                 '-sub' => '_'
+###                               }
+###                             ],
+###                '-lines' => [
+###                              'Cannot find bar .',
+###                              '____ at line 21    [xt/syn/211-mesg-aryref.t]'
+###                            ],
+###                '-mesg' => 'Cannot find bar .',
+###                '-top' => 2,
+###                '-type' => ''
+###              }, 'Error::Base' )

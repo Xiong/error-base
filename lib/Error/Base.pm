@@ -369,10 +369,10 @@ sub _expand_ref {
     elsif ( $rt eq 'ARRAY'  ) {                     # array ref
         return _join_local(@$in);                   # deref and join
     } 
-    elsif ( $rt eq 'HASH'   ) {                     # hash ref
-    my @sorted  = map { $_, $in->{$_} } sort keys %$in;
-        return _join_local(@sorted);                # deref, sort, and join
-    } 
+#~     elsif ( $rt eq 'HASH'   ) {                     # hash ref
+#~     my @sorted  = map { $_, $in->{$_} } sort keys %$in;
+#~         return _join_local(@sorted);                # deref, sort, and join
+#~     } 
     else {
         die 'Error::Base internal error: bad reftype';
     };
@@ -895,12 +895,16 @@ It is appended to C<< -base >>.
 
 =head2 -mesg
 
-I<scalar string>
+I<scalar string> or I<array reference>
 
     $err->crash( 'Pronto!' );           # emits 'Pronto!'
     $err->crash(
             -mesg => 'Pronto!',
     );                                  # same thing
+    my $foo     = 'bar';
+    $err->crash(
+            -mesg => [ 'Cannot find', $foo, q{.} ],
+    );                                  # emits 'Cannot find bar .'
 
 As a convenience, if the number of arguments passed in is odd, then the first 
 arg is shifted off and appended to the error message 
@@ -910,7 +914,9 @@ This is done to simplify writing one-off, one-line sanity checks:
     open( my $in_fh, '<', $filename )
         or Error::Base->crash("Couldn't open $filename for reading.");
 
-TODO: It is expected that each message argument be a single scalar. If you need 
+You may pass into C<-mesg> a reference to an array of simple scalars; 
+these will all be joined together and appened to the error message. 
+If you need 
 to pass a multi-line string then please embed escaped newlines (C<'\n'>). 
 
 =head2 -quiet
