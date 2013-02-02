@@ -1050,8 +1050,10 @@ Perhaps you passed an odd number of args to a private method.
 
 =item C<< bad reftype >>
 
-You attempted to late-interpolate a reference other than to a scalar, array, 
-or hash. Don't pass such references as values to any key with the wrong sigil. 
+Perhaps you attempted to late-interpolate a reference other than to 
+a scalar, array, or hash. 
+Don't pass such references as values to any key with the wrong sigil. 
+Or you passed a hashref or coderef to C<-mesg>.
 
 =item C<< no $self >>
 

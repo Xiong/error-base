@@ -6,7 +6,7 @@
 ###                               {
 ###                                 '-bottom' => 1,
 ###                                 '-eval' => undef,
-###                                 '-file' => 'xt/syn/211-mesg-aryref.t',
+###                                 '-file' => 't/211-mesg-aryref.t',
 ###                                 '-line' => '21',
 ###                                 '-package' => 'main',
 ###                                 '-sub' => '_'
@@ -14,7 +14,7 @@
 ###                             ],
 ###                '-lines' => [
 ###                              'Cannot find bar .',
-###                              '____ at line 21    [xt/syn/211-mesg-aryref.t]'
+###                              '____ at line 21    [t/211-mesg-aryref.t]'
 ###                            ],
 ###                '-mesg' => 'Cannot find bar .',
 ###                '-top' => 2,
