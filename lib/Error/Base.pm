@@ -32,6 +32,8 @@ use Scalar::Util;               # General-utility scalar subroutines
 our $QRFALSE            = qr/\A0?\z/            ;
 our $QRTRUE             = qr/\A(?!$QRFALSE)/    ;
 
+our $BASETOP            = 2;    # number of stack frames generated internally
+
 #----------------------------------------------------------------------------#
 
 #=========# OPERATOR OVERLOADING
@@ -467,20 +469,21 @@ sub init {
     # Set some default values, mostly to avoid 'uninitialized' warnings.
     if    ( not defined $self->{-base}  ) {
         $self->{-base}  = q{};
-    }; 
+    };
     if    ( not defined $self->{-type}  ) {
         $self->{-type}  = q{};
-    }; 
+    };
     if    ( not defined $self->{-mesg}  ) {
         $self->{-mesg}  = q{};
-    }; 
+    };
     if    ( not defined $self->{-all}   ) {
         $self->{-all}   = q{};
-    }; 
-    if    ( not defined $self->{-top}   ) {
-        $self->{-top}   = 2;                # skip frames internal to E::B
-    }; 
-        
+    };
+    if    ( not defined $self->{-nest}   ) {
+        $self->{-nest}  = 0;
+    };
+    $self->{-top}   = $self->{-nest} + $BASETOP;    # skip internal frames
+    
     return $self;
 }; ## init
 
