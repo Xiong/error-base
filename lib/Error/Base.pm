@@ -487,6 +487,101 @@ sub init {
     return $self;
 }; ## init
 
+#----------------------------------------------------------------------------#
+# ACCSESSORS
+
+# get
+sub get_base {
+    my $self    = shift;
+    return $self->{-base};
+};
+sub get_type {
+    my $self    = shift;
+    return $self->{-type};
+};
+sub get_mesg {
+    my $self    = shift;
+    return $self->{-mesg};
+};
+sub get_quiet {
+    my $self    = shift;
+    return $self->{-quiet};
+};
+sub get_nest {
+    my $self    = shift;
+    return $self->{-nest};
+};
+sub get_prepend {
+    my $self    = shift;
+    return $self->{-prepend};
+};
+sub get_indent {
+    my $self    = shift;
+    return $self->{-indent};
+};
+sub get_prepend_all {
+    my $self    = shift;
+    return $self->{-prepend_all};
+};
+sub get_all {
+    my $self    = shift;
+    return $self->{-all};
+};
+sub get_lines {
+    my $self    = shift;
+    return $self->{-lines};
+};
+sub get_frames {
+    my $self    = shift;
+    return $self->{-frames};
+};
+
+# put
+sub put_base {
+    my $self            = shift;
+    $self->{-base}      = shift;
+    return $self;
+};
+sub put_type {
+    my $self            = shift;
+    $self->{-type}      = shift;
+    return $self;
+};
+sub put_mesg {
+    my $self            = shift;
+    $self->{-mesg}      = shift;
+    return $self;
+};
+sub put_quiet {
+    my $self            = shift;
+    $self->{-quiet}     = shift;
+    return $self;
+};
+sub put_nest {
+    my $self            = shift;
+    $self->{-nest}      = shift;
+    $self->{-top}       = $self->{-nest} + $BASETOP;
+    return $self;
+};
+sub put_prepend {
+    my $self            = shift;
+    $self->{-prepend}   = shift;
+    return $self;
+};
+sub put_indent {
+    my $self            = shift;
+    $self->{-indent}    = shift;
+    return $self;
+};
+sub put_prepend_all {
+    my $self            = shift;
+    $self->{-prepend_all}   = shift;
+    return $self;
+};
+
+## accessors
+#----------------------------------------------------------------------------#
+
 #=========# INTERNAL OBJECT METHOD
 #
 #   $out    = $self->_late( $in );     # late interpolate
@@ -943,8 +1038,6 @@ By default, stack frames internal to Error::Base are not traced.
 Set this parameter to adjust how many additional frames to discard.
 Negative values display internal frames.  
 
-TODO: A more elegant interface. 
-
 =head2 -prepend
 
 I<scalar string> default: undef
@@ -977,8 +1070,6 @@ see the L<Cookbook|Error::Base::Cookbook/Late Interpolation>.
 
 =head1 RESULTS
 
-Soon, I'll write accessor methods for all of these. For now, rough it. 
-
 =head2 -all
 
 I<scalar string> default: 'Undefined error.'
@@ -998,6 +1089,31 @@ The formatted error message, fully expanded, including backtrace.
 I<array of hashrefs>
 
 The raw stack frames used to compose the backtrace. 
+
+=head1 ACCSESSORS
+
+Object-oriented accessor methods are provided for each parameter and result. 
+They all do just what you'd expect. 
+
+    $self               = $self->put_base($string);
+    $self               = $self->put_type($string);
+    $self               = $self->put_mesg($string);
+    $self               = $self->put_quiet($string_or_aryref);
+    $self               = $self->put_nest($signed_int);
+    $self               = $self->put_prepend($string);
+    $self               = $self->put_indent($string);
+    $self               = $self->put_prepend_all($string);
+    $string             = $self->get_base();
+    $string             = $self->get_type();
+    $string_or_aryref   = $self->get_mesg();
+    $boolean            = $self->get_quiet();
+    $signed_int         = $self->get_nest();
+    $string             = $self->get_prepend();
+    $string             = $self->get_indent();
+    $string             = $self->get_prepend_all();
+    $string             = $self->get_all();
+    @array_of_strings   = $self->get_lines();
+    @array of hashrefs  = $self->get_frames();
 
 =head1 SUBCLASSING
 
