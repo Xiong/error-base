@@ -930,7 +930,11 @@ parameter. Only error text will be emitted.
 
 =head2 -top
 
-I<scalar unsigned integer> default: 2
+Deprecated as a public parameter; now internal only to Error::Base. 
+
+=head2 -nest
+
+I<scalar signed integer> default: 0
 
 By default, stack frames internal to Error::Base are not traced. 
 Set this parameter to adjust how many frames to discard. 
