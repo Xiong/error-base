@@ -512,11 +512,11 @@ my $err     = Error::Base->new;
 {   #
 my $err     = Error::Base->new;
     push @td, {
-        -case   => 'backtrace-top-0',
+        -case   => 'backtrace-nest(-2)',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash( -top           => 0, );        # really full backtrace
+    $err->crash( -nest           => -2, );        # really full backtrace
 #
             },
         -lby    => 'die',
@@ -534,11 +534,11 @@ my $err     = Error::Base->new;
 {   #           # this test could be better: but implementation will change
 my $err     = Error::Base->new;
     push @td, {
-        -case   => 'backtrace-top-5',
+        -case   => 'backtrace-nest(+2)',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash( -top           => 5, );        # skip top five frames
+    $err->crash( -nest           => +2, );       # skip top five frames
 #
             },
         -lby    => 'die',
@@ -553,9 +553,9 @@ my $err     = Error::Base->new;
 
 =pod
 
-    $err->crash( -quiet         => 1, );        # no backtrace
-    $err->crash( -top           => 0, );        # really full backtrace
-    $err->crash( -top           => 5, );        # skip top five frames
+    $err->crash( -quiet         => 1,  );       # no backtrace
+    $err->crash( -nest          => -2, );       # really full backtrace
+    $err->crash( -nest          => +2, );       # skip two more top frames
 
 Set L<-quiet|Error::Base/-quiet> to any TRUE value to silence stack 
 backtrace entirely. 
@@ -563,30 +563,20 @@ backtrace entirely.
 By default, you get a full stack backtrace: "full" meaning, from the point of
 invocation. Some stack frames are added by the process of crash()-ing itself; 
 by default, these are not seen. If you want more or fewer frames you may set 
-L<-top|Error::Base/-top> to a different value. 
+L<-nest|Error::Base/-nest> to a different value. 
 
 Beware that future implementations may change the number of stack frames 
 added internally by Error::Base; and also you may see a different number of 
-frames if you subclass, depending on how you do that. The safer way: 
+frames if you subclass, depending on how you do that.  
 
 =cut
-
-# wait for implementation change to test
-
-=pod
-
-    my $err         = Error::Base->new('Foo');      # construct object
-    $err->{-top}   += 1;                            # ignore one frame
-    $err->crash();
-
-This is ugly and you may get a convenience method in future. 
 
 =head2 Wrapper Routine
 
 =cut
 
 {   #
-    sub _crash { Error::Base->crash( @_, -top => 3 ) };
+    sub _crash { Error::Base->crash( @_, -nest => +1 ) };
     my $obviously_true; 
     push @td, {
         -case   => 'wrapper',
@@ -605,13 +595,15 @@ This is ugly and you may get a convenience method in future.
 
 =pod
 
-    sub _crash { Error::Base->crash( @_, -top => 3 ) }; 
+    sub _crash { Error::Base->crash( @_, -nest => +1 ) }; 
     # ... later...
     _crash('Unexpected zero')
         unless $obviously_true;
 
 Write a wrapper routine when trying to wedge sanity checks into dense code. 
 Error::Base is purely object-oriented and exports nothing. 
+Don't forget to use L<-nest|Error::Base/-nest> to drop additional frames 
+if you don't want to see the wrapper in your backtrace. 
 
 =head2 Dress Left
 

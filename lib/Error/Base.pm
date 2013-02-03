@@ -481,6 +481,7 @@ sub init {
     if    ( not defined $self->{-nest}   ) {
         $self->{-nest}  = 0;
     };
+    # -top now cannot be set through init()
     $self->{-top}   = $self->{-nest} + $BASETOP;    # skip backtrace frames
     
     return $self;

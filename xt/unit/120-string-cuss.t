@@ -90,10 +90,10 @@ my @td  = (
     },
     
     {
-        -case   => 'top-4-fuzz',        # mess with -top
+        -case   => 'nest-2-fuzz',        # mess with -nest
         -args   => [ 
                     'Bazfaz: ',
-                    -top    => 4, 
+                    -nest    => 2, 
                     -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],
@@ -103,7 +103,7 @@ my @td  = (
                         exck line cuss
                             string eval throw
                         ____ line
-                    top 4
+                    nest 2
                     foo bar
                 /),
     },
