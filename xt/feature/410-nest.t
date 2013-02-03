@@ -7,59 +7,44 @@ use Error::Base;
 my $QRTRUE       = $Error::Base::QRTRUE    ;
 my $QRFALSE      = $Error::Base::QRFALSE   ;
 
+#~ use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
+
 #----------------------------------------------------------------------------#
 
 my @td  = (
     {
         -case   => 'null',
-        -want   => words(qw/ 
-                    in exck 
-                    in anon 
-                    in subtest
-                    in ___ line nest 
-                /),
-    },
-    
-    {
-        -case   => '(-2)',
-        -args   => [ {}, -nest => -2 ],   # dummy $self
-        -want   => words(qw/ 
-                    in eval 
-                    in exck 
-                    in anon 
-                    in subtest
-                    in ___ line nest 
-                /),
-    },
-    
-    {
-        -case   => '(-1)',
-        -args   => [ {}, -nest => -1 ],   # dummy $self
-        -want   => words(qw/ 
-                    in exck 
-                    in anon 
-                    in subtest
-                    in ___ line nest 
-                /),
+        -count  => 8,
     },
     
     {
         -case   => '(0)',
-        -args   => [ {}, -nest => 0 ],   # dummy $self
-        -want   => words(qw/ 
-                    in anon 
-                    in subtest
-                    in ___ line nest 
-                /),
+        -args   => [ -nest => 0 ],
+        -count  => 8,
+    },
+    
+    {
+        -case   => '(-1)',
+        -args   => [ -nest => -1 ],
+        -count  => 9,
+    },
+    
+    {
+        -case   => '(-2)',
+        -args   => [ -nest => -2 ],
+        -count  => 10,
     },
     
     {
         -case   => '(+1)',
-        -args   => [ {}, -nest => 1 ],   # dummy $self
-        -want   => words(qw/ 
-                    in subtest
-                    in ___ line nest 
-                /),
+        -args   => [ -nest => 1 ],
+        -count  => 7,
+    },
+    
+    {
+        -case   => '(+2)',
+        -args   => [ -nest => 2 ],
+        -count  => 6,
     },
     
     
@@ -84,6 +69,7 @@ for (@td) {
     $tc++;
     my $case        = $base . $_->{-case};
     
+    ### $case
     note( "---- $case" );
     subtest $case => sub { exck($_) };
 }; ## for
@@ -95,12 +81,18 @@ sub exck {
     my $want        = $t->{-want};
     my $deep        = $t->{-deep};
     my $fuzz        = $t->{-fuzz};
+    my $count       = $t->{-count};
     
     $diag           = 'execute';
-    @rv             = eval{ Error::Base::_trace(@args) };
+    @rv             = eval{ 
+                        my $err = Error::Base->new(@args);
+                        $err->cuss();
+                        @rv     = $err;
+                    };
+    ### @rv
     pass( $diag );          # test didn't blow up
     note($@) if $@;         # did code under test blow up?
-    
+        
     if    ($die) {
         $diag           = 'should throw';
         $got            = $@;
@@ -111,6 +103,12 @@ sub exck {
         $diag           = 'return-like';
         $got            = join qq{\n}, @rv;
         like( $got, $want, $diag );
+    } 
+    elsif ( defined $count ) {
+        $diag           = 'count';
+        $got            = scalar @{ $rv[0]->{-frames} };
+        $want           = $count;
+        is( $got, $want, $diag );
     } 
     else {
         $diag           = 'return-is';
