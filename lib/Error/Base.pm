@@ -21,7 +21,6 @@ use Scalar::Util;               # General-utility scalar subroutines
 
 # Alternate uses
 #~ use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
-#~ ### Yo
 
 ## use
 #============================================================================#
@@ -31,6 +30,8 @@ use Scalar::Util;               # General-utility scalar subroutines
 # Compiled regexes
 our $QRFALSE            = qr/\A0?\z/            ;
 our $QRTRUE             = qr/\A(?!$QRFALSE)/    ;
+
+our $BASETOP            = 2;    # number of stack frames generated internally
 
 #----------------------------------------------------------------------------#
 
@@ -256,7 +257,7 @@ sub _fuss {
                         $self->{-type},
                         $self->{-mesg},
                     );
-    ### $self
+#~     ### $self
     
     # Late interpolate.    
     $message        = $self->_late( $message );
@@ -307,7 +308,7 @@ sub _fuss {
                                     )
                                 } @lines;
     
-#~     ##### $self
+    ### @lines
     return $self;
     
 #~     # Do something to control line length and deal with multi-line $all.
@@ -467,20 +468,22 @@ sub init {
     # Set some default values, mostly to avoid 'uninitialized' warnings.
     if    ( not defined $self->{-base}  ) {
         $self->{-base}  = q{};
-    }; 
+    };
     if    ( not defined $self->{-type}  ) {
         $self->{-type}  = q{};
-    }; 
+    };
     if    ( not defined $self->{-mesg}  ) {
         $self->{-mesg}  = q{};
-    }; 
+    };
     if    ( not defined $self->{-all}   ) {
         $self->{-all}   = q{};
-    }; 
-    if    ( not defined $self->{-top}   ) {
-        $self->{-top}   = 2;                # skip frames internal to E::B
-    }; 
-        
+    };
+    if    ( not defined $self->{-nest}   ) {
+        $self->{-nest}  = 0;
+    };
+    # -top now cannot be set through init()
+    $self->{-top}   = $self->{-nest} + $BASETOP;    # skip backtrace frames
+    
     return $self;
 }; ## init
 
@@ -772,7 +775,7 @@ See the L<Error::Base::Cookbook|Error::Base::Cookbook> for examples.
                     -base       => 'Bar error:',
                     -type       => 'last call',
                     -quiet      => 1,
-                    -top        => 3,
+                    -nest       => 1,
                     -prepend    => '@! Black Tie Lunch:',
                     -indent     => '@!                 ',
                     _beer   => 'out of beer',   # your private attribute(s)
@@ -930,10 +933,15 @@ parameter. Only error text will be emitted.
 
 =head2 -top
 
-I<scalar unsigned integer> default: 2
+Deprecated as a public parameter; now internal only to Error::Base. 
+
+=head2 -nest
+
+I<scalar signed integer> default: 0
 
 By default, stack frames internal to Error::Base are not traced. 
-Set this parameter to adjust how many frames to discard. 
+Set this parameter to adjust how many additional frames to discard.
+Negative values display internal frames.  
 
 TODO: A more elegant interface. 
 
@@ -1041,7 +1049,8 @@ All errors internal to this module are prefixed C<< Error::Base internal... >>
 =item C<< excessive backtrace >>
 
 Attempted to capture too many frames of backtrace. 
-You probably mis-set C<< -top >>, rational values of which are perhaps C<0..9>.
+You probably mis-set C<< -nest >>, reasonable values of which are perhaps 
+C<-2..3>.
 
 =item C<< unpaired args: >>
 

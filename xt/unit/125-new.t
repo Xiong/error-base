@@ -84,10 +84,10 @@ my @td  = (
     },
     
     {
-        -case   => 'top-0-fuzz',        # mess with -top
+        -case   => 'nest-0-fuzz',        # mess with -nest
         -args   => [ 
                     'Bazfaz: ',
-                    -top    => 0, 
+                    -nest    => -2, 
                     -base   => 'Foobar error ', 
                     foo     => 'bar', 
                 ],

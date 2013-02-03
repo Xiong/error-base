@@ -17,6 +17,7 @@
 ###                              '____ at line 21    [t/211-mesg-aryref.t]'
 ###                            ],
 ###                '-mesg' => 'Cannot find bar .',
+###                '-nest' => 0,
 ###                '-top' => 2,
 ###                '-type' => ''
 ###              }, 'Error::Base' )

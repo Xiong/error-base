@@ -108,13 +108,13 @@ my @td  = (
     },
     
     {
-        -case   => 'top-0-fuzz',        # mess with -top
+        -case   => 'nest-0-fuzz',        # mess with -top
         -args   => [ 
                     'Bazfaz', 
                     -base   => 'Foobar error', 
                     foo     => 'bar' 
                 ],
-        -merge  => [ -top => 0 ],
+        -merge  => [ -nest => -2 ],
         -fuzz   => words(qw/ 
                     lines
                         foobar error bazfaz
