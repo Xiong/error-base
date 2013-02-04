@@ -32,6 +32,7 @@ our $QRFALSE            = qr/\A0?\z/            ;
 our $QRTRUE             = qr/\A(?!$QRFALSE)/    ;
 
 our $BASETOP            = 2;    # number of stack frames generated internally
+# see also global defaults set in accessors
 
 #----------------------------------------------------------------------------#
 
@@ -278,35 +279,20 @@ sub _fuss {
     };
     
     # Optionally prepend some stuff.
-    my $prepend     = q{};                      # prepended to first line
-    my $indent      = q{};                      # prepended to all others
-    
-    if    ( defined $self->{-prepend} ) {
-        $prepend        = $self->{-prepend};
-    };
-    if    ( defined $self->{-indent} ) {
-        $indent         = $self->{-indent};
-    };
-    if    ( defined $self->{-prepend_all} ) {
-        $prepend        = $self->{-prepend_all};
-        $indent         = $prepend;
+    if ( defined $self->{-prepend} ) {          # prepended to first line
+        @{ $self->{-lines} } 
+            = _join_local( $self->{-prepend}, shift @lines );
     }
-    elsif ( $prepend and !$indent ) {           # construct $indent
-        $indent         = ( substr $prepend, 0, 1           )
-                        . ( q{ } x ((length $prepend) - 1)  )
-                        ;
-    }; 
-    
-    @{ $self->{-lines} }    = _join_local(
-                                $prepend,
-                                shift @lines
-                            );
-    push @{ $self->{-lines} }, map {
-                                    _join_local(
-                                        $indent,
-                                        $_
-                                    )
-                                } @lines;
+    else {
+        @{ $self->{-lines} }                = shift @lines;
+    };
+    if ( defined $self->{-indent} ) {           # prepended to all others
+        push @{ $self->{-lines} }, 
+            map { _join_local( $self->{-indent}, $_ ) } @lines;
+    }
+    else {
+        push @{ $self->{-lines} },                      @lines;
+    };
     
     ### @lines
     return $self;
@@ -466,26 +452,160 @@ sub init {
     %{$self}        = ( %{$self}, @_ );
     
     # Set some default values, mostly to avoid 'uninitialized' warnings.
-    if    ( not defined $self->{-base}  ) {
-        $self->{-base}  = q{};
-    };
-    if    ( not defined $self->{-type}  ) {
-        $self->{-type}  = q{};
-    };
-    if    ( not defined $self->{-mesg}  ) {
-        $self->{-mesg}  = q{};
-    };
-    if    ( not defined $self->{-all}   ) {
-        $self->{-all}   = q{};
-    };
-    if    ( not defined $self->{-nest}   ) {
-        $self->{-nest}  = 0;
-    };
-    # -top now cannot be set through init()
-    $self->{-top}   = $self->{-nest} + $BASETOP;    # skip backtrace frames
+    $self->put_base(  $self->{-base}  );
+    $self->put_type(  $self->{-type}  );
+    $self->put_mesg(  $self->{-mesg}  );
+    $self->put_quiet( $self->{-quiet} );
+    $self->put_nest(  $self->{-nest}  );
+    $self->_fix_pre_ind();
     
     return $self;
 }; ## init
+
+#----------------------------------------------------------------------------#
+# ACCSESSORS
+
+my $Default = {
+    -base           =>  q{},
+    -type           =>  q{},
+    -mesg           =>  q{},
+    -quiet          =>  0,
+    -nest           =>  0,
+    -prepend        =>  undef,
+    -indent         =>  undef,
+};
+
+
+
+# put
+sub put_base {
+    my $self            = shift;
+    $self->{-base}      = shift;
+    if    ( not defined $self->{-base}  ) {
+        $self->{-base}  = $Default->{-base};
+    };
+    return $self;
+};
+sub put_type {
+    my $self            = shift;
+    $self->{-type}      = shift;
+    if    ( not defined $self->{-type}  ) {
+        $self->{-type}  = $Default->{-type};
+    };
+    return $self;
+};
+sub put_mesg {
+    my $self            = shift;
+    $self->{-mesg}      = shift;
+    if    ( not defined $self->{-mesg}  ) {
+        $self->{-mesg}  = $Default->{-mesg};
+    };
+    return $self;
+};
+sub put_quiet {
+    my $self            = shift;
+    $self->{-quiet}     = shift;
+    if    ( not defined $self->{-quiet}  ) {
+        $self->{-quiet} = $Default->{-quiet};
+    };
+    return $self;
+};
+sub put_nest {
+    my $self            = shift;
+    $self->{-nest}      = shift;
+    if    ( not defined $self->{-nest}  ) {
+        $self->{-nest}  = $Default->{-nest};
+    };
+    # -top is now deprecated from the API
+    $self->{-top}       = $self->{-nest} + $BASETOP;
+    return $self;
+};
+sub put_prepend {
+    my $self            = shift;
+    $self->{-prepend}   = shift;
+    $self->_fix_pre_ind();
+    return $self;
+};
+sub put_indent {
+    my $self            = shift;
+    $self->{-indent}    = shift;
+    $self->_fix_pre_ind();
+    return $self;
+};
+# For internal use only
+sub _fix_pre_ind {
+    my $self            = shift;
+    my $indent          ;
+    my $case            ;
+    
+    $case   = $case . ( defined $self->{-prepend} ? 'P' : '-' );
+    $case   = $case . ( defined $self->{-indent}  ? 'I' : '-' );
+    
+    # four cases cover all needs
+    if    ( $case eq '--' ) {
+        $self->{-prepend}   =   $Default->{-prepend};
+        $self->{-indent}    =   $Default->{-indent};
+    }
+    elsif ( $case eq '-I' ) {
+        $self->{-prepend}   =   $self->{-indent};
+    }
+    elsif ( $case eq 'P-' ) {
+        my $prepend         = $self->{-prepend};
+        $self->{-indent}    = ( substr $prepend, 0, 1           )
+                            . ( q{ } x ((length $prepend) - 1)  )
+                            ;
+    }
+    else {
+        # ( $case eq 'PI' )     # do nothing
+    };
+    
+    return $self;
+};
+
+# get
+sub get_base {
+    my $self    = shift;
+    return $self->{-base};
+};
+sub get_type {
+    my $self    = shift;
+    return $self->{-type};
+};
+sub get_mesg {
+    my $self    = shift;
+    return $self->{-mesg};
+};
+sub get_quiet {
+    my $self    = shift;
+    return $self->{-quiet};
+};
+sub get_nest {
+    my $self    = shift;
+    return $self->{-nest};
+};
+sub get_prepend {
+    my $self    = shift;
+    return $self->{-prepend};
+};
+sub get_indent {
+    my $self    = shift;
+    return $self->{-indent};
+};
+sub get_all {
+    my $self    = shift;
+    return $self->{-all};
+};
+sub get_lines {
+    my $self    = shift;
+    return $self->{-lines};
+};
+sub get_frames {
+    my $self    = shift;
+    return $self->{-frames};
+};
+
+## accessors
+#----------------------------------------------------------------------------#
 
 #=========# INTERNAL OBJECT METHOD
 #
@@ -943,8 +1063,6 @@ By default, stack frames internal to Error::Base are not traced.
 Set this parameter to adjust how many additional frames to discard.
 Negative values display internal frames.  
 
-TODO: A more elegant interface. 
-
 =head2 -prepend
 
 I<scalar string> default: undef
@@ -953,13 +1071,12 @@ I<scalar string> default: undef
 
 I<scalar string> default: first char of -prepend, padded with spaces to length
 
-=head2 -prepend_all
-
-I<scalar string> default: undef
-
 The value of C<< -prepend >> is prepended to the first line of error text; 
-C<< -indent >> to all others. If given, C<< -prepend_all >> overrides the 
-other parameters and is prepended to all lines. 
+C<< -indent >> to all others. 
+If only C<< -indent >> is given, it is prepended to all lines. 
+If only C<< -prepend >> is given, C<< -indent >> is generated from its first 
+character and padded to the same length. 
+Override either of these default actions by passing the empty string. 
 
 This is a highly useful feature that improves readability in the middle of a 
 dense dump. So in future releases, the default may be changed to form 
@@ -976,8 +1093,6 @@ For a detailed explanation,
 see the L<Cookbook|Error::Base::Cookbook/Late Interpolation>.
 
 =head1 RESULTS
-
-Soon, I'll write accessor methods for all of these. For now, rough it. 
 
 =head2 -all
 
@@ -998,6 +1113,29 @@ The formatted error message, fully expanded, including backtrace.
 I<array of hashrefs>
 
 The raw stack frames used to compose the backtrace. 
+
+=head1 ACCSESSORS
+
+Object-oriented accessor methods are provided for each parameter and result. 
+They all do just what you'd expect. 
+
+    $self               = $self->put_base($string);
+    $self               = $self->put_type($string);
+    $self               = $self->put_mesg($string);
+    $self               = $self->put_quiet($string_or_aryref);
+    $self               = $self->put_nest($signed_int);
+    $self               = $self->put_prepend($string);
+    $self               = $self->put_indent($string);
+    $string             = $self->get_base();
+    $string             = $self->get_type();
+    $string_or_aryref   = $self->get_mesg();
+    $boolean            = $self->get_quiet();
+    $signed_int         = $self->get_nest();
+    $string             = $self->get_prepend();
+    $string             = $self->get_indent();
+    $string             = $self->get_all();
+    @array_of_strings   = $self->get_lines();
+    @array of hashrefs  = $self->get_frames();
 
 =head1 SUBCLASSING
 

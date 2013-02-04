@@ -610,15 +610,15 @@ if you don't want to see the wrapper in your backtrace.
 =cut
 
 {   #
-    my $err     = Error::Base->new(
-                    -prepend    => '@! Black Tie Lunch:',
-                );
     push @td, {
         -case   => 'prepend-only',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash ( 'Let\'s eat!' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -prepend    => '@! Black Tie Lunch:',
+    );
         # emits "@! Black Tie Lunch: Let's eat!
         #        @                   in main::fubar at line 42    [test.pl]"
 #
@@ -629,15 +629,16 @@ if you don't want to see the wrapper in your backtrace.
 }   #
 
 {   #
-    my $err     = Error::Base->new(
-                    -prepend    => '@! Black Tie Lunch:',
-                );
     push @td, {
         -case   => 'prepend-indent',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash ( 'Let\'s eat!', -indent        => '%--' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -prepend    => '@! Black Tie Lunch:',
+        -indent     => '%--' 
+    );
         # emits "@! Black Tie Lunch: Let's eat!
         #        %-- in main::fubar at line 42    [test.pl]"
 #
@@ -648,15 +649,15 @@ if you don't want to see the wrapper in your backtrace.
 }   #
 
 {   #
-    my $err     = Error::Base->new(
-                    -prepend    => '@! Black Tie Lunch:',
-                );
     push @td, {
-        -case   => 'prepend-all',
+        -case   => 'indent-only',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash ( 'Let\'s eat!', -prepend_all   => '%--' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -indent     => '%--' 
+    );
         # emits "%-- Let's eat!
         #        %-- in main::fubar at line 42    [test.pl]"
 #
@@ -668,19 +669,25 @@ if you don't want to see the wrapper in your backtrace.
 
 =pod
 
-    my $err     = Error::Base->new(
-                    -prepend    => '@! Black Tie Lunch:',
-                );
-
-    $err->crash ( 'Let\'s eat!' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -prepend    => '@! Black Tie Lunch:',
+    );
         # emits "@! Black Tie Lunch: Let's eat!
         #        @                   in main::fubar at line 42    [test.pl]"
 
-    $err->crash ( 'Let\'s eat!', -indent        => '%--' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -prepend    => '@! Black Tie Lunch:',
+        -indent     => '%--' 
+    );
         # emits "@! Black Tie Lunch: Let's eat!
         #        %-- in main::fubar at line 42    [test.pl]"
 
-    $err->crash ( 'Let\'s eat!', -prepend_all   => '%--' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -indent     => '%--' 
+    );
         # emits "%-- Let's eat!
         #        %-- in main::fubar at line 42    [test.pl]"
 
@@ -690,7 +697,8 @@ If L<-indent|Error::Base/-indent> is defined then that will be
 prepended to all following lines. If -indent is undefined then it will 
 be formed (from the first character only of -prepend) 
 and (padded with spaces to the length of -prepend). 
-L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines. 
+If only -indent is defined then it will be prepended to all lines. 
+You can override default actions by passing the empty string. 
 
 =head2 Message Composition
 

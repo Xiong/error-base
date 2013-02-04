@@ -52,8 +52,9 @@ my @td  = (
                 /),
     },
     
+#~     { -end    => 1 },   # # # # # # # END TESTING HERE # # # # # # # # # 
     {
-        -case   => 'text-fuzz',         # emit error text, named arg
+        -case   => 'text-fuzz-named',   # emit error text, named arg
         -args   => [ -base => 'Foobar error ', foo => 'bar' ],
         -fuzz   => words(qw/ 
                     bless 
@@ -73,7 +74,6 @@ my @td  = (
     },
     
     {
-#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'text-both',         # emit error text, stringified normal
         -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
         -want   => words(qw/ 
