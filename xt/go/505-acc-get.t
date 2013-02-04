@@ -1,0 +1,1 @@
+/home/xiong/projects/error-base/xt/acc/505-acc-get.t
