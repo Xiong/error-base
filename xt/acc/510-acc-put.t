@@ -49,13 +49,21 @@ BEGIN{
 my @td  = (
     
     {
-        -case   => 'get_base-null',
+        -case   => 'null',
         -code   => sub {
                     my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-base}   => $err->get_base(),
-                        
-                    );
+                    my $old = dclone($err);
+                    return ( $err   => $old );
+                },
+    },
+    
+    {
+        -case   => 'put_base-null',
+        -code   => sub {
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $err->put_base(  );
+                    return ( $err   => $old );
                 },
     },
     
@@ -357,7 +365,7 @@ sub exck {
         $diag           = 'return-compare';
         $got            = $trap->return(0);
         $want           = $trap->return(1);
-        is                  ( $got, $want, $diag );
+        cmp_deeply          ( $got, $want, $diag );
         $diag           = 'return-quietly';
         $trap->quiet        ( $diag ) unless $cranky;
     

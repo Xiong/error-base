@@ -52,7 +52,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-base}   => $err->get_base(),
-                        
                     );
                 },
     },
@@ -63,7 +62,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -base => 'foo' );
                     return (
                         $err->{-base}   => $err->get_base(),
-                        
                     );
                 },
     },
@@ -74,7 +72,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-type}   => $err->get_type(),
-                        
                     );
                 },
     },
@@ -85,7 +82,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -type => 'foo' );
                     return (
                         $err->{-type}   => $err->get_type(),
-                        
                     );
                 },
     },
@@ -96,7 +92,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-mesg}   => $err->get_mesg(),
-                        
                     );
                 },
     },
@@ -107,7 +102,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -mesg => 'foo' );
                     return (
                         $err->{-mesg}   => $err->get_mesg(),
-                        
                     );
                 },
     },
@@ -118,7 +112,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -mesg => [ 1, 2, 3 ] );
                     return (
                         $err->{-mesg}   => $err->get_mesg(),
-                        
                     );
                 },
     },
@@ -129,7 +122,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-quiet}   => $err->get_quiet(),
-                        
                     );
                 },
     },
@@ -140,7 +132,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -quiet => 1 );
                     return (
                         $err->{-quiet}   => $err->get_quiet(),
-                        
                     );
                 },
     },
@@ -151,7 +142,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-nest}   => $err->get_nest(),
-                        
                     );
                 },
     },
@@ -162,7 +152,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -nest => 1 );
                     return (
                         $err->{-nest}   => $err->get_nest(),
-                        
                     );
                 },
     },
@@ -173,7 +162,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-prepend}   => $err->get_prepend(),
-                        
                     );
                 },
     },
@@ -184,7 +172,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -prepend => 'foo' );
                     return (
                         $err->{-prepend}   => $err->get_prepend(),
-                        
                     );
                 },
     },
@@ -195,7 +182,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-indent}   => $err->get_indent(),
-                        
                     );
                 },
     },
@@ -206,7 +192,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -indent => 'foo' );
                     return (
                         $err->{-indent}   => $err->get_indent(),
-                        
                     );
                 },
     },
@@ -217,7 +202,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-prepend_all}   => $err->get_prepend_all(),
-                        
                     );
                 },
     },
@@ -228,7 +212,6 @@ my @td  = (
                     my $err = Error::Base->cuss( -prepend_all => 'foo' );
                     return (
                         $err->{-prepend_all}   => $err->get_prepend_all(),
-                        
                     );
                 },
     },
@@ -239,7 +222,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-all}   => $err->get_all(),
-                        
                     );
                 },
     },
@@ -254,7 +236,6 @@ my @td  = (
                                 );
                     return (
                         $err->{-all}   => $err->get_all(),
-                        
                     );
                 },
     },
@@ -265,7 +246,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-lines}   => $err->get_lines(),
-                        
                     );
                 },
     },
@@ -280,7 +260,6 @@ my @td  = (
                                 );
                     return (
                         $err->{-lines}   => $err->get_lines(),
-                        
                     );
                 },
     },
@@ -291,7 +270,6 @@ my @td  = (
                     my $err = Error::Base->cuss( );
                     return (
                         $err->{-frames}   => $err->get_frames(),
-                        
                     );
                 },
     },
@@ -306,7 +284,6 @@ my @td  = (
                                 );
                     return (
                         $err->{-frames}   => $err->get_frames(),
-                        
                     );
                 },
     },
