@@ -279,8 +279,8 @@ sub _fuss {
     };
     
     # Optionally prepend some stuff.
-    my $prepend     = q{};                      # prepended to first line
-    my $indent      = q{};                      # prepended to all others
+    my $prepend     = $self->{-prepend};        # prepended to first line
+    my $indent      = $self->{-indent};         # prepended to all others
     
     @{ $self->{-lines} }    = _join_local(
                                 $prepend,
@@ -455,6 +455,7 @@ sub init {
     $self->put_type( $self->{-type} );
     $self->put_mesg( $self->{-mesg} );
     $self->put_nest( $self->{-nest} );
+    $self->_fix_pre_ind();
     
     return $self;
 }; ## init
@@ -470,7 +471,6 @@ my $Default = {
     -nest           =>  0,
     -prepend        =>  q{},
     -indent         =>  q{},
-    -prepend_all    =>  q{},
 };
 
 
@@ -521,21 +521,17 @@ sub put_nest {
 sub put_prepend {
     my $self            = shift;
     $self->{-prepend}   = shift;
-    if    ( not defined $self->{-prepend}  ) {
-        $self->{-prepend}       = $Default->{-nest};
-    };
+    $self->_fix_pre_ind();
     return $self;
 };
 sub put_indent {
     my $self            = shift;
     $self->{-indent}    = shift;
-    if    ( not defined $self->{-indent}  ) {
-        $self->{-indent}        = $Default->{-nest};
-    };
+    $self->_fix_pre_ind();
     return $self;
 };
 # For internal use only
-sub _put_pre_ind {
+sub _fix_pre_ind {
     my $self            = shift;
     my $indent          ;
     my $case            ;
@@ -1073,13 +1069,12 @@ I<scalar string> default: undef
 
 I<scalar string> default: first char of -prepend, padded with spaces to length
 
-=head2 -prepend_all
-
-I<scalar string> default: undef
-
 The value of C<< -prepend >> is prepended to the first line of error text; 
-C<< -indent >> to all others. If given, C<< -prepend_all >> overrides the 
-other parameters and is prepended to all lines. 
+C<< -indent >> to all others. 
+If only C<< -indent >> is given, it is prepended to all lines. 
+If only C<< -prepend >> is given, C<< -indent >> is generated from its first 
+character and padded to the same length. 
+Override either of these default actions by passing the empty string. 
 
 This is a highly useful feature that improves readability in the middle of a 
 dense dump. So in future releases, the default may be changed to form 
@@ -1129,7 +1124,6 @@ They all do just what you'd expect.
     $self               = $self->put_nest($signed_int);
     $self               = $self->put_prepend($string);
     $self               = $self->put_indent($string);
-    $self               = $self->put_prepend_all($string);
     $string             = $self->get_base();
     $string             = $self->get_type();
     $string_or_aryref   = $self->get_mesg();
@@ -1137,7 +1131,6 @@ They all do just what you'd expect.
     $signed_int         = $self->get_nest();
     $string             = $self->get_prepend();
     $string             = $self->get_indent();
-    $string             = $self->get_prepend_all();
     $string             = $self->get_all();
     @array_of_strings   = $self->get_lines();
     @array of hashrefs  = $self->get_frames();

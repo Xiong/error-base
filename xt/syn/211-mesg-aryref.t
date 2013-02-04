@@ -5,7 +5,7 @@ use Test::More;
 
 use Error::Base;
 
-use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
+#~ use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
 
 #----------------------------------------------------------------------------#
 # This just to test the new feature as shown in E::B POD. 

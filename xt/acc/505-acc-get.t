@@ -197,26 +197,6 @@ my @td  = (
     },
     
     {
-        -case   => 'get_prepend_all-null',
-        -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-prepend_all}   => $err->get_prepend_all(),
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_prepend_all-foo',
-        -code   => sub {
-                    my $err = Error::Base->cuss( -prepend_all => 'foo' );
-                    return (
-                        $err->{-prepend_all}   => $err->get_prepend_all(),
-                    );
-                },
-    },
-    
-    {
         -case   => 'get_all-null',
         -code   => sub {
                     my $err = Error::Base->cuss( );
