@@ -131,7 +131,6 @@ my @td  = (
                 },
     },
     
-    { -end    => 1 },   # # # # # # # END TESTING HERE # # # # # # # # # 
     {
         -case   => 'put_quiet-0-1',
         -code   => sub {
@@ -154,267 +153,119 @@ my @td  = (
                 },
     },
     
-    
-    
-    
     {
-        -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
-        -case   => 'get_base-foo',
+        -case   => 'put_nest-null',
         -code   => sub {
-                    my $err = Error::Base->cuss( -base => 'foo' );
-                    return (
-                        $err->{-base}   => $err->get_base(),
-                        
-                    );
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $err->put_nest(  );
+                    return ( $err   => $old );
                 },
     },
     
     {
-        -case   => 'get_type-null',
+        -case   => 'put_nest-0-1',
         -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-type}   => $err->get_type(),
-                        
-                    );
+                    my $err = Error::Base->new( -nest => 0 );
+                    my $old = dclone($err);
+                    $old->{-nest} = 1;
+                    $old->{-top} = $old->{-nest} + $Error::Base::BASETOP;
+                    $err->put_nest( 1 );
+                    return ( $err   => $old );
                 },
     },
     
     {
-        -case   => 'get_type-foo',
+        -case   => 'put_nest-1-0',
         -code   => sub {
-                    my $err = Error::Base->cuss( -type => 'foo' );
-                    return (
-                        $err->{-type}   => $err->get_type(),
-                        
-                    );
+                    my $err = Error::Base->new( -nest => 1 );
+                    my $old = dclone($err);
+                    $old->{-nest} = 0;
+                    $old->{-top} = $old->{-nest} + $Error::Base::BASETOP;
+                    $err->put_nest( 0 );
+                    return ( $err   => $old );
                 },
     },
     
     {
-        -case   => 'get_mesg-null',
+        -case   => 'pre-int-null',
         -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-mesg}   => $err->get_mesg(),
-                        
-                    );
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $err->put_prepend(  );
+                    $err->put_indent(  );
+                    return ( $err   => $old );
                 },
     },
     
     {
-        -case   => 'get_mesg-foo',
+        -case   => 'pre-int-AAB',
         -code   => sub {
-                    my $err = Error::Base->cuss( -mesg => 'foo' );
-                    return (
-                        $err->{-mesg}   => $err->get_mesg(),
-                        
-                    );
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $old->{-prepend} = 'AA';
+                    $err->put_prepend( 'AA' );
+                    $old->{-indent} = 'B';
+                    $err->put_indent( 'B' );
+                    return ( $err   => $old );
                 },
     },
     
     {
-        -case   => 'get_mesg-aryref',
+        -case   => 'pre-int-AA-null',
         -code   => sub {
-                    my $err = Error::Base->cuss( -mesg => [ 1, 2, 3 ] );
-                    return (
-                        $err->{-mesg}   => $err->get_mesg(),
-                        
-                    );
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $old->{-prepend} = 'AA';
+                    $err->put_prepend( 'AA' );
+                    $old->{-indent} = 'A ';
+                    # $err->put_indent( 'B' );
+                    return ( $err   => $old );
                 },
     },
     
     {
-        -case   => 'get_quiet-null',
+        -case   => 'pre-int-null-B',
         -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-quiet}   => $err->get_quiet(),
-                        
-                    );
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $old->{-prepend} = 'B';
+                    # $err->put_prepend( 'AA' );
+                    $old->{-indent} = 'B';
+                    $err->put_indent( 'B' );
+                    return ( $err   => $old );
                 },
     },
     
     {
-        -case   => 'get_quiet-1',
+        -case   => 'pre-int-AA-empty',
         -code   => sub {
-                    my $err = Error::Base->cuss( -quiet => 1 );
-                    return (
-                        $err->{-quiet}   => $err->get_quiet(),
-                        
-                    );
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $old->{-prepend} = 'AA';
+                    $err->put_prepend( 'AA' );
+                    $old->{-indent} = q{};
+                    $err->put_indent( q{} );
+                    return ( $err   => $old );
                 },
     },
     
     {
-        -case   => 'get_nest-null',
+        -case   => 'pre-int-empty-B',
         -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-nest}   => $err->get_nest(),
-                        
-                    );
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $old->{-prepend} = q{};
+                    $err->put_prepend( q{} );
+                    $old->{-indent} = 'B';
+                    $err->put_indent( 'B' );
+                    return ( $err   => $old );
                 },
     },
     
-    {
-        -case   => 'get_nest-1',
-        -code   => sub {
-                    my $err = Error::Base->cuss( -nest => 1 );
-                    return (
-                        $err->{-nest}   => $err->get_nest(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_prepend-null',
-        -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-prepend}   => $err->get_prepend(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_prepend-foo',
-        -code   => sub {
-                    my $err = Error::Base->cuss( -prepend => 'foo' );
-                    return (
-                        $err->{-prepend}   => $err->get_prepend(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_indent-null',
-        -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-indent}   => $err->get_indent(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_indent-foo',
-        -code   => sub {
-                    my $err = Error::Base->cuss( -indent => 'foo' );
-                    return (
-                        $err->{-indent}   => $err->get_indent(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_prepend_all-null',
-        -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-prepend_all}   => $err->get_prepend_all(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_prepend_all-foo',
-        -code   => sub {
-                    my $err = Error::Base->cuss( -prepend_all => 'foo' );
-                    return (
-                        $err->{-prepend_all}   => $err->get_prepend_all(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_all-null',
-        -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-all}   => $err->get_all(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_all-stuff',
-        -code   => sub {
-                    my $err = Error::Base->cuss( 
-                                    -base   => 'foo',
-                                    -type   => 'bar',
-                                    -mesg   => 'baz', 
-                                );
-                    return (
-                        $err->{-all}   => $err->get_all(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_lines-null',
-        -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-lines}   => $err->get_lines(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_lines-stuff',
-        -code   => sub {
-                    my $err = Error::Base->cuss( 
-                                    -base   => 'foo',
-                                    -type   => 'bar',
-                                    -mesg   => 'baz', 
-                                );
-                    return (
-                        $err->{-lines}   => $err->get_lines(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_frames-null',
-        -code   => sub {
-                    my $err = Error::Base->cuss( );
-                    return (
-                        $err->{-frames}   => $err->get_frames(),
-                        
-                    );
-                },
-    },
-    
-    {
-        -case   => 'get_frames-stuff',
-        -code   => sub {
-                    my $err = Error::Base->cuss( 
-                                    -base   => 'foo',
-                                    -type   => 'bar',
-                                    -mesg   => 'baz', 
-                                );
-                    return (
-                        $err->{-frames}   => $err->get_frames(),
-                        
-                    );
-                },
-    },
+    { -end    => 1 },   # # # # # # # END TESTING HERE # # # # # # # # # 
     
 ); ## td
-
-#~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
 
 #----------------------------------------------------------------------------#
 

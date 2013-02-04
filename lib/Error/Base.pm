@@ -279,19 +279,20 @@ sub _fuss {
     };
     
     # Optionally prepend some stuff.
-    my $prepend     = $self->{-prepend};        # prepended to first line
-    my $indent      = $self->{-indent};         # prepended to all others
-    
-    @{ $self->{-lines} }    = _join_local(
-                                $prepend,
-                                shift @lines
-                            );
-    push @{ $self->{-lines} }, map {
-                                    _join_local(
-                                        $indent,
-                                        $_
-                                    )
-                                } @lines;
+    if ( defined $self->{-prepend} ) {          # prepended to first line
+        @{ $self->{-lines} } 
+            = _join_local( $self->{-prepend}, shift @lines );
+    }
+    else {
+        @{ $self->{-lines} }                = shift @lines;
+    };
+    if ( defined $self->{-indent} ) {           # prepended to all others
+        push @{ $self->{-lines} }, 
+            map { _join_local( $self->{-indent}, $_ ) } @lines;
+    }
+    else {
+        push @{ $self->{-lines} },                      @lines;
+    };
     
     ### @lines
     return $self;
@@ -451,10 +452,11 @@ sub init {
     %{$self}        = ( %{$self}, @_ );
     
     # Set some default values, mostly to avoid 'uninitialized' warnings.
-    $self->put_base( $self->{-base} );
-    $self->put_type( $self->{-type} );
-    $self->put_mesg( $self->{-mesg} );
-    $self->put_nest( $self->{-nest} );
+    $self->put_base(  $self->{-base}  );
+    $self->put_type(  $self->{-type}  );
+    $self->put_mesg(  $self->{-mesg}  );
+    $self->put_quiet( $self->{-quiet} );
+    $self->put_nest(  $self->{-nest}  );
     $self->_fix_pre_ind();
     
     return $self;
@@ -469,8 +471,8 @@ my $Default = {
     -mesg           =>  q{},
     -quiet          =>  0,
     -nest           =>  0,
-    -prepend        =>  q{},
-    -indent         =>  q{},
+    -prepend        =>  undef,
+    -indent         =>  undef,
 };
 
 
