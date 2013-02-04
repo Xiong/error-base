@@ -79,6 +79,85 @@ my @td  = (
     },
     
     {
+        -case   => 'put_mesg-null',
+        -code   => sub {
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $err->put_mesg(  );
+                    return ( $err   => $old );
+                },
+    },
+    
+    {
+        -case   => 'put_mesg-foo',
+        -code   => sub {
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $old->{-mesg} = 'foo';
+                    $err->put_mesg( 'foo' );
+                    return ( $err   => $old );
+                },
+    },
+    
+    {
+        -case   => 'put_mesg-foo-aryref',
+        -code   => sub {
+                    my $err = Error::Base->new( -mesg => 'foo' );
+                    my $old = dclone($err);
+                    $old->{-mesg} = [ 1, 2, 3];
+                    $err->put_mesg( [ 1, 2, 3] );
+                    return ( $err   => $old );
+                },
+    },
+    
+    {
+        -case   => 'put_mesg-aryref-bar',
+        -code   => sub {
+                    my $err = Error::Base->new( -mesg => [ 1, 2, 3] );
+                    my $old = dclone($err);
+                    $old->{-mesg} = 'bar';
+                    $err->put_mesg( 'bar' );
+                    return ( $err   => $old );
+                },
+    },
+    
+    {
+        -case   => 'put_quiet-null',
+        -code   => sub {
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $err->put_quiet(  );
+                    return ( $err   => $old );
+                },
+    },
+    
+    { -end    => 1 },   # # # # # # # END TESTING HERE # # # # # # # # # 
+    {
+        -case   => 'put_quiet-0-1',
+        -code   => sub {
+                    my $err = Error::Base->new( -quiet => 0 );
+                    my $old = dclone($err);
+                    $old->{-quiet} = 1;
+                    $err->put_quiet( 1 );
+                    return ( $err   => $old );
+                },
+    },
+    
+    {
+        -case   => 'put_quiet-1-0',
+        -code   => sub {
+                    my $err = Error::Base->new( -quiet => 1 );
+                    my $old = dclone($err);
+                    $old->{-quiet} = 0;
+                    $err->put_quiet( 0 );
+                    return ( $err   => $old );
+                },
+    },
+    
+    
+    
+    
+    {
         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
         -case   => 'get_base-foo',
         -code   => sub {
@@ -421,6 +500,18 @@ sub exck {
 #~         fail('Test script failure: unimplemented gimmick.');
 #~     };
     
+#~     # Extra-verbose dump optional for test script debug.
+#~     if ( $Verbose >= 1 ) {
+#~         note( ''                            );
+#~         $trap->diag_all;
+#~         note( ''                            );
+#~     };
+#~     
+}; ## subtest
+
+#----------------------------------------------------------------------------#
+
+END {
     # Extra-verbose dump optional for test script debug.
     if ( $Verbose >= 1 ) {
         note( ''                            );
@@ -428,11 +519,6 @@ sub exck {
         note( ''                            );
     };
     
-}; ## subtest
-
-#----------------------------------------------------------------------------#
-
-END {
     done_testing($tc);
     exit 0;
 }

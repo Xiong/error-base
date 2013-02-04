@@ -564,9 +564,6 @@ sub put_mesg {
 sub put_quiet {
     my $self            = shift;
     $self->{-quiet}     = shift;
-    if    ( not defined $self->{-quiet}  ) {
-        $self->{-quiet} = 0;
-    };
     return $self;
 };
 sub put_nest {
