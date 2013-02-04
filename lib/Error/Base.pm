@@ -32,6 +32,7 @@ our $QRFALSE            = qr/\A0?\z/            ;
 our $QRTRUE             = qr/\A(?!$QRFALSE)/    ;
 
 our $BASETOP            = 2;    # number of stack frames generated internally
+# see also global defaults set in accessors
 
 #----------------------------------------------------------------------------#
 
@@ -281,22 +282,6 @@ sub _fuss {
     my $prepend     = q{};                      # prepended to first line
     my $indent      = q{};                      # prepended to all others
     
-    if    ( defined $self->{-prepend} ) {
-        $prepend        = $self->{-prepend};
-    };
-    if    ( defined $self->{-indent} ) {
-        $indent         = $self->{-indent};
-    };
-    if    ( defined $self->{-prepend_all} ) {
-        $prepend        = $self->{-prepend_all};
-        $indent         = $prepend;
-    }
-    elsif ( $prepend and !$indent ) {           # construct $indent
-        $indent         = ( substr $prepend, 0, 1           )
-                        . ( q{ } x ((length $prepend) - 1)  )
-                        ;
-    }; 
-    
     @{ $self->{-lines} }    = _join_local(
                                 $prepend,
                                 shift @lines
@@ -466,29 +451,118 @@ sub init {
     %{$self}        = ( %{$self}, @_ );
     
     # Set some default values, mostly to avoid 'uninitialized' warnings.
-    if    ( not defined $self->{-base}  ) {
-        $self->{-base}  = q{};
-    };
-    if    ( not defined $self->{-type}  ) {
-        $self->{-type}  = q{};
-    };
-    if    ( not defined $self->{-mesg}  ) {
-        $self->{-mesg}  = q{};
-    };
-    if    ( not defined $self->{-all}   ) {
-        $self->{-all}   = q{};
-    };
-    if    ( not defined $self->{-nest}   ) {
-        $self->{-nest}  = 0;
-    };
-    # -top now cannot be set through init()
-    $self->{-top}   = $self->{-nest} + $BASETOP;    # skip backtrace frames
+    $self->put_base( $self->{-base} );
+    $self->put_type( $self->{-type} );
+    $self->put_mesg( $self->{-mesg} );
+    $self->put_nest( $self->{-nest} );
     
     return $self;
 }; ## init
 
 #----------------------------------------------------------------------------#
 # ACCSESSORS
+
+my $Default = {
+    -base           =>  q{},
+    -type           =>  q{},
+    -mesg           =>  q{},
+    -quiet          =>  0,
+    -nest           =>  0,
+    -prepend        =>  q{},
+    -indent         =>  q{},
+    -prepend_all    =>  q{},
+};
+
+
+
+# put
+sub put_base {
+    my $self            = shift;
+    $self->{-base}      = shift;
+    if    ( not defined $self->{-base}  ) {
+        $self->{-base}  = $Default->{-base};
+    };
+    return $self;
+};
+sub put_type {
+    my $self            = shift;
+    $self->{-type}      = shift;
+    if    ( not defined $self->{-type}  ) {
+        $self->{-type}  = $Default->{-type};
+    };
+    return $self;
+};
+sub put_mesg {
+    my $self            = shift;
+    $self->{-mesg}      = shift;
+    if    ( not defined $self->{-mesg}  ) {
+        $self->{-mesg}  = $Default->{-mesg};
+    };
+    return $self;
+};
+sub put_quiet {
+    my $self            = shift;
+    $self->{-quiet}     = shift;
+    if    ( not defined $self->{-quiet}  ) {
+        $self->{-quiet} = $Default->{-quiet};
+    };
+    return $self;
+};
+sub put_nest {
+    my $self            = shift;
+    $self->{-nest}      = shift;
+    if    ( not defined $self->{-nest}  ) {
+        $self->{-nest}  = $Default->{-nest};
+    };
+    # -top is now deprecated from the API
+    $self->{-top}       = $self->{-nest} + $BASETOP;
+    return $self;
+};
+sub put_prepend {
+    my $self            = shift;
+    $self->{-prepend}   = shift;
+    if    ( not defined $self->{-prepend}  ) {
+        $self->{-prepend}       = $Default->{-nest};
+    };
+    return $self;
+};
+sub put_indent {
+    my $self            = shift;
+    $self->{-indent}    = shift;
+    if    ( not defined $self->{-indent}  ) {
+        $self->{-indent}        = $Default->{-nest};
+    };
+    return $self;
+};
+# For internal use only
+sub _put_pre_ind {
+    my $self            = shift;
+    my $indent          ;
+    my $case            ;
+    
+    $case   = $case . ( defined $self->{-prepend} ? 'P' : '-' );
+    $case   = $case . ( defined $self->{-indent}  ? 'I' : '-' );
+    
+    # four cases cover all needs
+    if    ( $case eq '--' ) {
+        $self->{-prepend}   =   $Default->{-prepend};
+        $self->{-indent}    =   $Default->{-indent};
+    }
+    elsif ( $case eq '-I' ) {
+        $self->{-prepend}   =   $self->{-indent};
+    }
+    elsif ( $case eq 'P-' ) {
+        my $prepend         = $self->{-prepend};
+        $self->{-indent}    = ( substr $prepend, 0, 1           )
+                            . ( q{ } x ((length $prepend) - 1)  )
+                            ;
+    }
+    else {
+        # ( $case eq 'PI' )     # do nothing
+    };
+    
+    return $self;
+};
 
 # get
 sub get_base {
@@ -519,10 +593,6 @@ sub get_indent {
     my $self    = shift;
     return $self->{-indent};
 };
-sub get_prepend_all {
-    my $self    = shift;
-    return $self->{-prepend_all};
-};
 sub get_all {
     my $self    = shift;
     return $self->{-all};
@@ -534,70 +604,6 @@ sub get_lines {
 sub get_frames {
     my $self    = shift;
     return $self->{-frames};
-};
-
-# put
-sub put_base {
-    my $self            = shift;
-    $self->{-base}      = shift;
-    if    ( not defined $self->{-base}  ) {
-        $self->{-base}  = q{};
-    };
-    return $self;
-};
-sub put_type {
-    my $self            = shift;
-    $self->{-type}      = shift;
-    if    ( not defined $self->{-type}  ) {
-        $self->{-type}  = q{};
-    };
-    return $self;
-};
-sub put_mesg {
-    my $self            = shift;
-    $self->{-mesg}      = shift;
-    if    ( not defined $self->{-mesg}  ) {
-        $self->{-mesg}  = q{};
-    };
-    return $self;
-};
-sub put_quiet {
-    my $self            = shift;
-    $self->{-quiet}     = shift;
-    return $self;
-};
-sub put_nest {
-    my $self            = shift;
-    $self->{-nest}      = shift;
-    if    ( not defined $self->{-nest}  ) {
-        $self->{-nest}  = 0;
-    };
-    $self->{-top}       = $self->{-nest} + $BASETOP;
-    return $self;
-};
-sub put_prepend {
-    my $self            = shift;
-    $self->{-prepend}   = shift;
-    if    ( not defined $self->{-prepend}  ) {
-        $self->{-prepend}       = q{};
-    };
-    return $self;
-};
-sub put_indent {
-    my $self            = shift;
-    $self->{-indent}    = shift;
-    if    ( not defined $self->{-indent}  ) {
-        $self->{-indent}        = q{};
-    };
-    return $self;
-};
-sub put_prepend_all {
-    my $self            = shift;
-    $self->{-prepend_all}   = shift;
-    if    ( not defined $self->{-prepend_all}  ) {
-        $self->{-prepend_all}   = q{};
-    };
-    return $self;
 };
 
 ## accessors
