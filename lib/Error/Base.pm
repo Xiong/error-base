@@ -540,42 +540,66 @@ sub get_frames {
 sub put_base {
     my $self            = shift;
     $self->{-base}      = shift;
+    if    ( not defined $self->{-base}  ) {
+        $self->{-base}  = q{};
+    };
     return $self;
 };
 sub put_type {
     my $self            = shift;
     $self->{-type}      = shift;
+    if    ( not defined $self->{-type}  ) {
+        $self->{-type}  = q{};
+    };
     return $self;
 };
 sub put_mesg {
     my $self            = shift;
     $self->{-mesg}      = shift;
+    if    ( not defined $self->{-mesg}  ) {
+        $self->{-mesg}  = q{};
+    };
     return $self;
 };
 sub put_quiet {
     my $self            = shift;
     $self->{-quiet}     = shift;
+    if    ( not defined $self->{-quiet}  ) {
+        $self->{-quiet} = 0;
+    };
     return $self;
 };
 sub put_nest {
     my $self            = shift;
     $self->{-nest}      = shift;
+    if    ( not defined $self->{-nest}  ) {
+        $self->{-nest}  = 0;
+    };
     $self->{-top}       = $self->{-nest} + $BASETOP;
     return $self;
 };
 sub put_prepend {
     my $self            = shift;
     $self->{-prepend}   = shift;
+    if    ( not defined $self->{-prepend}  ) {
+        $self->{-prepend}       = q{};
+    };
     return $self;
 };
 sub put_indent {
     my $self            = shift;
     $self->{-indent}    = shift;
+    if    ( not defined $self->{-indent}  ) {
+        $self->{-indent}        = q{};
+    };
     return $self;
 };
 sub put_prepend_all {
     my $self            = shift;
     $self->{-prepend_all}   = shift;
+    if    ( not defined $self->{-prepend_all}  ) {
+        $self->{-prepend_all}   = q{};
+    };
     return $self;
 };
 

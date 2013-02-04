@@ -12,7 +12,7 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: acc-put';
+my $base        = 'Error-Base: acc-put: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
@@ -63,6 +63,17 @@ my @td  = (
                     my $err = Error::Base->new( );
                     my $old = dclone($err);
                     $err->put_base(  );
+                    return ( $err   => $old );
+                },
+    },
+    
+    {
+        -case   => 'put_base-foo',
+        -code   => sub {
+                    my $err = Error::Base->new( );
+                    my $old = dclone($err);
+                    $old->{-base} = 'foo';
+                    $err->put_base( 'foo' );
                     return ( $err   => $old );
                 },
     },

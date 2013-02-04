@@ -10,7 +10,7 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: acc-get';
+my $base        = 'Error-Base: acc-get: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
