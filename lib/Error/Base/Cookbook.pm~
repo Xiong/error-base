@@ -3,7 +3,7 @@ package Error::Base::Cookbook;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v0.1.4');
+use version; our $VERSION = qv('v1.0.0');
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                           #
@@ -39,7 +39,7 @@ Error::Base::Cookbook - Examples of Error::Base usage
 
 =head1 VERSION
 
-This document describes Error::Base version v0.1.4
+This document describes Error::Base version v1.0.0
 
 =head1 WHAT'S NEW
 
@@ -47,15 +47,7 @@ This document describes Error::Base version v0.1.4
 
 =item *
 
-Stuff here. 
-
-=item *
-
-More stuff here. 
-
-=item *
-
-Still more stuff.
+Update examples to track API changes.
 
 =back
 
@@ -1242,7 +1234,7 @@ Xiong Changnian  C<< <xiong@cpan.org> >>
 
 =head1 LICENCE
 
-Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
+Copyright (C) 2011, 2013 Xiong Changnian C<< <xiong@cpan.org> >>
 
 This library and its contents are released under Artistic License 2.0:
 

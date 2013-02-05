@@ -9,7 +9,7 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v1.0.0');
+use version; our $VERSION = qv('v1.0.1');
 
 # Core modules
 use overload                    # Overload Perl operations
@@ -801,7 +801,7 @@ Error::Base - Simple structured errors with full backtrace
 
 =head1 VERSION
 
-This document describes Error::Base version v1.0.0
+This document describes Error::Base version v1.0.1
 
 =head1 WHAT'S NEW
 
@@ -1201,7 +1201,7 @@ Perhaps you attempted to late-interpolate a reference other than to
 a scalar, array, or hash. 
 Don't pass such references as values to any key with the wrong sigil. 
 
-=item C<< bad reftype in _expand_ref>>
+=item C<< bad reftype in _expand_ref >>
 
 You passed a hashref or coderef to C<-mesg>. Pass a simple string or arrayref. 
 
@@ -1284,5 +1284,46 @@ Copyright (C) 2011, 2013 Xiong Changnian C<< <xiong@cpan.org> >>
 This library and its contents are released under Artistic License 2.0:
 
 L<http://www.opensource.org/licenses/artistic-license-2.0.php>
+
+=begin fool_pod_coverage
+
+No, I'm not just lazy. I think it's counterproductive to give each accessor 
+its very own section. Sorry if you disagree. 
+
+=head2 put_base
+
+=head2 put_type
+
+=head2 put_mesg
+
+=head2 put_quiet
+
+=head2 put_nest
+
+=head2 put_prepend
+
+=head2 put_indent
+
+=head2 get_base
+
+=head2 get_type
+
+=head2 get_mesg
+
+=head2 get_quiet
+
+=head2 get_nest;
+
+=head2 get_prepend
+
+=head2 get_indent
+
+=head2 get_all
+
+=head2 get_lines
+
+=head2 get_frames
+
+=end   fool_pod_coverage
 
 =cut
