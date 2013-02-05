@@ -360,7 +360,7 @@ sub _expand_ref {
 #~         return _join_local(@sorted);                # deref, sort, and join
 #~     } 
     else {
-        die 'Error::Base internal error: bad reftype';
+        die 'Error::Base internal error: bad reftype in _expand_ref';
     };
     
 }; ## _expand_ref
@@ -727,7 +727,7 @@ sub _late {
                 $sigil      = q{%};
             } 
             else {
-                die 'Error::Base internal error: bad reftype';
+                die 'Error::Base internal error: bad reftype in _late';
             };
             
             #        my $key = $sigil?$Error::Base::Late::self->{'$key'}?;
@@ -1195,12 +1195,15 @@ C<-2..3>.
 You do I<not> have to pass paired arguments to most public methods. 
 Perhaps you passed an odd number of args to a private method. 
 
-=item C<< bad reftype >>
+=item C<< bad reftype in _late >>
 
 Perhaps you attempted to late-interpolate a reference other than to 
 a scalar, array, or hash. 
 Don't pass such references as values to any key with the wrong sigil. 
-Or you passed a hashref or coderef to C<-mesg>.
+
+=item C<< bad reftype in _expand_ref>>
+
+You passed a hashref or coderef to C<-mesg>. Pass a simple string or arrayref. 
 
 =item C<< no $self >>
 

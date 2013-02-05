@@ -9,134 +9,78 @@ my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 #----------------------------------------------------------------------------#
 
+my $foo         = 'foo';
+
+#----------------------------------------------------------------------------#
+
 my @td  = (
     {
-        -case   => 'null',              # stringified normal return
-        -want   => words(qw/ 
-                    undefined error 
-                    eval line cuss 
-                    ____ line cuss 
-                /),
-    },
-    
-    {
-        -case   => 'null-fuzz',         
-        -fuzz   => words(qw/ 
-                    bless 
-                    frames 
-                        eval undef file cuss line package main sub eval
-                        bottom sub ___ 
-                    lines
-                        undefined error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'foo-fuzz',          # preserve private attribute
-        -args   => [ foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        foo bar
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-fuzz',         # emit error text
-        -args   => [ 'Foobar error', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-#~     { -end    => 1 },   # # # # # # # END TESTING HERE # # # # # # # # # 
-    {
-        -case   => 'text-fuzz-named',   # emit error text, named arg
-        -args   => [ -base => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both-fuzz',    # emit error text, both ways
-        -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error bazfaz in
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both',         # emit error text, stringified normal
-        -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
-        -want   => words(qw/ 
-                    foobar error bazfaz
-                    eval line cuss 
-                    ____ line cuss
-                /),
-    },
-    
-    {
-        -case   => 'nest-0-fuzz',        # mess with -nest
-        -args   => [ 
-                    'Bazfaz: ',
-                    -nest   => -2, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
+        -case   => 'null',              # pass no args
+        -args   => [
                 ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                        error base cuss lib error base
-                        eval cuss
-                        ____ cuss                        
-                    top 0
-                    foo bar
+        -deep   => [
+                    undef,
+                ],
+    },
+    
+    {
+        -case   => 'foo',              # simple scalar
+        -args   => [
+                    'foo',
+                ],
+        -deep   => [
+                    'foo',
+                ],
+    },
+    
+    {
+        -case   => 'foo-ref',          # scalar reference
+        -args   => [
+                    \$foo,
+                ],
+        -deep   => [
+                    'foo',
+                ],
+    },
+    
+    {
+        -case   => 'aryref',           # array reference *joins*
+        -args   => [
+                    [ 1, 2, 3],
+                ],
+        -deep   => [
+                    '1 2 3',
+                ],
+    },
+    
+    {
+        -case   => 'hashref',           # hash reference *fatals*
+        -args   => [
+                    { foo => 'bar' },
+                ],
+        -die    => words(qw/ 
+                    error base internal error bad reftype
                 /),
     },
     
     {
-        -case   => 'quiet',             # emit error text, no backtrace
-        -args   => [ 
-                    'Bazfaz: ',
-                    -quiet  => 1, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
+        -case   => 'coderef',           # code reference *fatals*
+        -args   => [
+                    sub { return },
                 ],
-        -want   => words(qw/
-                    foobar error bazfaz
+        -die    => words(qw/ 
+                    error base internal error bad reftype
                 /),
     },
     
-    {
-        -case   => 'quiet-fuzz',        # verify no backtrace
-        -args   => [ 
-                    'Bazfaz: ',
-                    -quiet  => 1, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                    quiet
-                /),
-    },
-    
+#~     { -end    => 1 },   # # # # # # # END TESTING HERE # # # # # # # # #     
     
 );
 
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: cuss(): ';
+my $base        = 'Error-Base: _expand_ref(): ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
@@ -167,7 +111,7 @@ sub exck {
     
     $diag           = 'execute';
     @rv             = eval{ 
-        Error::Base->cuss(@args); 
+        @rv = Error::Base::_expand_ref(@args); 
     };
     pass( $diag );          # test didn't blow up
     note($@) if $@;         # did code under test blow up?
