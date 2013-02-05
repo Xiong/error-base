@@ -206,7 +206,6 @@ sub _trace {
 #    $err->crash;                    # object method
 #    $err->crash( $text );           # object method; error text optional
 #    $err->crash( -base => $base );  # named argument okay
-#    $err->crash( -key  => '42'  );  # expand into -type
 #    $err->crash( -foo  => 'bar' );  # set Error::Base options now
 #    $err->crash( mybit => 'baz' );  # set your private stuff now
 #
