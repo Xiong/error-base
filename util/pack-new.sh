@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #       pack.sh
 #       = Copyright 2011 Xiong Changnian <xiong@cpan.org>    =
 #       = Free Software = Artistic License 2.0 = NO WARRANTY =
@@ -181,8 +181,8 @@ then
     exit 1
 fi
 
-# /run/bin/perl Build.PL
-/run/bin/perl Build.PL
+# /usr/bin/env perl Build.PL
+/usr/bin/env perl Build.PL
 
 if (( $? ))
 then
@@ -331,8 +331,8 @@ fi
 
 #   ls -l --color=always
 
-# /run/bin/perl Build.PL
-/run/bin/perl Build.PL
+# /usr/bin/env perl Build.PL
+/usr/bin/env perl Build.PL
 
 if (( $? ))
 then

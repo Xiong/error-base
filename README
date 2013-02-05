@@ -1,4 +1,4 @@
-Error-Base version v0.1.4
+Error-Base version v1.0.0
 
 J'avais cru plus difficile de mourir. 
         -- Louis XIV
@@ -35,7 +35,7 @@ some core modules if your perl is old.
 
 LICENSE
 
-Copyright (C) 2011 Xiong Changnian <xiong@cpan.org>
+Copyright (C) 2011, 2013 Xiong Changnian <xiong@cpan.org>
 
 This library and its contents are released under Artistic License 2.0:
 
