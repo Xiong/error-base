@@ -153,7 +153,7 @@ my @td  = (
         -code   => sub{
             my $err     = Error::Base->new(
                             -base       => 'File handler error:',
-                            _openerr    => 'Couldn\t open $file for $op',
+                            _openerr    => 'Could not open $file for $op',
                         );
             {
                 my $file = 'z00bie.xxx';    # uh-oh, variable out of scope...
@@ -167,7 +167,7 @@ my @td  = (
         },
         -lby    => 'die',
         -want   => words(qw/ 
-                    file handler error couldn open z00bie xxx for reading
+                    file handler error could not open z00bie xxx for reading
                     in main at line 
                     in eval at line 
                     ____    at line

@@ -13,7 +13,7 @@ my $builder = Module::Build->new(
     },
     requires            => {
         'perl'                      => 5.008008,
-        'version'                   => 0.94,
+        'version'                   => 0.88,
         'Scalar::Util'              => 0,
         'overload'                  => 0,
 #~         ''  => 0,
@@ -45,3 +45,4 @@ my $builder = Module::Build->new(
 );
 
 $builder->create_build_script();
+exit(0);

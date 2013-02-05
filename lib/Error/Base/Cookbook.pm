@@ -3,7 +3,7 @@ package Error::Base::Cookbook;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v0.1.4');
+use version; our $VERSION = qv('v1.0.0');
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                           #
@@ -39,7 +39,17 @@ Error::Base::Cookbook - Examples of Error::Base usage
 
 =head1 VERSION
 
-This document describes Error::Base version v0.1.4
+This document describes Error::Base version v1.0.0
+
+=head1 WHAT'S NEW
+
+=over
+
+=item *
+
+Update examples to track API changes.
+
+=back
 
 =head1 DESCRIPTION
 
@@ -187,9 +197,9 @@ This will help keep your code uncluttered.
         -code   => sub{
 #
     Error::Base->crash(
-            'Third',
         -base     => 'First',
         -type     => 'Second',
+        -mesg     => 'Third',
     );
 #
             },
@@ -201,9 +211,9 @@ This will help keep your code uncluttered.
 =pod
 
     Error::Base->crash(
-            'Third',
         -base     => 'First',
         -type     => 'Second',
+        -mesg     => 'Third',
     );
 
 You aren't I<required> to construct first, though. Each of the public methods 
@@ -494,11 +504,11 @@ my $err     = Error::Base->new;
 {   #
 my $err     = Error::Base->new;
     push @td, {
-        -case   => 'backtrace-top-0',
+        -case   => 'backtrace-nest(-2)',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash( -top           => 0, );        # really full backtrace
+    $err->crash( -nest           => -2, );        # really full backtrace
 #
             },
         -lby    => 'die',
@@ -516,11 +526,11 @@ my $err     = Error::Base->new;
 {   #           # this test could be better: but implementation will change
 my $err     = Error::Base->new;
     push @td, {
-        -case   => 'backtrace-top-5',
+        -case   => 'backtrace-nest(+2)',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash( -top           => 5, );        # skip top five frames
+    $err->crash( -nest           => +2, );       # skip top five frames
 #
             },
         -lby    => 'die',
@@ -535,9 +545,9 @@ my $err     = Error::Base->new;
 
 =pod
 
-    $err->crash( -quiet         => 1, );        # no backtrace
-    $err->crash( -top           => 0, );        # really full backtrace
-    $err->crash( -top           => 5, );        # skip top five frames
+    $err->crash( -quiet         => 1,  );       # no backtrace
+    $err->crash( -nest          => -2, );       # really full backtrace
+    $err->crash( -nest          => +2, );       # skip two more top frames
 
 Set L<-quiet|Error::Base/-quiet> to any TRUE value to silence stack 
 backtrace entirely. 
@@ -545,30 +555,20 @@ backtrace entirely.
 By default, you get a full stack backtrace: "full" meaning, from the point of
 invocation. Some stack frames are added by the process of crash()-ing itself; 
 by default, these are not seen. If you want more or fewer frames you may set 
-L<-top|Error::Base/-top> to a different value. 
+L<-nest|Error::Base/-nest> to a different value. 
 
 Beware that future implementations may change the number of stack frames 
 added internally by Error::Base; and also you may see a different number of 
-frames if you subclass, depending on how you do that. The safer way: 
+frames if you subclass, depending on how you do that.  
 
 =cut
-
-# wait for implementation change to test
-
-=pod
-
-    my $err         = Error::Base->new('Foo');      # construct object
-    $err->{-top}   += 1;                            # ignore one frame
-    $err->crash();
-
-This is ugly and you may get a convenience method in future. 
 
 =head2 Wrapper Routine
 
 =cut
 
 {   #
-    sub _crash { Error::Base->crash( @_, -top => 3 ) };
+    sub _crash { Error::Base->crash( @_, -nest => +1 ) };
     my $obviously_true; 
     push @td, {
         -case   => 'wrapper',
@@ -587,28 +587,30 @@ This is ugly and you may get a convenience method in future.
 
 =pod
 
-    sub _crash { Error::Base->crash( @_, -top => 3 ) }; 
+    sub _crash { Error::Base->crash( @_, -nest => +1 ) }; 
     # ... later...
     _crash('Unexpected zero')
         unless $obviously_true;
 
 Write a wrapper routine when trying to wedge sanity checks into dense code. 
 Error::Base is purely object-oriented and exports nothing. 
+Don't forget to use L<-nest|Error::Base/-nest> to drop additional frames 
+if you don't want to see the wrapper in your backtrace. 
 
 =head2 Dress Left
 
 =cut
 
 {   #
-    my $err     = Error::Base->new(
-                    -prepend    => '@! Black Tie Lunch:',
-                );
     push @td, {
         -case   => 'prepend-only',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash ( 'Let\'s eat!' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -prepend    => '@! Black Tie Lunch:',
+    );
         # emits "@! Black Tie Lunch: Let's eat!
         #        @                   in main::fubar at line 42    [test.pl]"
 #
@@ -619,15 +621,16 @@ Error::Base is purely object-oriented and exports nothing.
 }   #
 
 {   #
-    my $err     = Error::Base->new(
-                    -prepend    => '@! Black Tie Lunch:',
-                );
     push @td, {
         -case   => 'prepend-indent',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash ( 'Let\'s eat!', -indent        => '%--' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -prepend    => '@! Black Tie Lunch:',
+        -indent     => '%--' 
+    );
         # emits "@! Black Tie Lunch: Let's eat!
         #        %-- in main::fubar at line 42    [test.pl]"
 #
@@ -638,15 +641,15 @@ Error::Base is purely object-oriented and exports nothing.
 }   #
 
 {   #
-    my $err     = Error::Base->new(
-                    -prepend    => '@! Black Tie Lunch:',
-                );
     push @td, {
-        -case   => 'prepend-all',
+        -case   => 'indent-only',
         -do     => 1, 
         -code   => sub{
 #
-    $err->crash ( 'Let\'s eat!', -prepend_all   => '%--' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -indent     => '%--' 
+    );
         # emits "%-- Let's eat!
         #        %-- in main::fubar at line 42    [test.pl]"
 #
@@ -658,19 +661,25 @@ Error::Base is purely object-oriented and exports nothing.
 
 =pod
 
-    my $err     = Error::Base->new(
-                    -prepend    => '@! Black Tie Lunch:',
-                );
-
-    $err->crash ( 'Let\'s eat!' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -prepend    => '@! Black Tie Lunch:',
+    );
         # emits "@! Black Tie Lunch: Let's eat!
         #        @                   in main::fubar at line 42    [test.pl]"
 
-    $err->crash ( 'Let\'s eat!', -indent        => '%--' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -prepend    => '@! Black Tie Lunch:',
+        -indent     => '%--' 
+    );
         # emits "@! Black Tie Lunch: Let's eat!
         #        %-- in main::fubar at line 42    [test.pl]"
 
-    $err->crash ( 'Let\'s eat!', -prepend_all   => '%--' );
+    Error::Base->crash ( 
+        -mesg       => 'Let\'s eat!', 
+        -indent     => '%--' 
+    );
         # emits "%-- Let's eat!
         #        %-- in main::fubar at line 42    [test.pl]"
 
@@ -680,13 +689,117 @@ If L<-indent|Error::Base/-indent> is defined then that will be
 prepended to all following lines. If -indent is undefined then it will 
 be formed (from the first character only of -prepend) 
 and (padded with spaces to the length of -prepend). 
-L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines. 
+If only -indent is defined then it will be prepended to all lines. 
+You can override default actions by passing the empty string. 
 
 =head2 Message Composition
 
 =cut
 
-# too trivial to need testing -- exhausted elsewhere
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'null',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash;                        # 'Undefined error'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Undefined error/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'pronto-only',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash( 'Pronto!' );           # 'Pronto!'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Pronto!/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'base-and-type',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+        );                              # 'Bar last call'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Bar last call/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'base-type-pronto',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash(
+                'Pronto!',
+            -base   => 'Bar',
+            -type   => 'last call',
+        );                              # 'Bar last call Pronto!'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Bar last call Pronto!/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'base-type-mesg',
+        -do     => 1, 
+        -code   => sub{
+#
+    $err->crash(
+            -base   => 'Bar',
+            -type   => 'last call',
+            -mesg   => 'Pronto!',
+        );                              # 'Bar last call Pronto!'
+#
+            },
+        -lby    => 'die',
+        -want   => qr/Bar last call Pronto!/s,
+    };
+}   #
+
+{   #
+    my $err     = Error::Base->new;
+    push @td, {
+        -case   => 'mesg-aryref',
+        -do     => 1, 
+        -code   => sub{
+#
+    my ( $n1, $n2, $n3 ) = ( 'Huey', 'Dewey', 'Louie' );
+    $err->crash(
+            -mesg   => [ 'Meet', $n1, $n2, $n3, 'tonight!' ],
+        );                              # 'Meet Huey Dewey Louie tonight!'
+#
+
+            },
+        -lby    => 'die',
+        -want   => qr/Meet Huey Dewey Louie tonight!/s,
+    };
+}   #
 
 =pod
 
@@ -705,17 +818,28 @@ L<-prepend_all|Error::Base/-prepend_all> will be prepended to all lines.
     $err->crash(
             -base   => 'Bar',
             -type   => 'last call',
-            -pronto => 'Pronto!',
+            -mesg   => 'Pronto!',
         );                              # 'Bar last call Pronto!'
+
+    my $err     = Error::Base->new;
+    my ( $n1, $n2, $n3 ) = ( 'Huey', 'Dewey', 'Louie' );
+    $err->crash(
+            -mesg   => [ 'Meet', $n1, $n2, $n3, 'tonight!' ],
+        );                              # 'Meet Huey Dewey Louie tonight!'
 
 As a convenience, if the number of arguments passed in is odd, then the first 
 arg is shifted off and appnended to the error message. This is done to 
 simplify writing one-off, one-line 
 L<sanity checks|Error::Base::Cookbook/Sanity Check>.
 
-For a little more structure, yau may pass values to L<-base|Error::Base/-base> 
-and L<-type|Error::Base/-type> also. All values supplied will be joined; by 
-default, with a single space. 
+For a little more structure, you may pass values to 
+L<-base|Error::Base/-base>, 
+L<-type|Error::Base/-type>, and
+L<-mesg|Error::Base/-mesg>. 
+All values supplied will be joined; by default, with a single space.
+
+If you pass an array reference to C<-mesg> then you can print out 
+any number of strings, one after the other. 
 
 =cut
 
@@ -980,76 +1104,65 @@ joined by something else, localize C<$">.
 
 =head1 EXAMPLE CODE
 
-=head2 get_test_data
-
-=head2 words
-
-=head2 cook_dinner
-
-=head2 serve_chili
-
-=head2 add_recipie
-
-=head2 _crash
-
-=head2 bar
-
 This module contains executable code matching each snippet you see in POD; 
 this code is exercised by the Error::Base test suite. You're welcome to look. 
 Please, don't try to C<use> the ::Cookbook!
 
 =head1 DEMO
 
-Included in this distribution is a script, C<error-base-demo.pl>; output here. 
-You see a warning and a fatal error, each with stack backtrace from the 
-viewpoint of the error thrown. The invocation of C<cuss()> is silent. 
+Included in this distribution is a script, C<error-base-demo.pl>; 
+output shown here. A single error object is constructed and used throughout. 
+First there is a silent invocation of C<cuss()>; then you see a warning with 
+C<crank()>; then a fatal error is thrown with C<crash()>, trapped, printed, 
+and finally dumped using L<Devel::Comments|Devel::Comments>. 
+Each invocation generates a stack backtrace from the point of throw.  
 
-The fatal error is trapped and printed, then dumped using 
-L<Devel::Comments|Devel::Comments>. Note that when printed, the object 
-stringifies to the intended error message and backtrace. Note also that 
-the private key C<_private> is retained in the object; while the message text 
-and backtrace is re-created at each invocation. 
+Note that when printed, the error object stringifies to the intended 
+error message and backtrace. The dump shows the true contents of the object. 
+Note also that the private key C<_private> is retained in the object; 
+while the message text and backtrace is re-created at each invocation. 
 
     Demo: cranking in eluder
-    in Spathi::eluder at line 37    [demo/error-base-demo.pl]
-    in Pkunk::fury    at line 30    [demo/error-base-demo.pl]
-    _________________ at line 18    [demo/error-base-demo.pl]
+    in Spathi::eluder at line 38    [demo/error-base-demo.pl]
+    in Pkunk::fury    at line 31    [demo/error-base-demo.pl]
+    _________________ at line 19    [demo/error-base-demo.pl]
     
     Demo: crashing in scout
-    in (eval)          at line 48    [demo/error-base-demo.pl]
-    in Shofixti::scout at line 48    [demo/error-base-demo.pl]
-    in Spathi::eluder  at line 41    [demo/error-base-demo.pl]
-    in Pkunk::fury     at line 30    [demo/error-base-demo.pl]
-    __________________ at line 18    [demo/error-base-demo.pl]
+    in (eval)          at line 50    [demo/error-base-demo.pl]
+    in Shofixti::scout at line 50    [demo/error-base-demo.pl]
+    in Spathi::eluder  at line 42    [demo/error-base-demo.pl]
+    in Pkunk::fury     at line 31    [demo/error-base-demo.pl]
+    __________________ at line 19    [demo/error-base-demo.pl]
     
     ### $trap: bless( {
+    ###                 '-all' => 'Demo: crashing in scout',
     ###                 '-base' => 'Demo:',
     ###                 '-frames' => [
     ###                                {
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '48',
+    ###                                  '-line' => '50',
     ###                                  '-package' => 'Shofixti',
     ###                                  '-sub' => '(eval)         '
     ###                                },
     ###                                {
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '48',
+    ###                                  '-line' => '50',
     ###                                  '-package' => 'Shofixti',
     ###                                  '-sub' => 'Shofixti::scout'
     ###                                },
     ###                                {
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '41',
+    ###                                  '-line' => '42',
     ###                                  '-package' => 'Spathi',
     ###                                  '-sub' => 'Spathi::eluder '
     ###                                },
     ###                                {
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '30',
+    ###                                  '-line' => '31',
     ###                                  '-package' => 'Pkunk',
     ###                                  '-sub' => 'Pkunk::fury    '
     ###                                },
@@ -1057,26 +1170,24 @@ and backtrace is re-created at each invocation.
     ###                                  '-bottom' => 1,
     ###                                  '-eval' => undef,
     ###                                  '-file' => 'demo/error-base-demo.pl',
-    ###                                  '-line' => '18',
+    ###                                  '-line' => '19',
     ###                                  '-package' => 'main',
     ###                                  '-sub' => '_______________'
     ###                                }
     ###                              ],
     ###                 '-lines' => [
     ###                               'Demo: crashing in scout',
-    ###                               'in (eval)          at line 48    [demo/error-base-demo.pl]',
-    ###                               'in Shofixti::scout at line 48    [demo/error-base-demo.pl]',
-    ###                               'in Spathi::eluder  at line 41    [demo/error-base-demo.pl]',
-    ###                               'in Pkunk::fury     at line 30    [demo/error-base-demo.pl]',
-    ###                               '__________________ at line 18    [demo/error-base-demo.pl]'
+    ###                               'in (eval)          at line 50    [demo/error-base-demo.pl]',
+    ###                               'in Shofixti::scout at line 50    [demo/error-base-demo.pl]',
+    ###                               'in Spathi::eluder  at line 42    [demo/error-base-demo.pl]',
+    ###                               'in Pkunk::fury     at line 31    [demo/error-base-demo.pl]',
+    ###                               '__________________ at line 19    [demo/error-base-demo.pl]'
     ###                             ],
-    ###                 '-msg' => 'Demo: crashing in scout',
-    ###                 '-pronto' => '',
+    ###                 '-mesg' => '',
     ###                 '-top' => 2,
     ###                 '-type' => 'crashing in scout',
     ###                 _private => 'foo'
     ###               }, 'Error::Base' )
-
 
 =head1 PHILOSOPHY
 
@@ -1121,9 +1232,9 @@ catching, the term 'exception' may be appropriate but perhaps not 'error'.
 
 Xiong Changnian  C<< <xiong@cpan.org> >>
 
-=head1 LICENSE
+=head1 LICENCE
 
-Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
+Copyright (C) 2011, 2013 Xiong Changnian C<< <xiong@cpan.org> >>
 
 This library and its contents are released under Artistic License 2.0:
 

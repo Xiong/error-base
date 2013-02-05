@@ -1,4 +1,4 @@
-Error-Base version v0.1.4
+Error-Base version v1.0.0
 
 J'avais cru plus difficile de mourir. 
         -- Louis XIV
@@ -30,11 +30,12 @@ DEPENDENCIES
 
 perl 5.8.8 or better. 
 For Perl module dependencies, please see Build.PL.
-This module has no non-core dependencies. 
+This module has no non-core dependencies; however you may need to upgrade 
+some core modules if your perl is old. 
 
 LICENSE
 
-Copyright (C) 2011 Xiong Changnian <xiong@cpan.org>
+Copyright (C) 2011, 2013 Xiong Changnian <xiong@cpan.org>
 
 This library and its contents are released under Artistic License 2.0:
 

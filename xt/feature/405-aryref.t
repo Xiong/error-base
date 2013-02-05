@@ -14,8 +14,10 @@ my @td  = (
         -case   => 'null',              # stringified normal return
         -want   => words(qw/ 
                     undefined error 
-                    eval line new 
-                    ____ line new 
+                        throw line aryref 
+                        eval line eval
+                        exck line aryref
+                            string eval throw
                 /),
     },
     
@@ -24,124 +26,68 @@ my @td  = (
         -fuzz   => words(qw/ 
                     bless 
                     frames 
-                        eval undef file new line package main sub eval
-                        bottom sub ___ 
+                        sub throw 
+                        sub eval
+                        sub exck
+                        bottom sub ____ 
                     lines
                         undefined error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'foo-fuzz',          # preserve private attribute
-        -args   => [ foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        foo bar
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'pronto-fuzz',         # emit error text
-        -args   => [ 'Foobar error', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
+                        string eval
                     error base
                 /),
     },
     
     {
 #~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
-        -case   => 'base-fuzz',         # emit error text, named arg
-        -args   => [ -base => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both-fuzz',    # emit error text, both ways
-        -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
-        -fuzz   => words(qw/ 
-                    bless 
-                        lines foobar error bazfaz in
-                    error base
-                /),
-    },
-    
-    {
-        -case   => 'text-both',         # emit error text, stringified normal
-        -args   => [ 'Bazfaz: ', -base => 'Foobar error ', foo => 'bar' ],
+        -case   => 'mesg-string',           # emit -mesg string
+        -args   => [ -mesg => 'Foobar error', foo => 'bar' ],
         -want   => words(qw/ 
-                    foobar error bazfaz
-                    eval line new 
-                    ____ line new
+                        foobar error
                 /),
     },
     
     {
-        -case   => 'nest-0-fuzz',        # mess with -nest
+        -case   => 'mesg-aryref',           # emit -mesg array
         -args   => [ 
-                    'Bazfaz: ',
-                    -nest    => -2, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                        error base fuss lib error base
-                        error base cuss lib error base
-                    eval line new 
-                    exck line new
-                    top 0
-                    foo bar
+            -mesg   => [
+                    'The rain',
+                    'in Spain', 
+                    'stays mainly',
+                    'in the plain.',
+                ], 
+            foo     => 'bar' 
+            ],
+        -want   => words(qw/ 
+                        rain spain mainly plain
                 /),
     },
     
-    {
-        -case   => 'quiet',             # emit error text, no backtrace
-        -args   => [ 
-                    'Bazfaz: ',
-                    -quiet  => 1, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -want   => words(qw/
-                    foobar error bazfaz
-                /),
-    },
-    
-    {
-        -case   => 'quiet-fuzz',        # verify no backtrace
-        -args   => [ 
-                    'Bazfaz: ',
-                    -quiet  => 1, 
-                    -base   => 'Foobar error ', 
-                    foo     => 'bar', 
-                ],
-        -fuzz   => words(qw/ 
-                    lines
-                        foobar error bazfaz
-                    quiet
-                /),
-    },
-    
+#~     {
+#~         -case   => 'mesg-hashref',          # emit -mesg HASHREF
+#~         -args   => [ 
+#~             -mesg   => {
+#~                     
+#~                 }, 
+#~             foo     => 'bar' 
+#~             ],
+#~         -want   => '-',
+#~     },
     
 );
 
 #----------------------------------------------------------------------------#
 
 my $tc          ;
-my $base        = 'Error-Base: new(): ';
+my $base        = 'Error-Base: aryref: ';
 my $diag        = $base;
 my @rv          ;
 my $got         ;
 my $want        ;
+
+sub throw {
+    my @args    = @_;
+    return Error::Base->cuss(@args);
+};
 
 #----------------------------------------------------------------------------#
 
@@ -167,10 +113,7 @@ sub exck {
     my $fuzz        = $t->{-fuzz};
     
     $diag           = 'execute';
-    @rv             = eval{ 
-        my $self        = Error::Base->new(@args);
-        $self->cuss;
-    };
+    @rv             = eval '    throw(@args);    ';     # string eval
     pass( $diag );          # test didn't blow up
     note($@) if $@;         # did code under test blow up?
     
@@ -200,7 +143,7 @@ sub exck {
     else {
         fail('Test script failure: unimplemented gimmick.');
     };
-
+    
     # Extra-verbose dump optional for test script debug.
     if ( $Verbose >= 1 ) {
         note( 'explain: ', explain \@rv     );

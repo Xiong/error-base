@@ -1,6 +1,6 @@
 package Error::Base;
 #=========# MODULE USAGE
-#~ use Error::Base;               # Simple structured errors with full backtrace
+#~ use Error::Base;                # Simple structured errors with full backtrace
 #~ 
 
 #=========# PACKAGE BLOCK
@@ -9,7 +9,7 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v0.1.4');
+use version; our $VERSION = qv('v1.0.0');
 
 # Core modules
 use overload                    # Overload Perl operations
@@ -20,7 +20,7 @@ use Scalar::Util;               # General-utility scalar subroutines
 # CPAN modules
 
 # Alternate uses
-#~ use Devel::Comments '#####', ({ -file => 'debug.log' });                 #~
+#~ use Devel::Comments '###', ({ -file => 'debug.log' });                   #~
 
 ## use
 #============================================================================#
@@ -30,6 +30,9 @@ use Scalar::Util;               # General-utility scalar subroutines
 # Compiled regexes
 our $QRFALSE            = qr/\A0?\z/            ;
 our $QRTRUE             = qr/\A(?!$QRFALSE)/    ;
+
+our $BASETOP            = 2;    # number of stack frames generated internally
+# see also global defaults set in accessors
 
 #----------------------------------------------------------------------------#
 
@@ -56,7 +59,7 @@ sub _stringify {
         return join qq{\n}, @{ $self->{-lines} }, q{};
     }
     else {
-        return 'Error::Base internal error: stringifing unthrown object';
+        return 'Error::Base internal error: stringifying unthrown object';
     };
         
 }; ## _stringify
@@ -245,13 +248,17 @@ sub _fuss {
     my $max         = 78;                       # maximum line length
     my $message     ;                           # user-defined error message
     my @lines       ;                           # to stringify $self
-        
+    
+    # Deal with array values.
+    $self->{-mesg}  = _expand_ref( $self->{-mesg} );
+    
     # Collect all the texts into one message.
-    $message        = $self->_join_local(
+    $message        = _join_local(
                         $self->{-base},
                         $self->{-type},
-                        $self->{-pronto},
+                        $self->{-mesg},
                     );
+#~     ### $self
     
     # Late interpolate.    
     $message        = $self->_late( $message );
@@ -260,7 +267,7 @@ sub _fuss {
     if    ( not $message ) {
         $message        = 'Undefined error.';
     }; 
-    $self->{-msg}   = $message;                 # keep for possible inspection
+    $self->{-all}   = $message;                 # keep for possible inspection
 
     # Accumulate.
     @lines          = ( $message );
@@ -272,46 +279,31 @@ sub _fuss {
     };
     
     # Optionally prepend some stuff.
-    my $prepend     = q{};                      # prepended to first line
-    my $indent      = q{};                      # prepended to all others
-    
-    if    ( defined $self->{-prepend} ) {
-        $prepend        = $self->{-prepend};
-    };
-    if    ( defined $self->{-indent} ) {
-        $indent         = $self->{-indent};
-    };
-    if    ( defined $self->{-prepend_all} ) {
-        $prepend        = $self->{-prepend_all};
-        $indent         = $prepend;
+    if ( defined $self->{-prepend} ) {          # prepended to first line
+        @{ $self->{-lines} } 
+            = _join_local( $self->{-prepend}, shift @lines );
     }
-    elsif ( $prepend and !$indent ) {           # construct $indent
-        $indent         = ( substr $prepend, 0, 1           )
-                        . ( q{ } x ((length $prepend) - 1)  )
-                        ;
-    }; 
+    else {
+        @{ $self->{-lines} }                = shift @lines;
+    };
+    if ( defined $self->{-indent} ) {           # prepended to all others
+        push @{ $self->{-lines} }, 
+            map { _join_local( $self->{-indent}, $_ ) } @lines;
+    }
+    else {
+        push @{ $self->{-lines} },                      @lines;
+    };
     
-    @{ $self->{-lines} }    = $self->_join_local(
-                                $prepend,
-                                shift @lines
-                            );
-    push @{ $self->{-lines} }, map {
-                                    $self->_join_local(
-                                        $indent,
-                                        $_
-                                    )
-                                } @lines;
-    
-#~     ##### $self
+    ### @lines
     return $self;
     
-#~     # Do something to control line length and deal with multi-line $msg.
-#~     my @temp        = split /\n/, $msg;         # in case it's multi-line
+#~     # Do something to control line length and deal with multi-line $all.
+#~     my @temp        = split /\n/, $all;         # in case it's multi-line
 #~     my $limit       = $max - length $prepend;
 #~        @temp        = map { s//\n/ if length > $limit } 
 #~                         @temp; # avoid excessive line length
 #~     my $infix       = qq{\n} . $indent;
-#~        $msg         = join $infix, @temp;
+#~        $all         = join $infix, @temp;
     
 }; ## _fuss
 
@@ -335,9 +327,48 @@ sub cuss{
     return $self;
 }; ## crank
 
-#=========# INTERNAL OBJECT METHOD
+#=========# INTERNAL FUNCTION
 #
-#   $string = $self->_join_local(@_);     # short
+#   $string =_expand_ref( $var );     # expand reference if any
+#       
+# Purpose   : ____
+# Parms     : ____
+# Reads     : ____
+# Returns   : ____
+# Invokes   : ____
+# Writes    : ____
+# Throws    : ____
+# See also  : ____
+# 
+# ____
+#   
+sub _expand_ref {
+    my $in          = shift;
+    my $rt          = Scalar::Util::reftype $in;    # returns no class
+        
+    if    ( not $rt ) {                             # simple scalar...
+        # ... don't deref
+        return $in                                  # unchanged
+    }
+    elsif ( $rt eq 'SCALAR' ) {                     # scalar ref
+        return $$in                                 # dereference
+    } 
+    elsif ( $rt eq 'ARRAY'  ) {                     # array ref
+        return _join_local(@$in);                   # deref and join
+    } 
+#~     elsif ( $rt eq 'HASH'   ) {                     # hash ref
+#~     my @sorted  = map { $_, $in->{$_} } sort keys %$in;
+#~         return _join_local(@sorted);                # deref, sort, and join
+#~     } 
+    else {
+        die 'Error::Base internal error: bad reftype';
+    };
+    
+}; ## _expand_ref
+
+#=========# INTERNAL FUNCTION
+#
+#   $string = _join_local(@_);     # short
 #       
 # Purpose   : Like builtin join() but with local list separator.
 # Parms     : @_        : strings to join
@@ -349,7 +380,6 @@ sub cuss{
 # We splice out empty strings to avoid useless runs of spaces.  
 # 
 sub _join_local {
-    my $self        = shift;
     my @parts       = @_;
     
     # Splice out empty strings. 
@@ -415,31 +445,167 @@ sub new {
 sub init {
     my $self        = shift;
     if ( scalar @_ % 2 ) {              # an odd number modulo 2 is one: true
-        $self->{-pronto}    = shift;    # and now it's even
+        $self->{-mesg}  = shift;        # and now it's even
     };
     
     # Merge all values. Newer values always overwrite. 
     %{$self}        = ( %{$self}, @_ );
     
     # Set some default values, mostly to avoid 'uninitialized' warnings.
-    if    ( not defined $self->{-base}  ) {
-        $self->{-base}  = q{};
-    }; 
-    if    ( not defined $self->{-type}  ) {
-        $self->{-type}  = q{};
-    }; 
-    if    ( not defined $self->{-pronto}  ) {
-        $self->{-pronto}  = q{};
-    }; 
-    if    ( not defined $self->{-msg}   ) {
-        $self->{-msg}   = q{};
-    }; 
-    if    ( not defined $self->{-top}   ) {
-        $self->{-top}   = 2;                # skip frames internal to E::B
-    }; 
-        
+    $self->put_base(  $self->{-base}  );
+    $self->put_type(  $self->{-type}  );
+    $self->put_mesg(  $self->{-mesg}  );
+    $self->put_quiet( $self->{-quiet} );
+    $self->put_nest(  $self->{-nest}  );
+    $self->_fix_pre_ind();
+    
     return $self;
 }; ## init
+
+#----------------------------------------------------------------------------#
+# ACCSESSORS
+
+my $Default = {
+    -base           =>  q{},
+    -type           =>  q{},
+    -mesg           =>  q{},
+    -quiet          =>  0,
+    -nest           =>  0,
+    -prepend        =>  undef,
+    -indent         =>  undef,
+};
+
+
+
+# put
+sub put_base {
+    my $self            = shift;
+    $self->{-base}      = shift;
+    if    ( not defined $self->{-base}  ) {
+        $self->{-base}  = $Default->{-base};
+    };
+    return $self;
+};
+sub put_type {
+    my $self            = shift;
+    $self->{-type}      = shift;
+    if    ( not defined $self->{-type}  ) {
+        $self->{-type}  = $Default->{-type};
+    };
+    return $self;
+};
+sub put_mesg {
+    my $self            = shift;
+    $self->{-mesg}      = shift;
+    if    ( not defined $self->{-mesg}  ) {
+        $self->{-mesg}  = $Default->{-mesg};
+    };
+    return $self;
+};
+sub put_quiet {
+    my $self            = shift;
+    $self->{-quiet}     = shift;
+    if    ( not defined $self->{-quiet}  ) {
+        $self->{-quiet} = $Default->{-quiet};
+    };
+    return $self;
+};
+sub put_nest {
+    my $self            = shift;
+    $self->{-nest}      = shift;
+    if    ( not defined $self->{-nest}  ) {
+        $self->{-nest}  = $Default->{-nest};
+    };
+    # -top is now deprecated from the API
+    $self->{-top}       = $self->{-nest} + $BASETOP;
+    return $self;
+};
+sub put_prepend {
+    my $self            = shift;
+    $self->{-prepend}   = shift;
+    $self->_fix_pre_ind();
+    return $self;
+};
+sub put_indent {
+    my $self            = shift;
+    $self->{-indent}    = shift;
+    $self->_fix_pre_ind();
+    return $self;
+};
+# For internal use only
+sub _fix_pre_ind {
+    my $self            = shift;
+    my $indent          ;
+    my $case            ;
+    
+    $case   = $case . ( defined $self->{-prepend} ? 'P' : '-' );
+    $case   = $case . ( defined $self->{-indent}  ? 'I' : '-' );
+    
+    # four cases cover all needs
+    if    ( $case eq '--' ) {
+        $self->{-prepend}   =   $Default->{-prepend};
+        $self->{-indent}    =   $Default->{-indent};
+    }
+    elsif ( $case eq '-I' ) {
+        $self->{-prepend}   =   $self->{-indent};
+    }
+    elsif ( $case eq 'P-' ) {
+        my $prepend         = $self->{-prepend};
+        $self->{-indent}    = ( substr $prepend, 0, 1           )
+                            . ( q{ } x ((length $prepend) - 1)  )
+                            ;
+    }
+    else {
+        # ( $case eq 'PI' )     # do nothing
+    };
+    
+    return $self;
+};
+
+# get
+sub get_base {
+    my $self    = shift;
+    return $self->{-base};
+};
+sub get_type {
+    my $self    = shift;
+    return $self->{-type};
+};
+sub get_mesg {
+    my $self    = shift;
+    return $self->{-mesg};
+};
+sub get_quiet {
+    my $self    = shift;
+    return $self->{-quiet};
+};
+sub get_nest {
+    my $self    = shift;
+    return $self->{-nest};
+};
+sub get_prepend {
+    my $self    = shift;
+    return $self->{-prepend};
+};
+sub get_indent {
+    my $self    = shift;
+    return $self->{-indent};
+};
+sub get_all {
+    my $self    = shift;
+    return $self->{-all};
+};
+sub get_lines {
+    my $self    = shift;
+    return $self->{-lines};
+};
+sub get_frames {
+    my $self    = shift;
+    return $self->{-frames};
+};
+
+## accessors
+#----------------------------------------------------------------------------#
 
 #=========# INTERNAL OBJECT METHOD
 #
@@ -636,7 +802,26 @@ Error::Base - Simple structured errors with full backtrace
 
 =head1 VERSION
 
-This document describes Error::Base version v0.1.4
+This document describes Error::Base version v1.0.0
+
+=head1 WHAT'S NEW
+
+=over
+
+=item *
+
+You may now pass an array reference to L<-mesg|Error::Base/-mesg>. 
+
+=item *
+
+You now have get and put L<accessors|Error::Base/ACCESSORS>. 
+
+=item *
+
+Some elements of the API have changed. 
+C<-top> and C<-prepend_all> have been deprecated. 
+
+=back
 
 =head1 SYNOPSIS
 
@@ -661,9 +846,10 @@ This document describes Error::Base version v0.1.4
     eval{ Error::Base->crash( 'car', -foo => 'bar' ) }; 
     my $err     = $@ if $@;         # catch and examine the full object
     
+    # late interpolation
     my $err     = Error::Base->new(
                     -base       => 'File handler error:',
-                    _openerr    => 'Couldn\t open $file for $op',
+                    _openerr    => 'Could not open $file for $op',
                 );
     {
         my $file = 'z00bie.xxx';    # uh-oh, variable out of scope for new()
@@ -710,10 +896,16 @@ See the L<Error::Base::Cookbook|Error::Base::Cookbook> for examples.
                     -base       => 'Bar error:',
                     -type       => 'last call',
                     -quiet      => 1,
-                    -top        => 3,
+                    -nest       => 1,
                     -prepend    => '@! Black Tie Lunch:',
                     -indent     => '@!                 ',
                     _beer   => 'out of beer',   # your private attribute(s)
+                );
+    my $err     = Error::Base->new(
+                        'Fourth',
+                    -base       => 'First',
+                    -type       => 'Second',
+                    -mesg       => 'Third',
                 );
 
 The constructor must be called as a class method; there is no mutator 
@@ -729,7 +921,8 @@ Error message text is constructed as a single string.
 
 Called with an odd number of args, the first arg is shifted off and appended
 to the error message text. This shorthand may be offensive to some; in which 
-case, don't do that. Instead, pass C<< -base >>, C<< -type >>, or both. 
+case, don't do that. 
+Instead, pass C<< -base >>, C<< -type >>, and/or C<< -mesg >>. 
 
 You may stash any arbitrary data inside the returned object (during 
 construction or later) and do whatever you like with it. You might choose to 
@@ -802,7 +995,7 @@ error text from the actual throw.
 =head1 PARAMETERS
 
 All public methods accept the same arguments, with the same conventions. 
-All parameter names begin with a leading dash (C<'-'>); please choose other 
+Parameter names begin with a leading dash (C<'-'>); please choose other 
 names for your private keys. 
 
 If the same parameter is set multiple times, the most recent argument 
@@ -824,14 +1017,18 @@ I<scalar string>
 This parameter is provided as a way to express a subtype of error. 
 It is appended to C<< -base >>. 
 
-=head2 -pronto
+=head2 -mesg
 
-I<scalar string>
+I<scalar string> or I<array reference>
 
     $err->crash( 'Pronto!' );           # emits 'Pronto!'
     $err->crash(
-            -pronto => 'Pronto!',
+            -mesg => 'Pronto!',
     );                                  # same thing
+    my $foo     = 'bar';
+    $err->crash(
+            -mesg => [ 'Cannot find', $foo, q{.} ],
+    );                                  # emits 'Cannot find bar .'
 
 As a convenience, if the number of arguments passed in is odd, then the first 
 arg is shifted off and appended to the error message 
@@ -841,7 +1038,9 @@ This is done to simplify writing one-off, one-line sanity checks:
     open( my $in_fh, '<', $filename )
         or Error::Base->crash("Couldn't open $filename for reading.");
 
-TODO: It is expected that each message argument be a single scalar. If you need 
+You may pass into C<-mesg> a reference to an array of simple scalars; 
+these will all be joined together and appened to the error message. 
+If you need 
 to pass a multi-line string then please embed escaped newlines (C<'\n'>). 
 
 =head2 -quiet
@@ -855,12 +1054,15 @@ parameter. Only error text will be emitted.
 
 =head2 -top
 
-I<scalar unsigned integer> default: 2
+Deprecated as a public parameter; now internal only to Error::Base. 
+
+=head2 -nest
+
+I<scalar signed integer> default: 0
 
 By default, stack frames internal to Error::Base are not traced. 
-Set this parameter to adjust how many frames to discard. 
-
-TODO: A more elegant interface. 
+Set this parameter to adjust how many additional frames to discard.
+Negative values display internal frames.  
 
 =head2 -prepend
 
@@ -870,13 +1072,12 @@ I<scalar string> default: undef
 
 I<scalar string> default: first char of -prepend, padded with spaces to length
 
-=head2 -prepend_all
-
-I<scalar string> default: undef
-
 The value of C<< -prepend >> is prepended to the first line of error text; 
-C<< -indent >> to all others. If given, C<< -prepend_all >> overrides the 
-other parameters and is prepended to all lines. 
+C<< -indent >> to all others. 
+If only C<< -indent >> is given, it is prepended to all lines. 
+If only C<< -prepend >> is given, C<< -indent >> is generated from its first 
+character and padded to the same length. 
+Override either of these default actions by passing the empty string. 
 
 This is a highly useful feature that improves readability in the middle of a 
 dense dump. So in future releases, the default may be changed to form 
@@ -894,9 +1095,7 @@ see the L<Cookbook|Error::Base::Cookbook/Late Interpolation>.
 
 =head1 RESULTS
 
-Soon, I'll write accessor methods for all of these. For now, rough it. 
-
-=head2 -msg
+=head2 -all
 
 I<scalar string> default: 'Undefined error.'
 
@@ -915,6 +1114,29 @@ The formatted error message, fully expanded, including backtrace.
 I<array of hashrefs>
 
 The raw stack frames used to compose the backtrace. 
+
+=head1 ACCSESSORS
+
+Object-oriented accessor methods are provided for each parameter and result. 
+They all do just what you'd expect. 
+
+    $self               = $self->put_base($string);
+    $self               = $self->put_type($string);
+    $self               = $self->put_mesg($string);
+    $self               = $self->put_quiet($string_or_aryref);
+    $self               = $self->put_nest($signed_int);
+    $self               = $self->put_prepend($string);
+    $self               = $self->put_indent($string);
+    $string             = $self->get_base();
+    $string             = $self->get_type();
+    $string_or_aryref   = $self->get_mesg();
+    $boolean            = $self->get_quiet();
+    $signed_int         = $self->get_nest();
+    $string             = $self->get_prepend();
+    $string             = $self->get_indent();
+    $string             = $self->get_all();
+    @array_of_strings   = $self->get_lines();
+    @array of hashrefs  = $self->get_frames();
 
 =head1 SUBCLASSING
 
@@ -966,7 +1188,8 @@ All errors internal to this module are prefixed C<< Error::Base internal... >>
 =item C<< excessive backtrace >>
 
 Attempted to capture too many frames of backtrace. 
-You probably mis-set C<< -top >>, rational values of which are perhaps C<0..9>.
+You probably mis-set C<< -nest >>, reasonable values of which are perhaps 
+C<-2..3>.
 
 =item C<< unpaired args: >>
 
@@ -975,14 +1198,16 @@ Perhaps you passed an odd number of args to a private method.
 
 =item C<< bad reftype >>
 
-You attempted to late-interpolate a reference other than to a scalar, array, 
-or hash. Don't pass such references as values to any key with the wrong sigil. 
+Perhaps you attempted to late-interpolate a reference other than to 
+a scalar, array, or hash. 
+Don't pass such references as values to any key with the wrong sigil. 
+Or you passed a hashref or coderef to C<-mesg>.
 
 =item C<< no $self >>
 
 Called a method without class or object. Did you call as function?
 
-=item C<< stringifing unthrown object >>
+=item C<< stringifying unthrown object >>
 
 An object of this class will stringify to its printable error message 
 (including backtrace if any) when thrown. There is nothing to see (yet) if 
@@ -1006,13 +1231,24 @@ Error::Base requires no configuration files or environment variables.
 
 There are no non-core dependencies. 
 
-L<version|version> 0.94                 # Perl extension for Version Objects
+=over
 
-L<overload|overload>                    # Overload Perl operations
+=item 
 
-L<Scalar::Util|Scalar::Util>            # General-utility scalar subroutines
+L<version|version> 0.88    E<nbsp>E<nbsp>E<nbsp>E<nbsp> # Perl extension for Version Objects
+
+=item 
+
+L<overload|overload>    E<nbsp>E<nbsp>E<nbsp>E<nbsp> # Overload Perl operations
+
+=item 
+
+L<Scalar::Util|Scalar::Util>    E<nbsp>E<nbsp>E<nbsp>E<nbsp> # General-utility scalar subroutines
+
+=back
 
 This module should work with any version of perl 5.8.8 and up. 
+However, you may need to upgrade some core modules. 
 
 =head1 INCOMPATIBILITIES
 
@@ -1026,6 +1262,10 @@ Please report any bugs or feature requests to
 C<bug-error-base@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
+=head1 DEVELOPMENT
+
+This project is hosted on GitHub at: L<https://github.com/Xiong/error-base>. 
+
 =head1 THANKS
 
 Grateful acknowledgement deserved by AMBRUS for coherent API suggestions. 
@@ -1035,9 +1275,9 @@ Any failure to grasp them is mine.
 
 Xiong Changnian  C<< <xiong@cpan.org> >>
 
-=head1 LICENSE
+=head1 LICENCE
 
-Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
+Copyright (C) 2011, 2013 Xiong Changnian C<< <xiong@cpan.org> >>
 
 This library and its contents are released under Artistic License 2.0:
 

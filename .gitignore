@@ -18,3 +18,9 @@ cover_db/
 # Don't track internal symlink -- will blow up
 t
 t/
+
+# Don't track backup files
+*~
+
+# Don't track README~
+README~
