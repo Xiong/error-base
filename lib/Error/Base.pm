@@ -9,7 +9,7 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v0.1.4');
+use version; our $VERSION = qv('v1.0.0');
 
 # Core modules
 use overload                    # Overload Perl operations
@@ -802,7 +802,7 @@ Error::Base - Simple structured errors with full backtrace
 
 =head1 VERSION
 
-This document describes Error::Base version v0.1.4
+This document describes Error::Base version v1.0.0
 
 =head1 WHAT'S NEW
 
@@ -810,15 +810,16 @@ This document describes Error::Base version v0.1.4
 
 =item *
 
-Stuff here. 
+You may now pass an array reference to L<-mesg|Error::Base/-mesg>. 
 
 =item *
 
-More stuff here. 
+You now have get and put L<accessors|Error::Base/ACCESSORS>. 
 
 =item *
 
-Still more stuff.
+Some elements of the API have changed. 
+C<-top> and C<-prepend_all> have been deprecated. 
 
 =back
 
@@ -1276,7 +1277,7 @@ Xiong Changnian  C<< <xiong@cpan.org> >>
 
 =head1 LICENCE
 
-Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
+Copyright (C) 2011, 2013 Xiong Changnian C<< <xiong@cpan.org> >>
 
 This library and its contents are released under Artistic License 2.0:
 

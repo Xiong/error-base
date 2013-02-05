@@ -1,4 +1,4 @@
-#!/run/bin/perl
+#!/usr/bin/env perl
 #       bump.pl
 #       = Copyright 2010 Xiong Changnian <xiong@cpan.org> =
 #       = Free Software = Artistic License 2.0 = NO WARRANTY =
