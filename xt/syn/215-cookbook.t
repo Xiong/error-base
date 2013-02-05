@@ -45,7 +45,7 @@ BEGIN{
 
 #----------------------------------------------------------------------------#
 
-my @td  = Error::Base::Cookbook::get_test_data();
+my @td  = Error::Base::Cookbook::_get_test_data();
 
 #~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
 
