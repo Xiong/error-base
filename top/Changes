@@ -1,5 +1,10 @@
 Revision history for Error-Base
 
+v1.0.0  2013-02-04 16:38:29
+    - -mesg now accepts an array reference.
+    - Full set of get and put accessors.
+    - -top and -prepend_all deprecated. 
+
 v0.1.4  2011-11-19 16:10:47
     - Resolve issue with optional tests loading Test::Trap. 
 

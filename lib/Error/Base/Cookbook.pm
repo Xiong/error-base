@@ -47,15 +47,7 @@ This document describes Error::Base version v1.0.0
 
 =item *
 
-Stuff here. 
-
-=item *
-
-More stuff here. 
-
-=item *
-
-Still more stuff.
+Update examples to track API changes.
 
 =back
 
@@ -1242,7 +1234,7 @@ Xiong Changnian  C<< <xiong@cpan.org> >>
 
 =head1 LICENCE
 
-Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
+Copyright (C) 2011, 2013 Xiong Changnian C<< <xiong@cpan.org> >>
 
 This library and its contents are released under Artistic License 2.0:
 
