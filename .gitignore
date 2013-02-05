@@ -21,3 +21,6 @@ t/
 
 # Don't track backup files
 *~
+
+# Don't track README~
+README~
