@@ -3,7 +3,7 @@ package Error::Base::Cookbook;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v1.0.0');
+use version; our $VERSION = qv('v1.0.1');
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                           #
@@ -12,14 +12,14 @@ use version; our $VERSION = qv('v1.0.0');
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 my @td          ;
-sub get_test_data { @td };
+sub _get_test_data { @td };
 
 #~         -end    => 1,   # # # # # # # END TESTING HERE # # # # # # # # # 
 #~         -do     => 1, 
 
 #----------------------------------------------------------------------------#
 
-sub words {                         # sloppy match these strings
+sub _words {                         # sloppy match these strings
     my @words   = @_;
     my $regex   = q{};
     
@@ -39,7 +39,7 @@ Error::Base::Cookbook - Examples of Error::Base usage
 
 =head1 VERSION
 
-This document describes Error::Base version v1.0.0
+This document describes Error::Base version v1.0.1
 
 =head1 WHAT'S NEW
 
@@ -280,7 +280,7 @@ parameters as L<new()|Error::Base/new()>.
 #
             },
         -lby    => 'return-object',
-        -want   => words(qw/
+        -want   => _words(qw/
             bless frames eval file line package sub
             lines
                      at line
@@ -312,6 +312,18 @@ a full backtrace from the point of call. You might find it most useful when
 debugging your error handling itself; substitute 'crash' or 'crank' later. 
 
 =head2 Escalation
+
+=begin fool_pod_coverage
+
+Really think we don't want to document the dummies. 
+
+=head2 cook_dinner
+
+=head2 serve_chili
+
+=head2 add_recipie
+
+=end   fool_pod_coverage
 
 =cut
 
@@ -461,7 +473,7 @@ re-composed and re-formatted.
 #
             },
         -lby    => 'return-object',
-        -want   => words(qw/
+        -want   => _words(qw/
             bless frames eval file line package sub
             lines
                 houston
@@ -512,7 +524,7 @@ my $err     = Error::Base->new;
 #
             },
         -lby    => 'die',
-        -want   => words(qw/
+        -want   => _words(qw/
             undefined error
             error base fuss     at line
             error base crash    at line
@@ -534,7 +546,7 @@ my $err     = Error::Base->new;
 #
             },
         -lby    => 'die',
-        -want   => words(qw/
+        -want   => _words(qw/
             undefined error
                      at line
                      at line
@@ -907,6 +919,14 @@ in scope at the place where the error is thrown.
 
 =head2 Late Interpolation
 
+=begin fool_pod_coverage
+
+Really think we don't want to document the dummies. 
+
+=head2 bar
+
+=end   fool_pod_coverage
+
 =cut
 
 {   #
@@ -928,8 +948,9 @@ in scope at the place where the error is thrown.
     sub bar {
         my $err         = shift;
         my $filename    = 'debug246.log';
-        open( my $in_fh, '<', $filename )
-            or $err->crash(
+      # open( my $in_fh, '<', $filename )
+      # or 
+               $err->crash(
                             '$filename' => \$filename,
                         );      # 'Failed to open debug246.log for reading.'
     };

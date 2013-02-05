@@ -9,7 +9,7 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v0.1.4');
+use version; our $VERSION = qv('v1.0.0');
 
 # Core modules
 use overload                    # Overload Perl operations
@@ -206,7 +206,6 @@ sub _trace {
 #    $err->crash;                    # object method
 #    $err->crash( $text );           # object method; error text optional
 #    $err->crash( -base => $base );  # named argument okay
-#    $err->crash( -key  => '42'  );  # expand into -type
 #    $err->crash( -foo  => 'bar' );  # set Error::Base options now
 #    $err->crash( mybit => 'baz' );  # set your private stuff now
 #
@@ -361,7 +360,7 @@ sub _expand_ref {
 #~         return _join_local(@sorted);                # deref, sort, and join
 #~     } 
     else {
-        die 'Error::Base internal error: bad reftype';
+        die 'Error::Base internal error: bad reftype in _expand_ref';
     };
     
 }; ## _expand_ref
@@ -728,7 +727,7 @@ sub _late {
                 $sigil      = q{%};
             } 
             else {
-                die 'Error::Base internal error: bad reftype';
+                die 'Error::Base internal error: bad reftype in _late';
             };
             
             #        my $key = $sigil?$Error::Base::Late::self->{'$key'}?;
@@ -802,7 +801,7 @@ Error::Base - Simple structured errors with full backtrace
 
 =head1 VERSION
 
-This document describes Error::Base version v0.1.4
+This document describes Error::Base version v1.0.0
 
 =head1 WHAT'S NEW
 
@@ -810,15 +809,16 @@ This document describes Error::Base version v0.1.4
 
 =item *
 
-Stuff here. 
+You may now pass an array reference to L<-mesg|Error::Base/-mesg>. 
 
 =item *
 
-More stuff here. 
+You now have get and put L<accessors|Error::Base/ACCESSORS>. 
 
 =item *
 
-Still more stuff.
+Some elements of the API have changed. 
+C<-top> and C<-prepend_all> have been deprecated. 
 
 =back
 
@@ -1195,12 +1195,15 @@ C<-2..3>.
 You do I<not> have to pass paired arguments to most public methods. 
 Perhaps you passed an odd number of args to a private method. 
 
-=item C<< bad reftype >>
+=item C<< bad reftype in _late >>
 
 Perhaps you attempted to late-interpolate a reference other than to 
 a scalar, array, or hash. 
 Don't pass such references as values to any key with the wrong sigil. 
-Or you passed a hashref or coderef to C<-mesg>.
+
+=item C<< bad reftype in _expand_ref >>
+
+You passed a hashref or coderef to C<-mesg>. Pass a simple string or arrayref. 
 
 =item C<< no $self >>
 
@@ -1276,10 +1279,39 @@ Xiong Changnian  C<< <xiong@cpan.org> >>
 
 =head1 LICENCE
 
-Copyright (C) 2011 Xiong Changnian C<< <xiong@cpan.org> >>
+Copyright (C) 2011, 2013 Xiong Changnian C<< <xiong@cpan.org> >>
 
 This library and its contents are released under Artistic License 2.0:
 
 L<http://www.opensource.org/licenses/artistic-license-2.0.php>
+
+=begin fool_pod_coverage
+
+=over
+
+=item 
+
+put_base
+
+=back
+
+    $self               = $self->put_type($string);
+    $self               = $self->put_mesg($string);
+    $self               = $self->put_quiet($string_or_aryref);
+    $self               = $self->put_nest($signed_int);
+    $self               = $self->put_prepend($string);
+    $self               = $self->put_indent($string);
+    $string             = $self->get_base();
+    $string             = $self->get_type();
+    $string_or_aryref   = $self->get_mesg();
+    $boolean            = $self->get_quiet();
+    $signed_int         = $self->get_nest();
+    $string             = $self->get_prepend();
+    $string             = $self->get_indent();
+    $string             = $self->get_all();
+    @array_of_strings   = $self->get_lines();
+    @array of hashrefs  = $self->get_frames();
+
+=end   fool_pod_coverage
 
 =cut
