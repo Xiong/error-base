@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #       error-base-demo.pl
-#       = Copyright 2011 Xiong Changnian <xiong@cpan.org> =
+#       = Copyright 2011, 2013 Xiong Changnian <xiong@cpan.org> =
 #       = Free Software = Artistic License 2.0 = NO WARRANTY =
 
 use 5.008008;
