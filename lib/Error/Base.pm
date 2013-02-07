@@ -901,7 +901,6 @@ See the L<Error::Base::Cookbook|Error::Base::Cookbook> for examples.
                     _beer   => 'out of beer',   # your private attribute(s)
                 );
     my $err     = Error::Base->new(
-                        'Fourth',
                     -base       => 'First',
                     -type       => 'Second',
                     -mesg       => 'Third',
