@@ -9,7 +9,7 @@ package Error::Base;
 use 5.008008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('v1.0.0');
+use version; our $VERSION = qv('v1.0.1');
 
 # Core modules
 use overload                    # Overload Perl operations
@@ -206,7 +206,6 @@ sub _trace {
 #    $err->crash;                    # object method
 #    $err->crash( $text );           # object method; error text optional
 #    $err->crash( -base => $base );  # named argument okay
-#    $err->crash( -key  => '42'  );  # expand into -type
 #    $err->crash( -foo  => 'bar' );  # set Error::Base options now
 #    $err->crash( mybit => 'baz' );  # set your private stuff now
 #
@@ -361,7 +360,7 @@ sub _expand_ref {
 #~         return _join_local(@sorted);                # deref, sort, and join
 #~     } 
     else {
-        die 'Error::Base internal error: bad reftype';
+        die 'Error::Base internal error: bad reftype in _expand_ref';
     };
     
 }; ## _expand_ref
@@ -728,7 +727,7 @@ sub _late {
                 $sigil      = q{%};
             } 
             else {
-                die 'Error::Base internal error: bad reftype';
+                die 'Error::Base internal error: bad reftype in _late';
             };
             
             #        my $key = $sigil?$Error::Base::Late::self->{'$key'}?;
@@ -802,7 +801,7 @@ Error::Base - Simple structured errors with full backtrace
 
 =head1 VERSION
 
-This document describes Error::Base version v1.0.0
+This document describes Error::Base version v1.0.1
 
 =head1 WHAT'S NEW
 
@@ -902,7 +901,6 @@ See the L<Error::Base::Cookbook|Error::Base::Cookbook> for examples.
                     _beer   => 'out of beer',   # your private attribute(s)
                 );
     my $err     = Error::Base->new(
-                        'Fourth',
                     -base       => 'First',
                     -type       => 'Second',
                     -mesg       => 'Third',
@@ -1196,12 +1194,15 @@ C<-2..3>.
 You do I<not> have to pass paired arguments to most public methods. 
 Perhaps you passed an odd number of args to a private method. 
 
-=item C<< bad reftype >>
+=item C<< bad reftype in _late >>
 
 Perhaps you attempted to late-interpolate a reference other than to 
 a scalar, array, or hash. 
 Don't pass such references as values to any key with the wrong sigil. 
-Or you passed a hashref or coderef to C<-mesg>.
+
+=item C<< bad reftype in _expand_ref >>
+
+You passed a hashref or coderef to C<-mesg>. Pass a simple string or arrayref. 
 
 =item C<< no $self >>
 
@@ -1282,5 +1283,46 @@ Copyright (C) 2011, 2013 Xiong Changnian C<< <xiong@cpan.org> >>
 This library and its contents are released under Artistic License 2.0:
 
 L<http://www.opensource.org/licenses/artistic-license-2.0.php>
+
+=begin fool_pod_coverage
+
+No, I'm not just lazy. I think it's counterproductive to give each accessor 
+its very own section. Sorry if you disagree. 
+
+=head2 put_base
+
+=head2 put_type
+
+=head2 put_mesg
+
+=head2 put_quiet
+
+=head2 put_nest
+
+=head2 put_prepend
+
+=head2 put_indent
+
+=head2 get_base
+
+=head2 get_type
+
+=head2 get_mesg
+
+=head2 get_quiet
+
+=head2 get_nest;
+
+=head2 get_prepend
+
+=head2 get_indent
+
+=head2 get_all
+
+=head2 get_lines
+
+=head2 get_frames
+
+=end   fool_pod_coverage
 
 =cut

@@ -1,5 +1,9 @@
 Revision history for Error-Base
 
+v1.0.1  2013-02-07 13:31:10
+    - Fix Test::Deep smoke failures.
+    - 100% test and POD coverage.
+
 v1.0.0  2013-02-04 16:38:29
     - -mesg now accepts an array reference.
     - Full set of get and put accessors.

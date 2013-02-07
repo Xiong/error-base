@@ -8,6 +8,12 @@ my $QRTRUE       = $Error::Base::QRTRUE    ;
 my $QRFALSE      = $Error::Base::QRFALSE   ;
 
 #----------------------------------------------------------------------------#
+#
+# The -key param was removed long ago; dunno why this was left in t/go. 
+# Oddly enough, the test passes; so the test script itself is broken. 
+#       DO NOT USE
+#
+#----------------------------------------------------------------------------#
 
 my $err     = Error::Base->new(
                 -base       => '',
@@ -103,7 +109,7 @@ my $want        ;
 
 # Extra-verbose dump optional for test script debug.
 my $Verbose     = 0;
-#~    $Verbose++;
+   $Verbose++;
 
 for (@td) {
     last if $_->{-end};
