@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::Deep;
 use Storable (qw( dclone ));
 
 use Error::Base;
@@ -36,7 +35,7 @@ BEGIN{
         note($diag);
     }
     else {
-        diag('Test::Trap required to execute this test script; skipping.');
+        diag('Test::Trap required for this test script; skipping.');
         pass;
         done_testing(1);
         exit 0;
@@ -306,7 +305,7 @@ sub exck {
         $diag           = 'return-compare';
         $got            = $trap->return(0);
         $want           = $trap->return(1);
-        cmp_deeply          ( $got, $want, $diag );
+        is_deeply           ( $got, $want, $diag );
         $diag           = 'return-quietly';
         $trap->quiet        ( $diag ) unless $cranky;
     
