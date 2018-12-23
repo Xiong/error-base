@@ -534,8 +534,7 @@ sub put_indent {
 # For internal use only
 sub _fix_pre_ind {
     my $self            = shift;
-    my $indent          ;
-    my $case            ;
+    my $case            = q{};
     
     $case   = $case . ( defined $self->{-prepend} ? 'P' : '-' );
     $case   = $case . ( defined $self->{-indent}  ? 'I' : '-' );
